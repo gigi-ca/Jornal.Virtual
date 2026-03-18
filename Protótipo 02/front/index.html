@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jornal Virtual</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    
+<div class="logo">
+<img src="logo3.png" alt="Logo">
+</div>
+
+<nav>
+<a href="#">Home</a>
+<a href="#">feed</a>
+<a href="#">minha conta</a>
+<a href="#">mensagens</a>
+<a href="#">Configurações</a>
+</nav>
+
+
+<div class="new">
+<button onclick="abrirModal()">Nova Notícia</button> </div>
+
+</header>
+
+
+<main class="container">
+
+<!-- Destaque -->
+<section class="destaque">
+
+<img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399">
+
+<div class="texto">
+<h1>Alunos Lideram Projeto de Sustentabilidade com nutricionistas</h1>
+<button>Ler mais</button>
+</div>
+
+</section>
+
+
+<!-- Lateral -->
+<aside class="lateral">
+
+<div class="box">
+<h3>Destaques Semanais</h3>
+
+<div class="mini-noticia">
+<img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b">
+<p>Feira de Ciências 2026</p>
+</div>
+
+<div class="mini-noticia">
+<img src="https://images.unsplash.com/photo-1509062522246-3755977927d7">
+<p>Horta Sustentável 2026</p>
+</div>
+
+</div>
+
+<div class="box">
+<h3>Próximos Eventos</h3>
+<p>10 - Feira de Ciências</p>
+<p>15 - Mostra Cultural</p>
+<p>20 - Apresentação de Teatro</p>
+</div>
+
+</aside>
+
+
+<!-- Notícias -->
+<section class="noticias" id="noticias"></section>
+
+</main>
+
+
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+
+<form id="formNoticia" class="modal-content">
+
+<h2>Nova notícia</h2>
+
+<input type="file" id="imagem">
+
+<input type="text" id="titulo" placeholder="Título">
+
+<input type="text" id="autor" placeholder="Autor">
+
+<input type="date" id="data">
+
+<textarea id="texto" placeholder="Texto da notícia"></textarea>
+
+<div class="modal-buttons">
+
+<button type="submit">Salvar</button>
+
+<button type="button" onclick="fecharModal()">Cancelar</button>
+
+</div>
+
+</form>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
