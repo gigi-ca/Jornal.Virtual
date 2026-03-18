@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Noticias {
+  id             Int      @id @default(autoincrement())
+  titulo         String
+  sub_titulo     String
+  texto          String
+  imagem         String
+  video          String
+  data_hora      DateTime @default(now())
+  atualizar_data DateTime @updatedAt
+
+  comentario Comentario[]
+
+  usuarios  Usuarios? @relation(fields: [usuarioId], references: [id])
+  usuarioId Int?
+  hastag    Hastag?   @relation(fields: [hastagId], references: [id])
+  hastagId  Int?
+}
+
+model Usuarios {
+  id     Int    @id @default(autoincrement())
+  nome   String
+  senha  String
+  email  String @unique
+  tipo   String
+  imagem String
+
+  noticia    Noticias[]
+  comentario Comentario[]
+  grupos     UsuariosPorGrupos[]
+  mensagem Mensagens[]
+}
+
+model Hastag {
+  id        Int    @id @default(autoincrement())
+  categoria String
+
+  noticia Noticias[]
+}
+
+model Comentario {
+  id             Int      @id @default(autoincrement())
+  texto          String
+  data_hora      DateTime @default(now())
+  atualizar_data DateTime @updatedAt
+
+  noticias   Noticias? @relation(fields: [noticiasId], references: [id])
+  noticiasId Int?
+  usuarios   Usuarios? @relation(fields: [usuarioId], references: [id])
+  usuarioId  Int?
+}
+
+model Grupos {
+  id             Int      @id @default(autoincrement())
+  nome           String
+  descricao      String
+  data_hora      DateTime @default(now())
+  atualizar_data DateTime @updatedAt
+
+  usuarios UsuariosPorGrupos[]
+  mensagem Mensagens[]
+}
+
+model UsuariosPorGrupos {
+  id Int @id @default(autoincrement())
+
+  usuarios   Usuarios? @relation(fields: [usuariosId], references: [id])
+  usuariosId Int?
+  grupos     Grupos?   @relation(fields: [gruposId], references: [id])
+  gruposId   Int?
+}
+
+model Mensagens {
+  id             Int      @id @default(autoincrement())
+  texto          String
+  data_hora      DateTime @default(now())
+  atualizar_data DateTime @updatedAt
+
+  usuarios   Usuarios? @relation(fields: [usuariosId], references: [id])
+  usuariosId Int?
+  grupos     Grupos?   @relation(fields: [gruposId], references: [id])
+  gruposId   Int?
+}

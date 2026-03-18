@@ -1,0 +1,355 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-11T12:18:18.049Z",
+  "__export_source": "backend-aula",
+  "resources": [
+    {
+      "_id": "wrk_backend",
+      "_type": "workspace",
+      "name": "Backend Aula"
+    },
+    {
+      "_id": "fld_Back",
+      "_type": "request_group",
+      "parentId": "wrk_backend",
+      "name": "Back"
+    },
+    {
+      "_id": "fld_Noticias",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "Noticias"
+    },
+    {
+      "_id": "req_Noticias_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Noticias",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/noticias/listar"
+    },
+    {
+      "_id": "req_Noticias_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Noticias",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/noticias/buscar/:id"
+    },
+    {
+      "_id": "req_Noticias_POST",
+      "_type": "request",
+      "parentId": "fld_Noticias",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/noticias/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"string\",\n  \"sub_titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagem\": \"string\",\n  \"video\": \"string\",\n  \"usuarioId\": 0,\n  \"hastagId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_Noticias_PUT",
+      "_type": "request",
+      "parentId": "fld_Noticias",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/noticias/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"string\",\n  \"sub_titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagem\": \"string\",\n  \"video\": \"string\",\n  \"usuarioId\": 0,\n  \"hastagId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_Noticias_DELETE",
+      "_type": "request",
+      "parentId": "fld_Noticias",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/noticias/excluir/:id"
+    },
+    {
+      "_id": "fld_Usuarios",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "Usuarios"
+    },
+    {
+      "_id": "req_Usuarios_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Usuarios",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/usuarios/listar"
+    },
+    {
+      "_id": "req_Usuarios_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Usuarios",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/usuarios/buscar/:id"
+    },
+    {
+      "_id": "req_Usuarios_POST",
+      "_type": "request",
+      "parentId": "fld_Usuarios",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/usuarios/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"string\",\n  \"senha\": \"string\",\n  \"email\": \"string\",\n  \"tipo\": \"string\",\n  \"imagem\": \"string\"\n}"
+      }
+    },
+    {
+      "_id": "req_Usuarios_PUT",
+      "_type": "request",
+      "parentId": "fld_Usuarios",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/usuarios/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"string\",\n  \"senha\": \"string\",\n  \"email\": \"string\",\n  \"tipo\": \"string\",\n  \"imagem\": \"string\"\n}"
+      }
+    },
+    {
+      "_id": "req_Usuarios_DELETE",
+      "_type": "request",
+      "parentId": "fld_Usuarios",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/usuarios/excluir/:id"
+    },
+    {
+      "_id": "fld_Hastag",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "Hastag"
+    },
+    {
+      "_id": "req_Hastag_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Hastag",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/hastag/listar"
+    },
+    {
+      "_id": "req_Hastag_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Hastag",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/hastag/buscar/:id"
+    },
+    {
+      "_id": "req_Hastag_POST",
+      "_type": "request",
+      "parentId": "fld_Hastag",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/hastag/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"categoria\": \"string\"\n}"
+      }
+    },
+    {
+      "_id": "req_Hastag_PUT",
+      "_type": "request",
+      "parentId": "fld_Hastag",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/hastag/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"categoria\": \"string\"\n}"
+      }
+    },
+    {
+      "_id": "req_Hastag_DELETE",
+      "_type": "request",
+      "parentId": "fld_Hastag",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/hastag/excluir/:id"
+    },
+    {
+      "_id": "fld_Comentario",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "Comentario"
+    },
+    {
+      "_id": "req_Comentario_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Comentario",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/comentario/listar"
+    },
+    {
+      "_id": "req_Comentario_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Comentario",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/comentario/buscar/:id"
+    },
+    {
+      "_id": "req_Comentario_POST",
+      "_type": "request",
+      "parentId": "fld_Comentario",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/comentario/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-11T12:18:18.042Z\",\n  \"noticiasId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_Comentario_PUT",
+      "_type": "request",
+      "parentId": "fld_Comentario",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/comentario/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-11T12:18:18.042Z\",\n  \"noticiasId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_Comentario_DELETE",
+      "_type": "request",
+      "parentId": "fld_Comentario",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/comentario/excluir/:id"
+    }
+  ]
+}
