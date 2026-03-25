@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Jornal Virtual',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'IBM Serif',
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFD52E5D), 
           brightness: Brightness.light,
