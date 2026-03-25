@@ -7,13 +7,15 @@ const {
     listar, 
     buscar, 
     atualizar, 
-    excluir } = require("../controllers/usuarios.controller");
-const { validaAdm } = require("../middlewares/validaCargo");
+    excluir,
+Login } = require("../controllers/usuarios.controller");
+const { validate } = require("../middlewares/auth.js");
 
-router.post("/cadastrar", cadastrar, validaAdm);
-router.get("/listar", listar, validaAdm);
-router.get("/buscar/:id", buscar, validaAdm);
-router.put("/atualizar/:id", atualizar, validaAdm);
-router.delete("/excluir/:id", excluir, validaAdm);
+router.post("/usuarios/login", Login);
+router.post("/usuarios/cadastrar", validate, cadastrar);
+router.get("/usuarios/listar", validate, listar);
+router.get("/usuarios/buscar/:id", validate,buscar);
+router.put("/usuarios/atualizar/:id", validate, atualizar);
+router.delete("/usuarios/excluir/:id", validate, excluir);
 
 module.exports = router;

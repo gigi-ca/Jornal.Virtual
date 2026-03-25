@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2026-03-11T12:18:18.049Z",
+  "__export_date": "2026-03-25T14:21:36.260Z",
   "__export_source": "backend-aula",
   "resources": [
     {
@@ -64,7 +64,7 @@
       "url": "http://localhost:3000/noticias/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"titulo\": \"string\",\n  \"sub_titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagem\": \"string\",\n  \"video\": \"string\",\n  \"usuarioId\": 0,\n  \"hastagId\": 0\n}"
+        "text": "{\n  \"titulo\": \"string\",\n  \"sub_titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagem\": \"string\",\n  \"video\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.249Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\",\n  \"usuarioId\": 0,\n  \"hastagId\": 0\n}"
       }
     },
     {
@@ -82,7 +82,7 @@
       "url": "http://localhost:3000/noticias/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"titulo\": \"string\",\n  \"sub_titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagem\": \"string\",\n  \"video\": \"string\",\n  \"usuarioId\": 0,\n  \"hastagId\": 0\n}"
+        "text": "{\n  \"titulo\": \"string\",\n  \"sub_titulo\": \"string\",\n  \"texto\": \"string\",\n  \"imagem\": \"string\",\n  \"video\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.249Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\",\n  \"usuarioId\": 0,\n  \"hastagId\": 0\n}"
       }
     },
     {
@@ -316,7 +316,7 @@
       "url": "http://localhost:3000/comentario/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-11T12:18:18.042Z\",\n  \"noticiasId\": 0\n}"
+        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.260Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\",\n  \"noticiasId\": 0,\n  \"usuarioId\": 0\n}"
       }
     },
     {
@@ -334,7 +334,7 @@
       "url": "http://localhost:3000/comentario/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-11T12:18:18.042Z\",\n  \"noticiasId\": 0\n}"
+        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.260Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\",\n  \"noticiasId\": 0,\n  \"usuarioId\": 0\n}"
       }
     },
     {
@@ -350,6 +350,258 @@
       "name": "Excluir",
       "method": "DELETE",
       "url": "http://localhost:3000/comentario/excluir/:id"
+    },
+    {
+      "_id": "fld_Grupos",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "Grupos"
+    },
+    {
+      "_id": "req_Grupos_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Grupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/grupos/listar"
+    },
+    {
+      "_id": "req_Grupos_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Grupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/grupos/buscar/:id"
+    },
+    {
+      "_id": "req_Grupos_POST",
+      "_type": "request",
+      "parentId": "fld_Grupos",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/grupos/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"string\",\n  \"descricao\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.260Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\"\n}"
+      }
+    },
+    {
+      "_id": "req_Grupos_PUT",
+      "_type": "request",
+      "parentId": "fld_Grupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/grupos/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"string\",\n  \"descricao\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.260Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\"\n}"
+      }
+    },
+    {
+      "_id": "req_Grupos_DELETE",
+      "_type": "request",
+      "parentId": "fld_Grupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/grupos/excluir/:id"
+    },
+    {
+      "_id": "fld_UsuariosPorGrupos",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "UsuariosPorGrupos"
+    },
+    {
+      "_id": "req_UsuariosPorGrupos_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_UsuariosPorGrupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/usuariosporgrupos/listar"
+    },
+    {
+      "_id": "req_UsuariosPorGrupos_GET_ID",
+      "_type": "request",
+      "parentId": "fld_UsuariosPorGrupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/usuariosporgrupos/buscar/:id"
+    },
+    {
+      "_id": "req_UsuariosPorGrupos_POST",
+      "_type": "request",
+      "parentId": "fld_UsuariosPorGrupos",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/usuariosporgrupos/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"usuariosId\": 0,\n  \"gruposId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_UsuariosPorGrupos_PUT",
+      "_type": "request",
+      "parentId": "fld_UsuariosPorGrupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/usuariosporgrupos/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"usuariosId\": 0,\n  \"gruposId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_UsuariosPorGrupos_DELETE",
+      "_type": "request",
+      "parentId": "fld_UsuariosPorGrupos",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/usuariosporgrupos/excluir/:id"
+    },
+    {
+      "_id": "fld_Mensagens",
+      "_type": "request_group",
+      "parentId": "fld_Back",
+      "name": "Mensagens"
+    },
+    {
+      "_id": "req_Mensagens_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Mensagens",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/mensagens/listar"
+    },
+    {
+      "_id": "req_Mensagens_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Mensagens",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/mensagens/buscar/:id"
+    },
+    {
+      "_id": "req_Mensagens_POST",
+      "_type": "request",
+      "parentId": "fld_Mensagens",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/mensagens/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.260Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\",\n  \"usuariosId\": 0,\n  \"gruposId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_Mensagens_PUT",
+      "_type": "request",
+      "parentId": "fld_Mensagens",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/mensagens/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"texto\": \"string\",\n  \"data_hora\": \"2026-03-25T14:21:36.260Z\",\n  \"atualizar_data\": \"2026-03-25T14:21:36.260Z\",\n  \"usuariosId\": 0,\n  \"gruposId\": 0\n}"
+      }
+    },
+    {
+      "_id": "req_Mensagens_DELETE",
+      "_type": "request",
+      "parentId": "fld_Mensagens",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/mensagens/excluir/:id"
     }
   ]
 }

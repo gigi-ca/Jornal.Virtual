@@ -1,7 +1,7 @@
 const validaAdm = (req, res, next) => {
     const usuario = req.headers['user'];
 
-    if (usuario.tipo.toLowerCase() === 'administrador') {
+    if (usuario.tipo.toLowerCase() === 'Administrador') {
         next();
     }else{
         res.status(401).json({
@@ -14,7 +14,7 @@ const validaAdm = (req, res, next) => {
 const validaVerificado= (req, res, next) => {
     const usuario = req.headers['user'];
 
-    if (usuario.tipo.toLowerCase() === 'verificado'|| usuario.tipo.toLowerCase() === 'administrador') {
+    if (usuario.tipo.toLowerCase() === 'Verificado'|| usuario.tipo.toLowerCase() === 'Administrador') {
         next();
     }else{
         res.status(401).json({
@@ -27,7 +27,7 @@ const validaVerificado= (req, res, next) => {
 const validaAlunos= (req, res, next) => {
     const usuario = req.headers['user'];
 
-    if (usuario.tipo.toLowerCase() === 'aluno'|| usuario.tipo.toLowerCase() === 'administrador') {
+    if (usuario.tipo.toLowerCase() === 'Aluno'|| usuario.tipo.toLowerCase() === 'Administrador') {
         next();
     }else{
         res.status(401).json({
@@ -36,6 +36,7 @@ const validaAlunos= (req, res, next) => {
     }
     
 };
+
 
 
 

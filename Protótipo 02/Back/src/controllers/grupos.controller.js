@@ -4,7 +4,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const cadastrar = async (req, res) => {
     const data = req.body;
 
-    const item = await prisma.noticias.create({
+    const item = await prisma.grupos.create({
         data
     });
 
@@ -12,7 +12,7 @@ const cadastrar = async (req, res) => {
 };
 
 const listar = async (req, res) => {
-    const lista = await prisma.noticias.findMany();
+    const lista = await prisma.grupos.findMany();
 
     res.json(lista).status(200).end();
 };
@@ -20,7 +20,7 @@ const listar = async (req, res) => {
 const buscar = async (req, res) => {
     const { id } = req.params;
     
-    const item = await prisma.noticias.findUnique({
+    const item = await prisma.grupos.findUnique({
         where: { id : Number(id) }
     });
 
@@ -31,7 +31,7 @@ const atualizar = async (req, res) => {
     const { id } = req.params;
     const dados = req.body;
     
-    const item = await prisma.noticias.update({
+    const item = await prisma.grupos.update({
         where: { id : Number(id) },
         data: dados
     });
@@ -42,7 +42,7 @@ const atualizar = async (req, res) => {
 const excluir = async (req, res) => {
     const { id } = req.params;
     
-    const item = await prisma.noticias.delete({
+    const item = await prisma.grupos.delete({
         where: { id : Number(id) }
     });
 
