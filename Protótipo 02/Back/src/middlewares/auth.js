@@ -1,5 +1,5 @@
 const jsonwebtoken = require("jsonwebtoken");
-const prisma = require("../data/prisma");  // Importar no topo para eficiência
+const prisma = require("../data/prisma"); 
 
 const validate = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
@@ -10,20 +10,20 @@ const validate = (req, res, next) => {
     
     try {
         const payload = jsonwebtoken.verify(token, process.env.SECRET_JWT);
-        req.user = payload;  // Usar req.user em vez de req.headers['user']
+        req.user = payload;  
         next();
     } catch (err) {
-        console.error("Erro na validação do token:", err);  // Logar erro para depuração
-        res.status(500).send({ message: "Token inválido" });  // Mensagem genérica
+        console.error("Erro na validação do token:", err);  
+        res.status(500).send({ message: "Token inválido" });  
     }
 };
 
 const excluircomentario = async (req, res, next) => {
-    const usuario = req.user;  // Usar req.user em vez de req.headers['user']
+    const usuario = req.user;  
     const { id } = req.params;
 
     try {
-        // Buscar o comentário para verificar o autor
+        
         const comentario = await prisma.comentario.findUnique({
             where: { id: Number(id) }
         });
@@ -32,10 +32,10 @@ const excluircomentario = async (req, res, next) => {
             return res.status(404).json({ msg: "Comentário não encontrado" });
         }
 
-        // Verificar se o usuário é o autor, administrador ou verificado
+        
         if (usuario.id === comentario.usuarioId ||
-            usuario.tipo.toLowerCase() === 'administrador' ||
-            usuario.tipo.toLowerCase() === 'verificado') {
+            usuario.tipo.toLowerCase() === 'Administrador' ||
+            usuario.tipo.toLowerCase() === 'Verificado') {
             next();
         } else {
             res.status(401).json({
@@ -43,12 +43,45 @@ const excluircomentario = async (req, res, next) => {
             });
         }
     } catch (error) {
-        console.error("Erro ao verificar comentário:", error);  // Logar erro
+        console.error("Erro ao verificar comentário:", error);  
         res.status(500).json({ msg: "Erro interno do servidor" });
     }
 };
 
+const excluirmensagem = async(req, res) => {
+ const usuario = req.user;  
+    const { id } = req.params;
+
+    try {
+        
+        const comentario = await prisma.comentario.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!comentario) {
+            return res.status(404).json({ msg: "Mensagem não encontrada" });
+        }
+
+        
+        if (usuario.id === comentario.usuarioId ||
+            usuario.tipo.toLowerCase() === 'Administrador' ||
+            usuario.tipo.toLowerCase() === 'Verificado') {
+            next();
+        } else {
+            res.status(401).json({
+                msg: "usuário sem permissão"
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao verificar mmensagem:", error);  
+        res.status(500).json({ msg: "Erro interno do servidor" });
+    }
+}
+
+
 module.exports = {
     validate,
-    excluircomentario
+    excluircomentario,
+    excluirmensagem
 };
+

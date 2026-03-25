@@ -8,12 +8,13 @@ const {
     buscar, 
     atualizar, 
     excluir } = require("../controllers/noticias.controller");
-const { validaAdm, validaVerificado } = require("../middlewares/validaCargo");
 
-router.post("/cadastrar", cadastrar);
-router.get("/listar", listar);
-router.get("/buscar/:id", buscar);
-router.put("/atualizar/:id", atualizar, validaVerificado);
-router.delete("/excluir/:id", excluir, validaVerificado);
+const { validate } = require("../middlewares/auth");
+
+router.post("/cadastrar", cadastrar, validate);
+router.get("/listar", listar, validate);
+router.get("/buscar/:id", buscar, validate);
+router.put("/atualizar/:id", atualizar, validate);
+router.delete("/excluir/:id", excluir, validate);
 
 module.exports = router;

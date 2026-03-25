@@ -1,4 +1,5 @@
 const prisma = require("../data/prisma");
+const jsonwebtoken = require("jsonwebtoken");
 
 const cadastrar = async (req, res) => {
     const data = req.body;

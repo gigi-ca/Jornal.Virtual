@@ -7,13 +7,13 @@ const {
     listar, 
     buscar, 
     atualizar, 
-    excluir } = require("../controllers/hastag.controller");
-    const { validate } = require("../middlewares/auth");    
+    excluir } = require("../controllers/mensagens.controller");
+const { validate } = require("../middlewares/auth");
 
 router.post("/cadastrar", cadastrar, validate);
 router.get("/listar", listar, validate);
 router.get("/buscar/:id", buscar, validate);
 router.put("/atualizar/:id", atualizar, validate);
-router.delete("/excluir/:id", excluir);
+router.delete("/excluir/:id", excluir, validate);
 
 module.exports = router;
