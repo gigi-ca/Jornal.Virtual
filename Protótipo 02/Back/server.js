@@ -17,13 +17,13 @@ const hastagRoutes = require('./src/routes/hastag.routes');
 const usuariosRoutes = require('./src/routes/usuarios.routes');
 const noticiasRoutes = require('./src/routes/noticias.routes');
 
-app.use(mensagensRoutes);
-app.use(usuariosporgruposRoutes);
-app.use(gruposRoutes);
-app.use(comentarioRoutes);
-app.use(hastagRoutes);
-app.use(usuariosRoutes);
-app.use(noticiasRoutes);
+app.use('/mensagens', mensagensRoutes);
+app.use('/usuariosporgrupos', usuariosporgruposRoutes);
+app.use('/grupos', gruposRoutes);
+app.use('/comentarios', comentarioRoutes);
+app.use('/hastags', hastagRoutes);
+app.use('/usuarios', usuariosRoutes);
+app.use('/noticias', noticiasRoutes);
 
 
 app.listen(3000, () => {
