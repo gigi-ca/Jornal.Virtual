@@ -39,12 +39,10 @@
       </button>
     </form>
 
-    <!-- Mensagem de sucesso -->
     <div class="success-message" id="successMessage">
       ✅ Senha redefinida com sucesso!
     </div>
 
-    <!-- Mensagem de erro -->
     <div class="error-message" id="errorMessage">
       ❌ Erro ao redefinir senha
     </div>
@@ -61,7 +59,6 @@
     const successMessage = document.getElementById('successMessage');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Máscara CPF
     cpfInput.addEventListener('input', function(e) {
       let value = e.target.value.replace(/\D/g, '');
       value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -76,7 +73,6 @@
       }
     });
 
-    // Validação senha em tempo real
     newPassword.addEventListener('input', validatePassword);
     confirmPassword.addEventListener('input', validatePassword);
 
@@ -105,7 +101,7 @@
       const confirm = confirmPassword.value;
       const btnText = submitBtn.innerHTML;
       
-      // Validações
+      
       if (cpf.length !== 11) {
         showError('CPF inválido!');
         cpfInput.focus();
@@ -124,11 +120,9 @@
         return;
       }
 
-      // Efeito loading
       submitBtn.classList.add('loading');
       submitBtn.innerHTML = '';
       
-      // Simula processamento
       setTimeout(() => {
         submitBtn.classList.remove('loading');
         submitBtn.innerHTML = btnText;
@@ -137,11 +131,9 @@
         successMessage.style.display = 'block';
         successMessage.scrollIntoView({ behavior: 'smooth' });
         
-        // Limpa formulário
         form.reset();
         cpfInput.focus();
         
-        // Redireciona após 2s
         setTimeout(() => {
           window.location.href = 'inicio.html';
         }, 2000);
@@ -160,12 +152,11 @@
       errorMessage.style.display = 'none';
     }
 
-    // Auto-foco inicial
     cpfInput.focus();
   </script>
 
   <style>
-    /* Adições específicas para este formulário */
+  
     .error-message {
       background: linear-gradient(135deg, #ff6b6b, #ee5a52);
       color: white;

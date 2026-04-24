@@ -368,7 +368,7 @@ transform:translateY(-1px);
 transform:translateY(0);
 box-shadow:0 1px 5px rgba(220, 53, 69, 0.3);
 }
-/* Corpo da página */
+
 .inicio-body {
     background-color: #f2f2f2;
     background-image: url('fundoo.png');
@@ -386,13 +386,11 @@ box-shadow:0 1px 5px rgba(220, 53, 69, 0.3);
 }
 
 
-/* Logo */
 .inicio-img {
     width: 250px;
     margin: 20px 0;
 }
 
-/* Texto LOGIN */
 .inicio-cor {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 22px;
@@ -400,7 +398,6 @@ box-shadow:0 1px 5px rgba(220, 53, 69, 0.3);
     color: #d52e5d;
 }
 
-/* Tabela */
 .inicio-table {
     margin: 20px auto;
     padding: 20px;
@@ -409,7 +406,6 @@ box-shadow:0 1px 5px rgba(220, 53, 69, 0.3);
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* Campos */
 .inicio-table input {
     padding: 8px;
     border-radius: 5px;
@@ -431,12 +427,10 @@ a {
     text-align: center;
 }
 
-/* Hover dos links */
 a:hover {
     background-color: #ff024a90;
 }
 
-/* Linha */
 hr {
     margin: 20px 0;
 }
@@ -483,7 +477,6 @@ hr {
   box-shadow: 0 6px 12px rgba(255, 247, 247, 0.15);
 }
 
-/* topo */
 .sairc {
   display: flex;
   justify-content: flex-end;
@@ -524,12 +517,10 @@ hr {
   font-size: 14px;
 }
 
-/* destaque leve ao passar o mouse */
 .item:hover {
   background: #ececec;
 }
 
-/* botão sair conta */
 .sairconta {
   background: #ffe5e5;
   color: #fb28b1;
@@ -569,7 +560,7 @@ form button {
   margin-top: 15px;
   border: none;
   border-radius: 12px;
-  background: #e5218d;
+  background: #ffb1dc;
   color: white;
   font-weight: bold;
   cursor: pointer;
