@@ -30,13 +30,19 @@ model Usuarios {
   nome   String
   senha  String
   email  String @unique
-  tipo   String
+  tipo   TiposUsuarios
   imagem String
 
   noticia    Noticias[]
   comentario Comentario[]
   grupos     UsuariosPorGrupos[]
   mensagem Mensagens[]
+}
+
+enum TiposUsuarios{
+  VERIFICADO
+  ALUNO
+  ADMINISTRADOR
 }
 
 model Hastag {
