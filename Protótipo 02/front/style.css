@@ -218,8 +218,6 @@ object-fit:contain;
 }
 
 
-
-
 /* modal */
 
 .modal{
@@ -469,8 +467,135 @@ hr {
 
 
 .containerconf {
+
+  margin: 200px;
+  background: rgb(255, 163, 223);
+  color: rgb(255, 62, 184);
+  border: none;
+  padding: 50px 40px;
+  width: 700px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  max-width: 140px;
+  box-shadow: 0 6px 12px rgba(255, 247, 247, 0.15);
+}
+
+/* topo */
+.sairc {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 30px;
+  justify-content: flex-end;
+  padding: 20px 30px;
+}
+
+.sair {
+  text-decoration: none;
+  background: #cb1d66;
+  color:#ccc;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* container */
+.containerconf {
+  width: 340px;
+  margin: 80px   auto;
+  background: #f72c65d0;
+  padding: 60x;
+  border-radius:50;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+/* itens */
+.item {
+  display: block;
+  text-decoration: none;
+  background: #e3377cb8;
+  color: #333;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* destaque leve ao passar o mouse */
+.item:hover {
+  background: #ececec;
+}
+
+/* botão sair conta */
+.sairconta {
+  background: #ffe5e5;
+  color: #fb28b1;
+  border: 1px solid #f5bcbc;
+}
+
+.sairconta:hover {
+  background: #ffd6d6;
+}
+ .containerconf h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+
+/* título */
+.containerconf h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* inputs */
+form input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+/* botão */
+form button {
+  width: 50%;
+  padding: 12px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #e5218d;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* botão voltar */
+.voltar {
+  display: block;
+  margin-top: 15px;
+  text-decoration: none;
+  color: #666;
+  font-size: 14px;
+}
+.containersenha {
+  width: 90%;
+  max-width: 450px;   /* limite máximo */
+  margin: 80px auto;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.esqueceusenha h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 22px;
 }

@@ -1,44 +1,127 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>A Voz do Sesi</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jornal Virtual</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
+<body>
 
-<body class="inicio-body">
-
+<header>
     
+<div class="logo">
+<img src="newss.png" alt="Logo">
+</div>
 
-    <img class="inicio-img" src="logo.png" alt="Logo A Voz do Sesi">
+<nav>
+<a href="login.html">Login</a>
+<a href="#">feed</a>
+<a href="#">minha conta</a>
 
-    <p class="inicio-cor">LOGIN</p>
-    <br>
+<a href="configuracoes.html">Configurações</a>
+</nav>
 
-    <table class="inicio-table">
-        <tr>
 
-            
-            <td><b>E-mail</b></td>
-            <td><input type="email" placeholder="Digite seu e-mail"></td>
-        </tr>
-        <tr>
-            <td><b>Senha</b></td>
-            <td><input type="password" 
-              ></td>
-        </tr>
-    </table>
+<div class="new">
+<button onclick="abrirModal()">Nova Notícia</button> </div>
 
-    
+</header>
 
-    <div>
-        <a href="index.html">Entrar</a><br>
-        <a href="esqueceu.html">Esqueceu a senha?</a><br>
-        <a href="administrador.html">Entrar como Administrador</a>
+
+<main class="container">
+
+<!-- Destaque -->
+<section class="destaque">
+  <div class="carousel" id="carousel">
+    <div class="slide active" data-text="Ação de alunos e nutricionistas implantando práticas sustentáveis na escola, incluindo hortas, redução de resíduos e alimentação saudável.">
+      <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399" alt="Sustentabilidade">
+      <div class="texto">
+        <h1>Alunos Lideram Projeto de Sustentabilidade com nutricionistas</h1>
+        <button class="ler-mais">Ler mais</button>
+      </div>
     </div>
 
+    <div class="slide" data-text="Mostra de projetos científicos com experimentos, palestras e inovações feitas por alunos, apoiados por professores e parceiros.">
+      <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7" alt="Feira de Ciências">
+      <div class="texto">
+        <h1>Feira de Ciências 2026: Inovação em Destaque</h1>
+        <button class="ler-mais">Ler mais</button>
+      </div>
+    </div>
+
+    <div class="slide" data-text="O plantio de hortas no ambiente escolar incentiva aprendizado prático, alimentação saudável e conexão com a natureza." >
+      <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b" alt="Horta Sustentável">
+      <div class="texto">
+        <h1>Horta Sustentável: Ação e Conhecimento</h1>
+        <button class="ler-mais">Ler mais</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="carousel-control prev" onclick="mudaSlide(-1)">‹</button>
+  <button class="carousel-control next" onclick="mudaSlide(1)">›</button>
+</section>
+
+
+
+
+</div>
+
+
+
+
+
+<!-- Notícias -->
+<section class="noticias" id="noticias"></section>
+
+</main>
+
+
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+
+<form id="formNoticia" class="modal-content">
+
+<h2>Nova notícia</h2>
+
+<input type="file" id="imagem">
+
+<input type="text" id="titulo" placeholder="Título">
+
+<input type="text" id="autor" placeholder="Autor">
+
+<input type="date" id="data">
+
+<textarea id="texto" placeholder="Texto da notícia"></textarea>
+
+<div class="modal-buttons">
+
+<button type="submit">Salvar</button>
+
+<button type="button" onclick="fecharModal()">Cancelar</button>
+
+</div>
+
+</form>
+
+</div>
+
+<!-- MODAL VER MAIS -->
+<div id="modalNoticia" class="modal">
+  <div class="modal-content">
+    <span onclick="fecharNoticia()" style="cursor:pointer; font-size:20px;">&times;</span>
     
-  <div class = "bolota"> </div>
+    <h2 id="tituloNoticia"></h2>
+    <img id="imgNoticia" style="width:100%; border-radius:10px;">
+    <p id="textoNoticia"></p>
+    <small id="infoNoticia"></small>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
 </body>
 </html>

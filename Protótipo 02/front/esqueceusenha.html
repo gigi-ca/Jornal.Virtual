@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="containersenha">
+    <h2>Recuperar Senha</h2>
+    <p>Digite seu CPF e nova senha para redefinir</p>
+
+    <form id="recoveryForm">
+      <input 
+        type="text" 
+        id="cpfInput"
+        placeholder="Digite seu CPF (000.000.000-00)" 
+        maxlength="14"
+        required
+      >
+      
+      <input 
+        type="password" 
+        id="newPassword"
+        placeholder="Nova senha (mín. 6 caracteres)" 
+        required
+      >
+      
+      <input 
+        type="password" 
+        id="confirmPassword"
+        placeholder="Confirmar nova senha" 
+        required
+      >
+      
+      <button type="submit" id="submitBtn">
+        Redefinir Senha
+      </button>
+    </form>
+
+    <!-- Mensagem de sucesso -->
+    <div class="success-message" id="successMessage">
+      ✅ Senha redefinida com sucesso!
+    </div>
+
+    <!-- Mensagem de erro -->
+    <div class="error-message" id="errorMessage">
+      ❌ Erro ao redefinir senha
+    </div>
+
+    <a href="login.html" class="voltar">← Voltar para login</a>
+  </div>
+
+  <script>
+    const form = document.getElementById('recoveryForm');
+    const cpfInput = document.getElementById('cpfInput');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Máscara CPF
+    cpfInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = value;
+    });
+
+    cpfInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        newPassword.focus();
+      }
+    });
+
+    // Validação senha em tempo real
+    newPassword.addEventListener('input', validatePassword);
+    confirmPassword.addEventListener('input', validatePassword);
+
+    function validatePassword() {
+      const pass = newPassword.value;
+      const confirm = confirmPassword.value;
+      
+      if (pass.length > 0 && pass.length < 6) {
+        newPassword.style.borderColor = '#ff6b6b';
+      } else {
+        newPassword.style.borderColor = '#e1e5e9';
+      }
+      
+      if (confirm.length > 0 && confirm !== pass) {
+        confirmPassword.style.borderColor = '#ff6b6b';
+      } else {
+        confirmPassword.style.borderColor = '#e1e5e9';
+      }
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const cpf = cpfInput.value.replace(/\D/g, '');
+      const password = newPassword.value;
+      const confirm = confirmPassword.value;
+      const btnText = submitBtn.innerHTML;
+      
+      // Validações
+      if (cpf.length !== 11) {
+        showError('CPF inválido!');
+        cpfInput.focus();
+        return;
+      }
+      
+      if (password.length < 6) {
+        showError('Senha deve ter pelo menos 6 caracteres!');
+        newPassword.focus();
+        return;
+      }
+      
+      if (password !== confirm) {
+        showError('Senhas não coincidem!');
+        confirmPassword.focus();
+        return;
+      }
+
+      // Efeito loading
+      submitBtn.classList.add('loading');
+      submitBtn.innerHTML = '';
+      
+      // Simula processamento
+      setTimeout(() => {
+        submitBtn.classList.remove('loading');
+        submitBtn.innerHTML = btnText;
+        
+        hideMessages();
+        successMessage.style.display = 'block';
+        successMessage.scrollIntoView({ behavior: 'smooth' });
+        
+        // Limpa formulário
+        form.reset();
+        cpfInput.focus();
+        
+        // Redireciona após 2s
+        setTimeout(() => {
+          window.location.href = 'inicio.html';
+        }, 2000);
+        
+      }, 1500);
+    });
+
+    function showError(message) {
+      hideMessages();
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+    }
+
+    function hideMessages() {
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+    }
+
+    // Auto-foco inicial
+    cpfInput.focus();
+  </script>
+
+  <style>
+    /* Adições específicas para este formulário */
+    .error-message {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 15px 0;
+      animation: shake 0.5s ease-in-out;
+      display: none;
+      font-weight: 500;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    input[type="password"] {
+      padding: 15px 20px;
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    input[type="password"]::placeholder {
+      color: #999;
+    }
+  </style>
+</body>
+</html>
