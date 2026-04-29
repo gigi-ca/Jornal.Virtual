@@ -30,8 +30,8 @@ class _ScreenState extends State<Screen> {
           context,
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 800),
-            pageBuilder: (_, __, ___) => const Login(),
-            transitionsBuilder: (_, animation, __, child) {
+            pageBuilder: (_, _, _) => const Login(),
+            transitionsBuilder: (_, animation, _, child) {
               return FadeTransition(opacity: animation, child: child);
             },
           ),
