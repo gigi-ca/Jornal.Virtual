@@ -11,11 +11,11 @@ const {
 Login } = require("../controllers/usuarios.controller");
 const { validate } = require("../middlewares/auth.js");
 
-router.post("/usuarios/login", Login);
-router.post("/usuarios/cadastrar", validate, cadastrar);
-router.get("/usuarios/listar", validate, listar);
-router.get("/usuarios/buscar/:id", validate,buscar);
-router.put("/usuarios/atualizar/:id", validate, atualizar);
-router.delete("/usuarios/excluir/:id", validate, excluir);
+router.post("/login", Login);
+router.post("/cadastrar", validate, cadastrar);
+router.get("/listar", validate, listar);
+router.get("/buscar/:id", validate,buscar);
+router.put("/atualizar/:id", validate, atualizar);
+router.delete("/excluir/:id", validate, excluir);
 
 module.exports = router;
