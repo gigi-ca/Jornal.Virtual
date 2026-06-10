@@ -33,7 +33,7 @@ class _LoginState extends State<Login> {
     String senha = senhaController.text;
 
     // EMAIL E SENHA CORRETOS
-    if (email == "admin@gmail.com" && senha == "123456") {
+    if (email == "gioc@portalsesisp.org.br" && senha == "12345") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login realizado com sucesso")),
       );
