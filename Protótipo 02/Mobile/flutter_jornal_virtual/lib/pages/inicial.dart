@@ -68,16 +68,11 @@ class _HomePageState extends State<HomePage>
                           Container(
                             height: 90,
                             color: const Color(0xFFD92B68),
-                            child: const Center(
-                              child: Text(
-                                "Jornal\nVirtual",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  height: 0.9,
-                                ),
+                            child: Center(
+                              child: Image.asset(
+                                '/logos/logotrans.png',
+                                height: 60,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
@@ -108,6 +103,7 @@ class _HomePageState extends State<HomePage>
                                     "menu",
                                     style: TextStyle(
                                       color: Color(0xFFD92B68),
+                                      fontFamily: 'Lustria',
                                       fontSize: 22,
                                     ),
                                   ),
@@ -284,9 +280,10 @@ class _HomePageState extends State<HomePage>
                           Text(
                             "Noticia de Capa:",
                             style: TextStyle(
+                              fontFamily: 'CrimsonPro',
                               color: Colors.black,
                               fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
 
@@ -295,6 +292,7 @@ class _HomePageState extends State<HomePage>
                           Text(
                             "SESI do Ceará conquista segundo lugar em competição internacional",
                             style: TextStyle(
+                              fontFamily: 'CreteRound',
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
                             ),
