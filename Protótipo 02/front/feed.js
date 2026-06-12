@@ -1,6 +1,7 @@
 const btnPublicar = document.getElementById("publicar");
 const texto = document.getElementById("texto");
 const listaPublicacoes = document.getElementById("listaPublicacoes");
+const hashtagRegex = /#[^\s#.,!?:;()]+/g;
 
 let publicacoes =
     JSON.parse(localStorage.getItem("publicacoes")) || [];
@@ -51,8 +52,8 @@ function renderizarFeed(){
 
         const textoFormatado =
             pub.texto.replace(
-                /(#\w+)/g,
-                '<span class="hashtag">$1</span>'
+                hashtagRegex,
+                '<span class="hashtag">$&</span>'
             );
 
         div.innerHTML = `
@@ -72,7 +73,7 @@ function atualizarNuvem(){
 
     publicacoes.forEach(pub => {
 
-        const tags = pub.texto.match(/#\w+/g);
+        const tags = pub.texto.match(hashtagRegex);
 
         if(tags){
 
@@ -87,7 +88,7 @@ function atualizarNuvem(){
 
         }
 
-    });
+    }); 
 
     const lista = [];
 
