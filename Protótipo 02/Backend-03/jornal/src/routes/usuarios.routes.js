@@ -9,7 +9,9 @@ const {
     buscar,
     atualizar,
     excluir,
-    pesquisar
+    pesquisar,
+    fotoPerfil,
+    atualizarTemplate
 } = require("../controllers/usuarios.controller");
 
 
@@ -26,6 +28,7 @@ router.get("/buscar/:id", validate, buscar);
 router.put("/atualizar/:id", validate, atualizar);
 router.delete("/excluir/:id", validate, excluir);
 router.get("/pesquisar", validate, pesquisar);
-router.post("/foto-perfil", validate, uploadMidia, controller.fotoPerfil);
+router.post("/foto-perfil", validate, uploadMidia, fotoPerfil);
+router.put("/template/:id", validate, uploadMidia, controller.atualizarTemplate);
 
 module.exports = router;

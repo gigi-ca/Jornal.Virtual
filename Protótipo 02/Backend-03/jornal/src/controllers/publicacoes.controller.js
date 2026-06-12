@@ -1,6 +1,6 @@
 const prisma = require("../data/prisma");
 
-// CRIAR PUBLICAÇÃO
+
 const cadastrar = async (req, res) => {
     try {
         const { texto, hashtags } = req.body;
@@ -54,7 +54,6 @@ const cadastrar = async (req, res) => {
 };
 
 
-// LISTAR FEED
 const listar = async (req, res) => {
     try {
         const lista = await prisma.publicacoes.findMany({
@@ -80,7 +79,7 @@ const listar = async (req, res) => {
         });
     }
 };
-// BUSCAR POR ID
+
 const buscar = async (req, res) => {
     try {
         const { id } = req.params;
@@ -115,7 +114,6 @@ const buscar = async (req, res) => {
     }
 };
 
-// ATUALIZAR
 const atualizar = async (req, res) => {
     try {
         const { id } = req.params;
@@ -155,7 +153,6 @@ const atualizar = async (req, res) => {
     }
 };
 
-// EXCLUIR
 const excluir = async (req, res) => {
     try {
         const { id } = req.params;
@@ -192,7 +189,7 @@ const excluir = async (req, res) => {
     }
 };
 
-// FEED POR USUÁRIO
+
 const listarPorUsuario = async (req, res) => {
     try {
         const { id } = req.params;

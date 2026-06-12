@@ -10,9 +10,7 @@ const TIPOS_VALIDOS = [
 ];
 
 
-// =========================
-// 🔐 LOGIN
-// =========================
+
 const Login = async (req, res) => {
     try {
         let { email, senha } = req.body;
@@ -68,9 +66,7 @@ const Login = async (req, res) => {
 };
 
 
-// =========================
-// 👤 CADASTRO (APENAS TI)
-// =========================
+
 const cadastrar = async (req, res) => {
     try {
         let {
@@ -159,9 +155,7 @@ const cadastrar = async (req, res) => {
 
 
 
-// =========================
-// 📋 LISTAR USUÁRIOS (TI)
-// =========================
+
 const listar = async (req, res) => {
     try {
         const lista = await prisma.usuarios.findMany({
@@ -187,9 +181,7 @@ const listar = async (req, res) => {
 };
 
 
-// =========================
-// 🔎 BUSCAR PERFIL
-// =========================
+
 const buscar = async (req, res) => {
     try {
         const { id } = req.params;
@@ -224,9 +216,7 @@ const buscar = async (req, res) => {
 };
 
 
-// =========================
-// ✏️ ATUALIZAR PERFIL
-// =========================
+
 const atualizar = async (req, res) => {
     try {
         const { id } = req.params;
@@ -243,7 +233,6 @@ const atualizar = async (req, res) => {
             });
         }
 
-        // regras de permissão
         if (
             usuarioLogado.id !== Number(id) &&
             usuarioLogado.tipo !== "ADMINISTRADOR"
@@ -290,9 +279,7 @@ const atualizar = async (req, res) => {
 };
 
 
-// =========================
-// 🗑️ EXCLUIR USUÁRIO
-// =========================
+
 const excluir = async (req, res) => {
     try {
         const { id } = req.params;
@@ -331,9 +318,7 @@ const excluir = async (req, res) => {
 };
 
 
-// =========================
-// 🔍 PESQUISA GLOBAL (IMPORTANTE PRO TCC)
-// =========================
+
 const pesquisar = async (req, res) => {
     try {
         const { termo } = req.query;
@@ -384,6 +369,44 @@ const fotoPerfil = async (req, res) => {
     });
 };
 
+const atualizarTemplate = async (req, res) => {
+    try {
+
+        const usuarioId = req.user.id;
+        const arquivo = req.file;
+
+        const fs = require("fs");
+
+        const pasta = `uploads/templates/${usuarioId}`;
+        const caminho = `${pasta}/${arquivo.filename}`;
+
+        if (!fs.existsSync(pasta)) {
+            fs.mkdirSync(pasta, { recursive: true });
+        }
+
+        fs.renameSync(arquivo.path, caminho);
+
+        await prisma.usuarios.update({
+            where: { id: usuarioId },
+            data: {
+                template: caminho
+            }
+        });
+
+        return res.status(200).json({
+            mensagem: "Template atualizado com sucesso",
+            caminho
+        });
+
+    } catch (erro) {
+
+        return res.status(500).json({
+            mensagem: "Erro ao atualizar template",
+            erro: erro.message
+        });
+    }
+};
+
 
 module.exports = {
     Login,
@@ -393,5 +416,6 @@ module.exports = {
     atualizar,
     excluir,
     pesquisar,
-    fotoPerfil
+    fotoPerfil,
+    atualizarTemplate
 };
