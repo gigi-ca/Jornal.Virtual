@@ -10,6 +10,7 @@ dependencies:
   flutter_svg: ^2.0.0
   flutter:
     sdk: flutter
+  font_awesome_flutter: ^10.8.0
     
 
 dev_dependencies:
@@ -76,3 +77,6 @@ flutter:
         - asset: assets/fonts/CrimsonPro-Italic-VariableFont_wght.ttf
           style: italic
           weight: 700
+    - family: CSVincero
+      fonts:
+        - asset: assets/fonts/CSVincero-Regular_demo.otf]
