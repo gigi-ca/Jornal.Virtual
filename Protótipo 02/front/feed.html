@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feed Social</title>
+
+<link rel="stylesheet" href="feed.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+
+</head>
+<body>
+
+<header>
+    
+    <h1> Feed Social</h1>
+</header>
+
+<div class="container">
+
+    <div class="esquerda">
+
+        <div class="card">
+            <h2>Nova publicação</h2>
+
+            <input
+    type="text"
+    id="nomeUsuario"
+    placeholder="Seu nome"
+/>
+
+            <textarea
+                id="texto"
+                placeholder="O que está acontecendo? Use hashtags..."
+            ></textarea>
+
+            <button id="publicar">
+                Publicar
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>  Hashtags em Alta</h2>
+
+            <canvas
+                id="nuvem"
+                width="500"
+                height="350"
+            ></canvas>
+        </div>
+
+    </div>
+
+    <div class="feed">
+
+        <h2>Feed</h2>
+
+        <div id="listaPublicacoes"></div>
+
+    </div>
+
+
+</div>
+
+<script src="feed.js"></script>
+
+</body>
+</html>
