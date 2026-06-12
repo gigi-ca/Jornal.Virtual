@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'inicial.dart'; // IMPORT DA TELA INICIAL
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -9,6 +10,11 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   bool _animate = false;
+  bool _obscurePassword = true;
+
+  // CONTROLADORES
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController senhaController = TextEditingController();
 
   @override
   void initState() {
@@ -19,6 +25,31 @@ class _LoginState extends State<Login> {
         _animate = true;
       });
     });
+  }
+
+  // FUNÇÃO LOGIN
+  void fazerLogin() {
+    String email = emailController.text;
+    String senha = senhaController.text;
+
+    // EMAIL E SENHA CORRETOS
+    if (email == "gioc@portalsesisp.org.br" && senha == "12345") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Login realizado com sucesso")),
+      );
+
+      // IR PARA TELA INICIAL
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomePage(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("E-mail ou senha inválidos")),
+      );
+    }
   }
 
   @override
@@ -44,15 +75,15 @@ class _LoginState extends State<Login> {
               ),
             ),
             AnimatedOpacity(
-              duration: Duration(milliseconds: 800),
+              duration: const Duration(milliseconds: 800),
               opacity: _animate ? 1.0 : 0.0,
               child: Center(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      const Text(
                         'Login',
                         style: TextStyle(
                           fontFamily: 'IBMSerif',
@@ -60,9 +91,13 @@ class _LoginState extends State<Login> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 100),
+
+                      const SizedBox(height: 100),
+
+                      // EMAIL
                       TextField(
-                        decoration: InputDecoration(
+                        controller: emailController,
+                        decoration: const InputDecoration(
                           hintText: "E-mail",
                           prefixIcon: Icon(
                             Icons.email,
@@ -70,43 +105,64 @@ class _LoginState extends State<Login> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 15),
+
+                      // SENHA
                       TextField(
-                        obscureText: true,
+                        controller: senhaController,
+                        obscureText: _obscurePassword,
                         decoration: InputDecoration(
                           hintText: "Senha",
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.lock,
                             color: Color.fromARGB(255, 0, 0, 0),
                           ),
+
+                          // ÍCONE DE MOSTRAR SENHA
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                         ),
                       ),
+
                       GestureDetector(
                         onTap: () {},
-                        child: Text(
+                        child: const Text(
                           'Esqueci minha senha',
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontFamily: 'IBMSerif',
                             fontSize: 16,
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                            decoration: TextDecoration
-                                .underline,
+                            color: Color.fromARGB(255, 0, 0, 0),
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
-                      SizedBox(height: 30),
+
+                      const SizedBox(height: 30),
+
                       SizedBox(
                         width: 100,
                         height: 40,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: fazerLogin,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xffffdfaf0),
-                            foregroundColor: Color.fromARGB(255, 0, 0, 0),
+                            backgroundColor: const Color(0xffffdfaf0),
+                            foregroundColor:
+                                const Color.fromARGB(255, 0, 0, 0),
                             elevation: 5,
                           ),
-                          child: Text(
+                          child: const Text(
                             "Entrar",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,

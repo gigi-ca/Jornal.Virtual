@@ -1,4 +1,5 @@
 const prisma = require("../data/prisma");
+const { excluircomentario } = require("../middlewares/auth");
 
 const cadastrar = async (req, res) => {
     const data = req.body;
@@ -38,20 +39,11 @@ const atualizar = async (req, res) => {
     res.json(item).status(200).end();
 };
 
-const excluir = async (req, res) => {
-    const { id } = req.params;
-    
-    const item = await prisma.comentario.delete({
-        where: { id : Number(id) }
-    });
-
-    res.json(item).status(200).end();
-};
 
 module.exports = {
     cadastrar,
     listar,
     buscar,
     atualizar,
-    excluir
+    excluircomentario
 }
