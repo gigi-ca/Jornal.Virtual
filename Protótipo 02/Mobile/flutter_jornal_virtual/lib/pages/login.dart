@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http show post;
+
 import 'package:flutter/material.dart';
-import 'inicial.dart'; // IMPORT DA TELA INICIAL
+import 'inicial.dart'; 
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,6 +14,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _animate = false;
   bool _obscurePassword = true;
+  bool _isLoading = false; // NOVA VARIÁVEL PARA O CARREGAMENTO
 
   // CONTROLADORES
   final TextEditingController emailController = TextEditingController();
@@ -27,28 +31,81 @@ class _LoginState extends State<Login> {
     });
   }
 
-  // FUNÇÃO LOGIN
-  void fazerLogin() {
-    String email = emailController.text;
-    String senha = senhaController.text;
+  // FUNÇÃO LOGIN CONECTADA COM O BACKEND
+  Future<void> fazerLogin() async {
+    String email = emailController.text.trim();
+    String senha = senhaController.text.trim();
 
-    // EMAIL E SENHA CORRETOS
-    if (email == "gioc@portalsesisp.org.br" && senha == "12345") {
+    // Validação básica de campos vazios
+    if (email.isEmpty || senha.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login realizado com sucesso")),
+        const SnackBar(content: Text("Por favor, preencha todos os campos")),
+      );
+      return;
+    }
+
+    // Ativa o círculo de carregamento e desativa cliques repetidos
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Como você está na Web, usamos localhost:3000
+      final url = Uri.parse('http://localhost:3000/usuarios/login');
+
+      final resposta = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'senha': senha, // Deve bater exatamente com o que seu req.body espera no Node
+        }),
       );
 
-      // IR PARA TELA INICIAL
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomePage(),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("E-mail ou senha inválidos")),
-      );
+      // Se o backend retornou sucesso (Status 200 ou 201)
+      if (resposta.statusCode == 200 || resposta.statusCode == 201) {
+        final dados = jsonDecode(resposta.body);
+        String token = dados['token'] ?? ''; // Guarda o token JWT gerado
+        
+        print('Login efetuado com sucesso! Token: $token');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Login realizado com sucesso"), backgroundColor: Colors.green),
+          );
+
+          Navigator.pushReplacement( 
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
+        }
+      } else if (resposta.statusCode == 401) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("E-mail ou senha incorretos"), backgroundColor: Colors.red),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erro no servidor: ${resposta.statusCode}"), backgroundColor: Colors.amber),
+          );
+        }
+      }
+    } catch (erro) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Não foi possível conectar ao servidor: $erro"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -94,9 +151,9 @@ class _LoginState extends State<Login> {
 
                       const SizedBox(height: 100),
 
-                      // EMAIL
                       TextField(
                         controller: emailController,
+                        enabled: !_isLoading, 
                         decoration: const InputDecoration(
                           hintText: "E-mail",
                           prefixIcon: Icon(
@@ -108,18 +165,16 @@ class _LoginState extends State<Login> {
 
                       const SizedBox(height: 15),
 
-                      // SENHA
                       TextField(
                         controller: senhaController,
                         obscureText: _obscurePassword,
+                        enabled: !_isLoading,
                         decoration: InputDecoration(
                           hintText: "Senha",
                           prefixIcon: const Icon(
                             Icons.lock,
                             color: Color.fromARGB(255, 0, 0, 0),
                           ),
-
-                          // ÍCONE DE MOSTRAR SENHA
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
@@ -135,16 +190,20 @@ class _LoginState extends State<Login> {
                         ),
                       ),
 
+                      const SizedBox(height: 10),
+
                       GestureDetector(
                         onTap: () {},
-                        child: const Text(
-                          'Esqueci minha senha',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontFamily: 'IBMSerif',
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 0, 0, 0),
-                            decoration: TextDecoration.underline,
+                        child: const Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'Esqueci minha senha',
+                            style: TextStyle(
+                              fontFamily: 'IBMSerif',
+                              fontSize: 16,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
                       ),
@@ -152,23 +211,31 @@ class _LoginState extends State<Login> {
                       const SizedBox(height: 30),
 
                       SizedBox(
-                        width: 100,
+                        width: 120, 
                         height: 40,
                         child: ElevatedButton(
-                          onPressed: fazerLogin,
+                          onPressed: _isLoading ? null : fazerLogin, 
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffffdfaf0),
-                            foregroundColor:
-                                const Color.fromARGB(255, 0, 0, 0),
+                            backgroundColor: const Color(0x0ffdfaf0),
+                            foregroundColor: const Color.fromARGB(255, 0, 0, 0),
                             elevation: 5,
                           ),
-                          child: const Text(
-                            "Entrar",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Text(
+                                  "Entrar",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
