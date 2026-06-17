@@ -79,4 +79,4 @@ flutter:
           weight: 700
     - family: CSVincero
       fonts:
-        - asset: assets/fonts/CSVincero-Regular_demo.otf]
+        - asset: assets/fonts/CSVincero-Regular_demo.otf
