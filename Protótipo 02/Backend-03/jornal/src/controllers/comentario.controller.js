@@ -198,6 +198,5 @@ module.exports = {
     cadastrar,
     listarPorPublicacao,
     buscar,
-    
     excluir
 };

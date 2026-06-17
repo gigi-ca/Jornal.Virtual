@@ -1,6 +1,6 @@
 const prisma = require("../data/prisma");
 
-// CURTIR PUBLICAÇÃO
+
 const curtir = async (req, res) => {
     try {
         const usuarioId = req.user.id;
@@ -55,7 +55,7 @@ const curtir = async (req, res) => {
     }
 };
 
-// DESCURTIR PUBLICAÇÃO
+
 const descurtir = async (req, res) => {
     try {
         const usuarioId = req.user.id;
@@ -98,12 +98,12 @@ const descurtir = async (req, res) => {
     }
 };
 
-// CONTAR CURTIDAS
+
 const contarCurtidas = async (req, res) => {
     try {
         const { publicacaoId } = req.params;
 
-        // 1. Verifica se a publicação existe
+        
         const publicacao = await prisma.publicacoes.findUnique({
             where: {
                 id: Number(publicacaoId)
@@ -116,7 +116,7 @@ const contarCurtidas = async (req, res) => {
             });
         }
 
-        // 2. Conta as curtidas
+      
         const totalCurtidas = await prisma.curtidas.count({
             where: {
                 publicacaoId: Number(publicacaoId)
