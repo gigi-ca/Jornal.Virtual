@@ -21,8 +21,11 @@ function criarPublicacao(){
     }
 
     publicacoes.unshift({
+        id: Date.now(),
         texto: conteudo,
-        data: new Date().toLocaleString("pt-BR")
+        data: new Date().toLocaleString("pt-BR"),
+        curtidas: 0,
+        curtido: false
     });
 
     salvar();
@@ -49,6 +52,7 @@ function renderizarFeed(){
         const div = document.createElement("div");
 
         div.className = "post";
+        div.setAttribute("data-id", pub.id);
 
         const textoFormatado =
             pub.texto.replace(
@@ -57,8 +61,25 @@ function renderizarFeed(){
             );
 
         div.innerHTML = `
-            <div class="data">${pub.data}</div>
-            <div>${textoFormatado}</div>
+            <div class="cabecalho-post">
+                <div class="info-post">
+                    <div class="data">${pub.data}</div>
+                </div>
+                <div class="menu-post">
+                    <button class="btn-menu" onclick="toggleMenu(${pub.id})" aria-label="Menu">⋯</button>
+                    <div class="dropdown-menu" id="menu-${pub.id}" style="display:none;">
+                        <button class="btn-deletar" onclick="deletarPost(${pub.id})">Excluir</button>
+                    </div>
+                </div>
+            </div>
+            <div class="conteudo">${textoFormatado}</div>
+            <div class="acoes">
+                <button class="btn-curtir" onclick="curtirPost(${pub.id})" data-curtido="${pub.curtido}">
+                    <span class="icon-curtida">${pub.curtido ? '❤️' : '🤍'}</span>
+                    <span class="texto-curtida">${pub.curtidas} ${pub.curtidas === 1 ? 'curtida' : 'curtidas'}</span>
+                </button>
+            
+            </div>
         `;
 
         listaPublicacoes.appendChild(div);
@@ -135,3 +156,47 @@ function atualizarNuvem(){
     );
 
 }
+
+function toggleMenu(pubId){
+    const menu = document.getElementById(`menu-${pubId}`);
+    const isVisible = menu.style.display === "block";
+    
+    // Fechar todos os menus
+    document.querySelectorAll(".dropdown-menu").forEach(m => {
+        m.style.display = "none";
+    });
+    
+    // Abrir o menu clicado se estava fechado
+    if(!isVisible){
+        menu.style.display = "block";
+    }
+}
+
+function deletarPost(pubId){
+    if(confirm("Tem certeza que deseja excluir este post?")){
+        publicacoes = publicacoes.filter(pub => pub.id !== pubId);
+        salvar();
+        renderizarFeed();
+        atualizarNuvem();
+    }
+}
+
+function curtirPost(pubId){
+    const pub = publicacoes.find(p => p.id === pubId);
+    
+    if(pub){
+        pub.curtido = !pub.curtido;
+        pub.curtidas += pub.curtido ? 1 : -1;
+        salvar();
+        renderizarFeed();
+    }
+}
+
+// Fechar menu ao clicar fora
+document.addEventListener("click", function(event){
+    if(!event.target.closest(".menu-post")){
+        document.querySelectorAll(".dropdown-menu").forEach(menu => {
+            menu.style.display = "none";
+        });
+    }
+});

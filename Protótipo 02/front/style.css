@@ -25,6 +25,26 @@ text-decoration:none;
 font-weight:bold;
 }
 
+.nav-principal{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+}
+
+.nav-principal a{
+    color:white;
+    text-decoration:none;
+    font-weight:700;
+    padding:10px 14px;
+    border-radius:999px;
+    transition:background .2s ease;
+}
+
+.nav-principal a:hover,
+.nav-principal a.current{
+    background:rgba(255,255,255,0.18);
+}
+
 .container{
 display: grid;
 grid-template-columns:10fr 0fr;
@@ -98,7 +118,7 @@ font-size: 24px;
   position:absolute;
   top:50%;
   transform:translateY(-50%);
-  background:rgba(29, 25, 25, 0.4);
+  background:rgba(130, 63, 63, 0.4);
   border:none;
   color:white;
   font-size:2rem;
@@ -187,7 +207,7 @@ flex-wrap:wrap;
   padding:15px;
   border-radius:15px;
   width:48%;
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+  box-shadow:0 8px 20px rgba(255, 255, 255, 0.08);
   display:flex;
   flex-direction:column;
   gap:12px;
@@ -321,7 +341,7 @@ justify-content:space-between;
 
 .btn-ver-mais {
   background: whitesmoke;
-  color: rgb(255, 62, 184);
+  color:#ff3c66;
   border: none;
   padding: 10px 18px;
   border-radius: 999px;
@@ -345,7 +365,7 @@ justify-content:space-between;
 }
 
 .btn-excluir{
-  background:#61060f;
+  background:#82212b;
   color:white;
   border:none;
   padding:9px 9px;
@@ -461,14 +481,13 @@ hr {
 
 
 .containerconf {
-
-  margin: 200px;
+  margin: 20px;
   background: rgb(255, 163, 223);
   color: rgb(255, 62, 184);
   border: none;
-  padding: 50px 40px;
+  padding: 80px 90px;
   width: 700px;
-  border-radius: 999px;
+  border-radius: 100%;
   cursor: pointer;
   font-weight: bold;
   font-size: 14px;
@@ -480,13 +499,13 @@ hr {
 .sairc {
   display: flex;
   justify-content: flex-end;
-  padding: 20px 30px;
+  padding: 40px 30px;
 }
 
 .sair {
   text-decoration: none;
-  background: #cb1d66;
-  color:#ccc;
+  background: #f72c65d0;
+  color:#ffffff;
   padding: 8px 18px;
   border-radius: 20px;
   font-weight: 600;
@@ -495,35 +514,32 @@ hr {
 
 /* container */
 .containerconf {
-  width: 340px;
-  margin: 80px   auto;
+  width: 450px;
+  height: 450px;
+  margin: 50px auto;
   background: #f72c65d0;
-  padding: 60x;
-  border-radius:50;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  text-align: center;
-}
+  border-radius: 50%;
 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+  gap: 15px;
+}
 /* itens */
 .item {
-  display: block;
-  text-decoration: none;
-  background: #e3377cb8;
-  color: #ffffff;
-  padding: 14px;
-  margin: 10px 0;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
+  width: 250px;
+  text-align: center;
 }
-
 .item:hover {
   background: #ececec;
 }
 
 .sairconta {
   background: #ffe5e5;
-  color: #fb28b1;
+  color: #f72c65d0;
   border: 1px solid #f5bcbc;
 }
 
@@ -532,15 +548,20 @@ hr {
 }
  .containerconf h2 {
   margin-bottom: 20px;
-  color: #797474;
+  color: #ffffff;
   font-size: 20px;
 }
 
 
 /* título */
-.containerconf h2 {
-  margin-bottom: 20px;
-  color: #333;
+.containerconf {
+  width: 400px;
+  margin: 50px auto;
+  background: #f72c65d0;
+  padding: 150px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
 /* inputs */

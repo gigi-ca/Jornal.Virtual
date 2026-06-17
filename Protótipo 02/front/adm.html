@@ -1,39 +1,71 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
-    <title>A Voz do Sesi</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Usuário TI</title>
+
+    <link rel="stylesheet" href="adm.css">
 </head>
 
+<body bgcolor="#fdfaf0">
 
-<body class="inicio-body">
-
-    
-
-    <img class="inicio-img" src="logo.png" alt="Logo A Voz do Sesi">
-
-    <p class="inicio-cor">LOGIN ADMINISTRADOR</p>
-    <br>
-
-    <table class="inicio-table">
-        <tr>
-            <td><b>E-mail</b></td>
-            <td><input type="email" placeholder="Digite seu e-mail"></td>
-        </tr>
-        <tr>
-            <td><b>Senha</b></td>
-            <td><input type="password" ></td>
-        </tr>
-    </table>
-
-    
-
-    <div>
-        <a href="inicio.html">Entrar</a><br>
-        <a href="esqueceusenha.html">Esqueceu a senha?</a><br>
+    <div class="banner">
+       
+        <h2 class="shadow-dance-text">Bem Vindo ao  <h1>Painel Administrativo - Usuário TI</h1></h2>
+        
     </div>
 
-    
+    <div class="cartao">
+        <h2>Criar contas</h2>
+
+        <button onclick="abrirModal()">+ Novo Usuário</button>
+
+        <div id="modal" class="modal" style="display: none;">
+            <div class="modal-content">
+
+                <input type="text" id="inputImagem" placeholder="URL da imagem">
+                <input type="text" id="nome" placeholder="Nome">
+                <input type="email" id="email" placeholder="Email">
+                <input type="text" id="senha" placeholder="Senha">
+                <input type="text" id="ano" placeholder="Ano">
+                <input type="date" id="nascimento">
+                <input type="text" id="RM" placeholder="RM">
+                <input type="text" id="tipo" placeholder="Tipo de conta">
+                <div class="modal-buttons">
+                    <button onclick="salvarUsuario()">Salvar</button>
+                    <button onclick="fecharModal()">Cancelar</button>
+                </div>
+
+            </div>
+        </div>
+
+        <br><br>
+
+        <table border="1" width="100%">
+            <thead>
+                <tr>
+                    <th>Imagem</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Senha</th>
+                    <th>Ano</th>
+                    <th>Nascimento</th>
+                    <th>RM</th>
+                    <th>Tipo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="cartao">
+            </tbody>
+        </table>
+
+    </div>
+
+    <script src="script.js"></script>
+
 </body>
+
 </html>

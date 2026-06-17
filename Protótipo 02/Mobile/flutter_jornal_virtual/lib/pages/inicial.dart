@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'pag1.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -325,15 +327,24 @@ class _HomePageState extends State<HomePage>
                 ),
 
                 const SizedBox(height: 15),
-
-                // BOTÃO
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Pagina1()),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFDCCCB3),
                     foregroundColor: Colors.black,
                   ),
-                  child: const Text("LER MAIS"),
+                  child: const Text(
+                    "LER MAIS",
+                    style: TextStyle(
+                      fontFamily: 'CreteRound',
+                      color: Color.fromARGB(255, 114, 24, 49),
+                    ),
+                  ),
                 ),
               ],
             ),
