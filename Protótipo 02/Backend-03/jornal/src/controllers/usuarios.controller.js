@@ -73,6 +73,7 @@ const cadastrar = async (req, res) => {
             nome,
             email,
             senha,
+            bio,
             tipo,
             fotoPerfil,
             template,
@@ -130,6 +131,7 @@ const cadastrar = async (req, res) => {
                 nome,
                 email,
                 senha: senhaHash,
+                bio,
                 tipo,
                 fotoPerfil,
                 template,
@@ -163,6 +165,7 @@ const listar = async (req, res) => {
                 id: true,
                 nome: true,
                 email: true,
+                bio: true,
                 tipo: true,
                 fotoPerfil: true,
                 template: true,
@@ -186,18 +189,19 @@ const buscar = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: Number(id) },
-         select: {
-    id: true,
-    nome: true,
-    email: true,
-    tipo: true,
-    fotoPerfil: true,
-    template: true,
-    unidadeEscolar: true
-}
-        });
+      const usuario = await prisma.usuarios.findUnique({
+    where: { id: Number(id) },
+    select: {
+        id: true,
+        nome: true,
+        email: true,
+        bio: true,
+        tipo: true,
+        fotoPerfil: true,
+        template: true,
+        unidadeEscolar: true
+    }
+});
 
         if (!usuario) {
             return res.status(404).json({
@@ -242,7 +246,7 @@ const atualizar = async (req, res) => {
             });
         }
 
-        // aluno e verificado só podem mudar foto e template
+        // aluno e verificado só podem mudar foto e template e bio
         if (usuarioLogado.tipo !== "ADMINISTRADOR") {
             delete dados.tipo;
             delete dados.email;
@@ -318,7 +322,6 @@ const excluir = async (req, res) => {
 };
 
 
-
 const pesquisar = async (req, res) => {
     try {
         const { termo } = req.query;
@@ -326,8 +329,19 @@ const pesquisar = async (req, res) => {
         const usuarios = await prisma.usuarios.findMany({
             where: {
                 nome: {
-                    contains: termo
+                    contains: termo,
+                    mode: "insensitive"
                 }
+            },
+            select: {
+                id: true,
+                nome: true,
+                email: true,
+                bio: true,
+                tipo: true,
+                fotoPerfil: true,
+                template: true,
+                unidadeEscolar: true
             }
         });
 
