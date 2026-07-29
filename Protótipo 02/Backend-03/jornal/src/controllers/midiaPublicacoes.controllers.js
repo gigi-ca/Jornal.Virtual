@@ -3,8 +3,33 @@ const fs = require("fs");
 
 const cadastrar = async (req, res) => {
     try {
+
         const publicacaoId = Number(req.params.id);
         const arquivo = req.file;
+        const usuario = req.user;
+
+        const publicacao = await prisma.publicacoes.findUnique({
+            where: { id: publicacaoId }
+        });
+
+        if (!publicacao) {
+            return res.status(404).json({
+                mensagem: "Publicação não encontrada"
+            });
+        }
+
+        if (
+            usuario.tipo !== "ADMINISTRADOR" &&
+            publicacao.usuarioId !== usuario.id
+        ) {
+            if (fs.existsSync(arquivo.path)) {
+                fs.unlinkSync(arquivo.path);
+            }
+
+            return res.status(403).json({
+                mensagem: "Você não possui permissão para adicionar mídias nesta publicação"
+            });
+        }
 
         const pasta = `uploads/publicacoes/${publicacaoId}`;
         const caminho = `${pasta}/${arquivo.filename}`;
@@ -25,11 +50,19 @@ const cadastrar = async (req, res) => {
             }
         });
 
-        return res.status(201).json(midia);
+        return res.status(201).json({
+            mensagem: "Mídia adicionada com sucesso",
+            midia
+        });
 
     } catch (erro) {
+
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
         return res.status(500).json({
-            mensagem: "Erro ao cadastrar mídia de publicação",
+            mensagem: "Erro ao cadastrar mídia da publicação",
             erro: erro.message
         });
     }
@@ -41,13 +74,51 @@ const listar = async (req, res) => {
 };
 
 const excluir = async (req, res) => {
-    const id = Number(req.params.id);
+    try {
 
-    await prisma.midiasPublicacoes.delete({
-        where: { id }
-    });
+        const id = Number(req.params.id);
+        const usuario = req.user;
 
-    return res.json({ mensagem: "Mídia excluída" });
+        const midia = await prisma.midiasPublicacoes.findUnique({
+            where: { id },
+            include: {
+                publicacao: true
+            }
+        });
+
+        if (!midia) {
+            return res.status(404).json({
+                mensagem: "Mídia não encontrada"
+            });
+        }
+
+        if (
+            usuario.tipo !== "ADMINISTRADOR" &&
+            midia.publicacao.usuarioId !== usuario.id
+        ) {
+            return res.status(403).json({
+                mensagem: "Você não possui permissão para excluir esta mídia"
+            });
+        }
+
+        if (fs.existsSync(midia.path)) {
+            fs.unlinkSync(midia.path);
+        }
+
+        await prisma.midiasPublicacoes.delete({
+            where: { id }
+        });
+
+        return res.status(200).json({
+            mensagem: "Mídia excluída com sucesso"
+        });
+
+    } catch (erro) {
+        return res.status(500).json({
+            mensagem: "Erro ao excluir mídia",
+            erro: erro.message
+        });
+    }
 };
 
 module.exports = {

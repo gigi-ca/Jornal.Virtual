@@ -7,6 +7,7 @@ const cadastrar = async (req, res) => {
 
         const noticiaId = Number(req.params.id);
         const arquivo = req.file;
+        const usuario = req.user;
 
         const noticia = await prisma.noticias.findUnique({
             where: { id: noticiaId }
@@ -15,6 +16,19 @@ const cadastrar = async (req, res) => {
         if (!noticia) {
             return res.status(404).json({
                 mensagem: "Notícia não encontrada"
+            });
+        }
+
+        if (
+            usuario.tipo !== "ADMINISTRADOR" &&
+            noticia.usuarioId !== usuario.id
+        ) {
+            if (fs.existsSync(arquivo.path)) {
+                fs.unlinkSync(arquivo.path);
+            }
+
+            return res.status(403).json({
+                mensagem: "Você não possui permissão para adicionar mídias nesta notícia"
             });
         }
 
@@ -55,7 +69,6 @@ const cadastrar = async (req, res) => {
 
     }
 };
-
 
 const listar = async (req, res) => {
     try {
@@ -114,14 +127,27 @@ const excluir = async (req, res) => {
     try {
 
         const id = Number(req.params.id);
+        const usuario = req.user;
 
         const midia = await prisma.midiasNoticias.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                noticia: true
+            }
         });
 
         if (!midia) {
             return res.status(404).json({
                 mensagem: "Mídia não encontrada"
+            });
+        }
+
+        if (
+            usuario.tipo !== "ADMINISTRADOR" &&
+            midia.noticia.usuarioId !== usuario.id
+        ) {
+            return res.status(403).json({
+                mensagem: "Você não possui permissão para excluir esta mídia"
             });
         }
 
