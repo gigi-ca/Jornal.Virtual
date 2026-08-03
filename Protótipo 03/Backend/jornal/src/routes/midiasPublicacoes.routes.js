@@ -5,12 +5,29 @@ const controller = require("../controllers/midiasPublicacoes.controller");
 const uploadMidia = require("../middlewares/upload.midia");
 const { validate } = require("../middlewares/auth");
 
-router.post("/cadastrar/:id", validate, uploadMidia, controller.cadastrar);
+router.post(
+    "/cadastrar/:id",
+    validate,
+    uploadMidia,
+    controller.cadastrar
+);
 
-router.get("/listar", controller.listar);
+router.get(
+    "/listar",
+    validate,
+    controller.listar
+);
 
-router.get("/buscar/:id", controller.buscar);
+router.get(
+    "/buscar/:id",
+    validate,
+    controller.buscar
+);
 
-router.delete("/excluir/:id", validate, controller.excluir);
+router.delete(
+    "/excluir/:id",
+    validate,
+    controller.excluir
+);
 
 module.exports = router;

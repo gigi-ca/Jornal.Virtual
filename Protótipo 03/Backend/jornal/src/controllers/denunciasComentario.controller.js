@@ -15,12 +15,22 @@ const denunciar = async (req, res) => {
         const comentario = await prisma.comentarios.findUnique({
             where: {
                 id: Number(comentarioId)
+            },
+            include: {
+                publicacao: true
             }
         });
 
         if (!comentario) {
             return res.status(404).json({
                 mensagem: "Comentário não encontrado"
+            });
+        }
+
+        // só pode denunciar comentários da própria empresa
+        if (comentario.publicacao.empresaId !== req.user.empresaId) {
+            return res.status(403).json({
+                mensagem: "Você não possui acesso a este comentário."
             });
         }
 
@@ -71,6 +81,13 @@ const listar = async (req, res) => {
         }
 
         const denuncias = await prisma.denunciasComentario.findMany({
+            where: {
+                comentario: {
+                    publicacao: {
+                        empresaId: req.user.empresaId
+                    }
+                }
+            },
             orderBy: {
                 dataDenuncia: "desc"
             },
@@ -82,7 +99,11 @@ const listar = async (req, res) => {
                         email: true
                     }
                 },
-                comentario: true
+                comentario: {
+                    include: {
+                        publicacao: true
+                    }
+                }
             }
         });
 
@@ -114,13 +135,23 @@ const buscar = async (req, res) => {
             where: { id },
             include: {
                 usuario: true,
-                comentario: true
+                comentario: {
+                    include: {
+                        publicacao: true
+                    }
+                }
             }
         });
 
         if (!denuncia) {
             return res.status(404).json({
                 mensagem: "Denúncia não encontrada"
+            });
+        }
+
+        if (denuncia.comentario.publicacao.empresaId !== req.user.empresaId) {
+            return res.status(403).json({
+                mensagem: "Acesso negado."
             });
         }
 
@@ -149,12 +180,25 @@ const excluir = async (req, res) => {
         const id = Number(req.params.id);
 
         const denuncia = await prisma.denunciasComentario.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                comentario: {
+                    include: {
+                        publicacao: true
+                    }
+                }
+            }
         });
 
         if (!denuncia) {
             return res.status(404).json({
                 mensagem: "Denúncia não encontrada"
+            });
+        }
+
+        if (denuncia.comentario.publicacao.empresaId !== req.user.empresaId) {
+            return res.status(403).json({
+                mensagem: "Acesso negado."
             });
         }
 

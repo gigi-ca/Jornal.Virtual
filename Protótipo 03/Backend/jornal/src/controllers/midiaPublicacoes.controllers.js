@@ -8,8 +8,11 @@ const cadastrar = async (req, res) => {
         const arquivo = req.file;
         const usuario = req.user;
 
-        const publicacao = await prisma.publicacoes.findUnique({
-            where: { id: publicacaoId }
+        const publicacao = await prisma.publicacoes.findFirst({
+            where: {
+                id: publicacaoId,
+                empresaId: usuario.empresaId
+            }
         });
 
         if (!publicacao) {
@@ -69,8 +72,64 @@ const cadastrar = async (req, res) => {
 };
 
 const listar = async (req, res) => {
-    const lista = await prisma.midiasPublicacoes.findMany();
-    return res.json(lista);
+    try {
+
+        const lista = await prisma.midiasPublicacoes.findMany({
+            where: {
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
+            include: {
+                publicacao: true
+            }
+        });
+
+        return res.status(200).json(lista);
+
+    } catch (erro) {
+
+        return res.status(500).json({
+            mensagem: "Erro ao listar mídias",
+            erro: erro.message
+        });
+
+    }
+};
+
+const buscar = async (req, res) => {
+    try {
+
+        const id = Number(req.params.id);
+
+        const midia = await prisma.midiasPublicacoes.findFirst({
+            where: {
+                id,
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
+            include: {
+                publicacao: true
+            }
+        });
+
+        if (!midia) {
+            return res.status(404).json({
+                mensagem: "Mídia não encontrada"
+            });
+        }
+
+        return res.status(200).json(midia);
+
+    } catch (erro) {
+
+        return res.status(500).json({
+            mensagem: "Erro ao buscar mídia",
+            erro: erro.message
+        });
+
+    }
 };
 
 const excluir = async (req, res) => {
@@ -79,8 +138,13 @@ const excluir = async (req, res) => {
         const id = Number(req.params.id);
         const usuario = req.user;
 
-        const midia = await prisma.midiasPublicacoes.findUnique({
-            where: { id },
+        const midia = await prisma.midiasPublicacoes.findFirst({
+            where: {
+                id,
+                publicacao: {
+                    empresaId: usuario.empresaId
+                }
+            },
             include: {
                 publicacao: true
             }
@@ -106,7 +170,9 @@ const excluir = async (req, res) => {
         }
 
         await prisma.midiasPublicacoes.delete({
-            where: { id }
+            where: {
+                id
+            }
         });
 
         return res.status(200).json({
@@ -114,6 +180,7 @@ const excluir = async (req, res) => {
         });
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao excluir mídia",
             erro: erro.message
@@ -124,5 +191,6 @@ const excluir = async (req, res) => {
 module.exports = {
     cadastrar,
     listar,
+    buscar,
     excluir
 };

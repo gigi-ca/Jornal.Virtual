@@ -1,22 +1,37 @@
 const express = require("express");
 const router = express.Router();
 
-const{
+const {
     denunciar,
     listar,
     buscar,
     excluir
 } = require("../controllers/denunciasPublicacao.controller");
 
-const controller = require("../controllers/denunciasPublicacao.controller");
 const { validate } = require("../middlewares/auth");
+const { validaAdministrador } = require("../middlewares/validaCargo");
 
 router.post("/cadastrar", validate, denunciar);
 
-router.get("/listar", validate, listar);
+router.get(
+    "/listar",
+    validate,
+    validaAdministrador,
+    listar
+);
 
-router.get("/buscar/:id", validate, buscar);
+router.get(
+    "/buscar/:id",
+    validate,
+    validaAdministrador,
+    buscar
+);
 
-router.delete("/excluir/:id", validate, excluir);
+router.delete(
+    "/excluir/:id",
+    validate,
+    validaAdministrador,
+    excluir
+);
 
 module.exports = router;

@@ -6,7 +6,12 @@ const validarExclusaoComentario = async (req, res, next) => {
         const comentarioId = Number(req.params.id);
 
         const comentario = await prisma.comentarios.findUnique({
-            where: { id: comentarioId }
+            where: {
+                id: comentarioId
+            },
+            include: {
+                publicacao: true
+            }
         });
 
         if (!comentario) {
@@ -15,12 +20,17 @@ const validarExclusaoComentario = async (req, res, next) => {
             });
         }
 
-        const ehDono = comentario.usuarioId === usuario.id;
-        const ehPrivilegiado =
-            usuario.tipo === "VERIFICADO" ||
-            usuario.tipo === "ADMINISTRADOR";
+        if (comentario.publicacao.empresaId !== usuario.empresaId) {
+            return res.status(403).json({
+                mensagem: "Você não pode acessar comentários de outra empresa"
+            });
+        }
 
-        if (ehDono || ehPrivilegiado) {
+        const ehDono = comentario.usuarioId === usuario.id;
+        const ehVerificado = usuario.tipo === "VERIFICADO";
+        const ehAdministrador = usuario.tipo === "ADMINISTRADOR";
+
+        if (ehDono || ehVerificado || ehAdministrador) {
             return next();
         }
 

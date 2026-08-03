@@ -6,18 +6,34 @@ const {
     listar,
     buscar,
     excluir
-} = require("../controllers/midiasNoticias.controller.js");
+} = require("../controllers/midiasNoticias.controller");
 
-const controller = require("../controllers/midiasNoticias.controller.js");
+const uploadMidia = require("../middlewares/upload.midia");
+const { validate } = require("../middlewares/auth");
 
-const uploadMidia = require("../middlewares/upload.midia.js");
+router.post(
+    "/cadastrar/:id",
+    validate,
+    uploadMidia,
+    cadastrar
+);
 
-const { validate } = require("../middlewares/auth.js");
+router.get(
+    "/listar",
+    validate,
+    listar
+);
 
+router.get(
+    "/buscar/:id",
+    validate,
+    buscar
+);
 
-router.post("/cadastrar/:id", validate, uploadMidia, cadastrar);
-router.get("/listar", listar);
-router.get("/buscar/:id", buscar);
-router.delete("/excluir/:id", validate, excluir);
+router.delete(
+    "/excluir/:id",
+    validate,
+    excluir
+);
 
 module.exports = router;

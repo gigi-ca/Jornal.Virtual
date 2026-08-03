@@ -1,10 +1,12 @@
 const prisma = require("../data/prisma");
 
-
 const listar = async (req, res) => {
     try {
 
         const hashtags = await prisma.hashtags.findMany({
+            where: {
+                empresaId: req.user.empresaId
+            },
             orderBy: {
                 nome: "asc"
             }
@@ -22,7 +24,6 @@ const listar = async (req, res) => {
     }
 };
 
-
 const buscarPorNome = async (req, res) => {
     try {
 
@@ -34,7 +35,8 @@ const buscarPorNome = async (req, res) => {
 
         const hashtag = await prisma.hashtags.findFirst({
             where: {
-                nome: nomeFormatado
+                nome: nomeFormatado,
+                empresaId: req.user.empresaId
             }
         });
 
@@ -56,38 +58,42 @@ const buscarPorNome = async (req, res) => {
     }
 };
 
-
 const listarPublicacoes = async (req, res) => {
     try {
 
-     const { nome } = req.params;
+        const { nome } = req.params;
 
-const nomeFormatado = nome.startsWith("#")
-    ? nome
-    : `#${nome}`;
+        const nomeFormatado = nome.startsWith("#")
+            ? nome
+            : `#${nome}`;
 
-const hashtag = await prisma.hashtags.findFirst({
-    where: {
-        nome: nomeFormatado
-    },
-    include: {
-        publicacoes: {
+        const hashtag = await prisma.hashtags.findFirst({
+            where: {
+                nome: nomeFormatado,
+                empresaId: req.user.empresaId
+            },
             include: {
-                autor: {
-                    select: {
-                        id: true,
-                        nome: true,
-                        fotoPerfil: true
+                publicacoes: {
+                    where: {
+                        empresaId: req.user.empresaId
+                    },
+                    include: {
+                        autor: {
+                            select: {
+                                id: true,
+                                nome: true,
+                                fotoPerfil: true
+                            }
+                        },
+                        hashtags: true,
+                        midias: true,
+                        curtidas: true,
+                        comentarios: true
                     }
-                },
-                hashtags: true,
-                midias: true,
-                curtidas: true,
-                comentarios: true
+                }
             }
-        }
-    }
-});
+        });
+
         if (!hashtag) {
             return res.status(404).json({
                 mensagem: "Hashtag não encontrada"
@@ -106,13 +112,19 @@ const hashtag = await prisma.hashtags.findFirst({
     }
 };
 
-
 const ranking = async (req, res) => {
     try {
 
         const hashtags = await prisma.hashtags.findMany({
+            where: {
+                empresaId: req.user.empresaId
+            },
             include: {
-                publicacoes: true
+                publicacoes: {
+                    where: {
+                        empresaId: req.user.empresaId
+                    }
+                }
             }
         });
 

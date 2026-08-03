@@ -3,7 +3,10 @@ const prisma = require("../data/prisma");
 // CRIAR comentário (ou resposta)
 const cadastrar = async (req, res) => {
     try {
+
         const usuarioId = req.user.id;
+        const empresaId = req.user.empresaId;
+
         const { publicacaoId, texto, comentarioPaiId } = req.body;
 
         if (!publicacaoId || !texto) {
@@ -12,9 +15,10 @@ const cadastrar = async (req, res) => {
             });
         }
 
-        const publicacao = await prisma.publicacoes.findUnique({
+        const publicacao = await prisma.publicacoes.findFirst({
             where: {
-                id: Number(publicacaoId)
+                id: Number(publicacaoId),
+                empresaId
             }
         });
 
@@ -24,41 +28,58 @@ const cadastrar = async (req, res) => {
             });
         }
 
+        if (comentarioPaiId) {
+
+            const comentarioPai = await prisma.comentarios.findUnique({
+                where: {
+                    id: Number(comentarioPaiId)
+                }
+            });
+
+            if (!comentarioPai) {
+                return res.status(404).json({
+                    mensagem: "Comentário pai não encontrado"
+                });
+            }
+        }
+
         const comentario = await prisma.comentarios.create({
             data: {
                 texto,
-                publicacaoId: Number(publicacaoId),
                 usuarioId,
-                comentarioPaiId: comentarioPaiId ? Number(comentarioPaiId) : null
+                publicacaoId: Number(publicacaoId),
+                comentarioPaiId: comentarioPaiId
+                    ? Number(comentarioPaiId)
+                    : null
             }
         });
 
-        return res.status(201).json(comentario);
+        return res.status(201).json({
+            mensagem: "Comentário criado com sucesso",
+            comentario
+        });
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao criar comentário",
             erro: erro.message
         });
+
     }
 };
 
-// LISTAR comentários por publicação
+// LISTAR comentários de uma publicação
 const listarPorPublicacao = async (req, res) => {
     try {
-        const { publicacaoId } = req.params;
 
-        const id = Number(publicacaoId);
+        const empresaId = req.user.empresaId;
+        const publicacaoId = Number(req.params.publicacaoId);
 
-        if (isNaN(id)) {
-            return res.status(400).json({
-                mensagem: "ID da publicação inválido"
-            });
-        }
-
-        const publicacao = await prisma.publicacoes.findUnique({
+        const publicacao = await prisma.publicacoes.findFirst({
             where: {
-                id
+                id: publicacaoId,
+                empresaId
             }
         });
 
@@ -70,14 +91,31 @@ const listarPorPublicacao = async (req, res) => {
 
         const comentarios = await prisma.comentarios.findMany({
             where: {
-                publicacaoId: id,
+                publicacaoId,
                 comentarioPaiId: null
             },
             include: {
-                autor: true,
+                autor: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        fotoPerfil: true,
+                        tipo: true
+                    }
+                },
                 respostas: {
                     include: {
-                        autor: true
+                        autor: {
+                            select: {
+                                id: true,
+                                nome: true,
+                                fotoPerfil: true,
+                                tipo: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        dataPublicacao: "asc"
                     }
                 }
             },
@@ -89,28 +127,29 @@ const listarPorPublicacao = async (req, res) => {
         return res.status(200).json(comentarios);
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao listar comentários",
             erro: erro.message
         });
+
     }
 };
 
-// BUSCAR comentário por ID
+// BUSCAR comentário
 const buscar = async (req, res) => {
     try {
+
+        const empresaId = req.user.empresaId;
         const id = Number(req.params.id);
 
-        if (isNaN(id)) {
-            return res.status(400).json({
-                mensagem: "ID inválido"
-            });
-        }
-
         const comentario = await prisma.comentarios.findUnique({
-            where: { id },
+            where: {
+                id
+            },
             include: {
                 autor: true,
+                publicacao: true,
                 respostas: {
                     include: {
                         autor: true
@@ -119,7 +158,7 @@ const buscar = async (req, res) => {
             }
         });
 
-        if (!comentario) {
+        if (!comentario || comentario.publicacao.empresaId !== empresaId) {
             return res.status(404).json({
                 mensagem: "Comentário não encontrado"
             });
@@ -128,58 +167,51 @@ const buscar = async (req, res) => {
         return res.status(200).json(comentario);
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao buscar comentário",
             erro: erro.message
         });
+
     }
 };
 
-// ATUALIZAR comentário
-// const atualizar = async (req, res) => {
-//     try {
-//         const usuarioId = req.user.id;
-//         const id = Number(req.params.id);
-//         const { texto } = req.body;
-
-//         const comentario = await prisma.comentarios.findUnique({
-//             where: { id }
-//         });
-
-//         if (!comentario) {
-//             return res.status(404).json({
-//                 mensagem: "Comentário não encontrado"
-//             });
-//         }
-
-//         if (comentario.usuarioId !== usuarioId) {
-//             return res.status(403).json({
-//                 mensagem: "Você só pode editar seu próprio comentário"
-//             });
-//         }
-
-//         const atualizado = await prisma.comentarios.update({
-//             where: { id },
-//             data: { texto }
-//         });
-
-//         return res.status(200).json(atualizado);
-
-//     } catch (erro) {
-//         return res.status(500).json({
-//             mensagem: "Erro ao atualizar comentário",
-//             erro: erro.message
-//         });
-//     }
-// };
-
-// EXCLUIR comentário (middleware já valida permissão)
+// EXCLUIR comentário
 const excluir = async (req, res) => {
     try {
+
+        const empresaId = req.user.empresaId;
+        const usuario = req.user;
         const id = Number(req.params.id);
 
+        const comentario = await prisma.comentarios.findUnique({
+            where: {
+                id
+            },
+            include: {
+                publicacao: true
+            }
+        });
+
+        if (!comentario || comentario.publicacao.empresaId !== empresaId) {
+            return res.status(404).json({
+                mensagem: "Comentário não encontrado"
+            });
+        }
+
+        if (
+            usuario.tipo !== "ADMINISTRADOR" &&
+            comentario.usuarioId !== usuario.id
+        ) {
+            return res.status(403).json({
+                mensagem: "Você não possui permissão para excluir este comentário"
+            });
+        }
+
         await prisma.comentarios.delete({
-            where: { id }
+            where: {
+                id
+            }
         });
 
         return res.status(200).json({
@@ -187,10 +219,12 @@ const excluir = async (req, res) => {
         });
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao excluir comentário",
             erro: erro.message
         });
+
     }
 };
 

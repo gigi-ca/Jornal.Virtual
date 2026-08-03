@@ -1,52 +1,50 @@
 const express = require("express");
-
 const router = express.Router();
 
 const {
-    cadastrar,
     listar,
     buscar,
     atualizar,
     excluir,
-    listarPorUsuario
-} = require("../controllers/publicacoes.controller");
+    cadastrar
+} = require("../controllers/empresa.controller");
 
 const { validate } = require("../middlewares/auth");
+const { validaAdministrador } = require("../middlewares/validaCargo");
 
 router.post(
     "/cadastrar",
     validate,
+    validaAdministrador,
     cadastrar
 );
 
 router.get(
     "/listar",
     validate,
+    validaAdministrador,
     listar
 );
 
 router.get(
     "/buscar/:id",
     validate,
+    validaAdministrador,
     buscar
 );
 
 router.put(
     "/atualizar/:id",
     validate,
+    validaAdministrador,
     atualizar
 );
 
 router.delete(
     "/excluir/:id",
     validate,
+    validaAdministrador,
     excluir
-);
-
-router.get(
-    "/usuario/:id",
-    validate,
-    listarPorUsuario
 );
 
 module.exports = router;

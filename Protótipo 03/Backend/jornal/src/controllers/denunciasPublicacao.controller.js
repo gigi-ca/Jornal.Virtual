@@ -1,6 +1,5 @@
 const prisma = require("../data/prisma");
 
-
 const denunciar = async (req, res) => {
     try {
 
@@ -12,9 +11,10 @@ const denunciar = async (req, res) => {
             });
         }
 
-        const publicacao = await prisma.publicacoes.findUnique({
+        const publicacao = await prisma.publicacoes.findFirst({
             where: {
-                id: Number(publicacaoId)
+                id: Number(publicacaoId),
+                empresaId: req.user.empresaId
             }
         });
 
@@ -60,7 +60,6 @@ const denunciar = async (req, res) => {
     }
 };
 
-
 const listar = async (req, res) => {
     try {
 
@@ -71,6 +70,11 @@ const listar = async (req, res) => {
         }
 
         const denuncias = await prisma.denunciasPublicacao.findMany({
+            where: {
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
             orderBy: {
                 dataDenuncia: "desc"
             },
@@ -98,7 +102,6 @@ const listar = async (req, res) => {
     }
 };
 
-
 const buscar = async (req, res) => {
     try {
 
@@ -110,8 +113,13 @@ const buscar = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        const denuncia = await prisma.denunciasPublicacao.findUnique({
-            where: { id },
+        const denuncia = await prisma.denunciasPublicacao.findFirst({
+            where: {
+                id,
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
             include: {
                 usuario: true,
                 publicacao: true
@@ -147,8 +155,13 @@ const excluir = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        const denuncia = await prisma.denunciasPublicacao.findUnique({
-            where: { id }
+        const denuncia = await prisma.denunciasPublicacao.findFirst({
+            where: {
+                id,
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            }
         });
 
         if (!denuncia) {
@@ -158,7 +171,9 @@ const excluir = async (req, res) => {
         }
 
         await prisma.denunciasPublicacao.delete({
-            where: { id }
+            where: {
+                id
+            }
         });
 
         return res.status(200).json({

@@ -11,6 +11,6 @@ const { validate } = require("../middlewares/auth");
 
 router.post("/curtir", validate, curtir);
 router.delete("/descurtir", validate, descurtir);
-router.get("/contar/:publicacaoId", contarCurtidas);
+router.get("/contar/:publicacaoId", validate, contarCurtidas);
 
 module.exports = router;

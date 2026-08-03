@@ -9,17 +9,36 @@ const {
     excluir
 } = require("../controllers/noticias.controller");
 
-const controller = require("../controllers/noticias.controller");
 const { validate } = require("../middlewares/auth");
 
-router.post("/cadastrar", validate, cadastrar);
+router.post(
+    "/cadastrar",
+    validate,
+    cadastrar
+);
 
-router.get("/listar", controller.listar);
+router.get(
+    "/listar",
+    validate,
+    listar
+);
 
-router.get("/buscar/:id", controller.buscar);
+router.get(
+    "/buscar/:id",
+    validate,
+    buscar
+);
 
-router.put("/atualizar/:id", validate, controller.atualizar);
+router.put(
+    "/atualizar/:id",
+    validate,
+    atualizar
+);
 
-router.delete("/excluir/:id", validate, controller.excluir);
+router.delete(
+    "/excluir/:id",
+    validate,
+    excluir
+);
 
 module.exports = router;

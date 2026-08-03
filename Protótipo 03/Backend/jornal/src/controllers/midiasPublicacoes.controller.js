@@ -7,13 +7,25 @@ const cadastrar = async (req, res) => {
         const publicacaoId = Number(req.params.id);
         const arquivo = req.file;
 
-        const publicacao = await prisma.publicacoes.findUnique({
-            where: { id: publicacaoId }
+        const publicacao = await prisma.publicacoes.findFirst({
+            where: {
+                id: publicacaoId,
+                empresaId: req.user.empresaId
+            }
         });
 
         if (!publicacao) {
             return res.status(404).json({
                 mensagem: "Publicação não encontrada"
+            });
+        }
+
+        if (
+            publicacao.usuarioId !== req.user.id &&
+            req.user.tipo !== "ADMINISTRADOR"
+        ) {
+            return res.status(403).json({
+                mensagem: "Sem permissão para adicionar mídia"
             });
         }
 
@@ -55,6 +67,11 @@ const listar = async (req, res) => {
     try {
 
         const lista = await prisma.midiasPublicacoes.findMany({
+            where: {
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
             include: {
                 publicacao: true
             }
@@ -76,8 +93,16 @@ const buscar = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        const midia = await prisma.midiasPublicacoes.findUnique({
-            where: { id }
+        const midia = await prisma.midiasPublicacoes.findFirst({
+            where: {
+                id,
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
+            include: {
+                publicacao: true
+            }
         });
 
         if (!midia) {
@@ -102,8 +127,16 @@ const excluir = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        const midia = await prisma.midiasPublicacoes.findUnique({
-            where: { id }
+        const midia = await prisma.midiasPublicacoes.findFirst({
+            where: {
+                id,
+                publicacao: {
+                    empresaId: req.user.empresaId
+                }
+            },
+            include: {
+                publicacao: true
+            }
         });
 
         if (!midia) {
@@ -112,12 +145,23 @@ const excluir = async (req, res) => {
             });
         }
 
+        if (
+            midia.publicacao.usuarioId !== req.user.id &&
+            req.user.tipo !== "ADMINISTRADOR"
+        ) {
+            return res.status(403).json({
+                mensagem: "Sem permissão para excluir esta mídia"
+            });
+        }
+
         if (fs.existsSync(midia.path)) {
             fs.unlinkSync(midia.path);
         }
 
         await prisma.midiasPublicacoes.delete({
-            where: { id }
+            where: {
+                id
+            }
         });
 
         return res.status(200).json({

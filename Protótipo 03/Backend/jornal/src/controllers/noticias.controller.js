@@ -1,11 +1,11 @@
 const prisma = require("../data/prisma");
 
-
 const cadastrar = async (req, res) => {
     try {
 
         const { titulo, subtitulo, texto } = req.body;
 
+        // Apenas usuário Verificado ou TI da própria empresa
         if (
             req.user.tipo !== "VERIFICADO" &&
             req.user.tipo !== "ADMINISTRADOR"
@@ -26,7 +26,8 @@ const cadastrar = async (req, res) => {
                 titulo,
                 subtitulo,
                 texto,
-                usuarioId: req.user.id
+                usuarioId: req.user.id,
+                empresaId: req.user.empresaId
             }
         });
 
@@ -45,11 +46,13 @@ const cadastrar = async (req, res) => {
     }
 };
 
-
 const listar = async (req, res) => {
     try {
 
         const noticias = await prisma.noticias.findMany({
+            where: {
+                empresaId: req.user.empresaId
+            },
             orderBy: {
                 dataPublicacao: "desc"
             },
@@ -78,14 +81,16 @@ const listar = async (req, res) => {
     }
 };
 
-
 const buscar = async (req, res) => {
     try {
 
         const id = Number(req.params.id);
 
-        const noticia = await prisma.noticias.findUnique({
-            where: { id },
+        const noticia = await prisma.noticias.findFirst({
+            where: {
+                id,
+                empresaId: req.user.empresaId
+            },
             include: {
                 autor: {
                     select: {
@@ -117,14 +122,16 @@ const buscar = async (req, res) => {
     }
 };
 
-
 const atualizar = async (req, res) => {
     try {
 
         const id = Number(req.params.id);
 
-        const noticia = await prisma.noticias.findUnique({
-            where: { id }
+        const noticia = await prisma.noticias.findFirst({
+            where: {
+                id,
+                empresaId: req.user.empresaId
+            }
         });
 
         if (!noticia) {
@@ -133,6 +140,7 @@ const atualizar = async (req, res) => {
             });
         }
 
+        // Autor ou TI da mesma empresa
         if (
             noticia.usuarioId !== req.user.id &&
             req.user.tipo !== "ADMINISTRADOR"
@@ -145,7 +153,9 @@ const atualizar = async (req, res) => {
         const { titulo, subtitulo, texto } = req.body;
 
         const noticiaAtualizada = await prisma.noticias.update({
-            where: { id },
+            where: {
+                id
+            },
             data: {
                 titulo,
                 subtitulo,
@@ -168,14 +178,16 @@ const atualizar = async (req, res) => {
     }
 };
 
-
 const excluir = async (req, res) => {
     try {
 
         const id = Number(req.params.id);
 
-        const noticia = await prisma.noticias.findUnique({
-            where: { id }
+        const noticia = await prisma.noticias.findFirst({
+            where: {
+                id,
+                empresaId: req.user.empresaId
+            }
         });
 
         if (!noticia) {
@@ -184,6 +196,7 @@ const excluir = async (req, res) => {
             });
         }
 
+        // Autor ou TI da mesma empresa
         if (
             noticia.usuarioId !== req.user.id &&
             req.user.tipo !== "ADMINISTRADOR"
@@ -194,7 +207,9 @@ const excluir = async (req, res) => {
         }
 
         await prisma.noticias.delete({
-            where: { id }
+            where: {
+                id
+            }
         });
 
         return res.status(200).json({

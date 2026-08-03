@@ -13,6 +13,7 @@ const TIPOS_VALIDOS = [
 
 const Login = async (req, res) => {
     try {
+
         let { email, senha } = req.body;
 
         if (!email || !senha) {
@@ -29,7 +30,10 @@ const Login = async (req, res) => {
             .digest("hex");
 
         const usuario = await prisma.usuarios.findUnique({
-            where: { email }
+            where: { email },
+            include: {
+                empresa: true
+            }
         });
 
         if (!usuario || usuario.senha !== senhaHash) {
@@ -43,10 +47,12 @@ const Login = async (req, res) => {
                 id: usuario.id,
                 nome: usuario.nome,
                 tipo: usuario.tipo,
-                unidadeEscolar: usuario.unidadeEscolar
+                empresaId: usuario.empresaId
             },
             process.env.SECRET_JWT,
-            { expiresIn: "120min" }
+            {
+                expiresIn: "120min"
+            }
         );
 
         const { senha: _, ...usuarioSemSenha } = usuario;
@@ -58,10 +64,12 @@ const Login = async (req, res) => {
         });
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao realizar login",
             erro: erro.message
         });
+
     }
 };
 
@@ -69,6 +77,7 @@ const Login = async (req, res) => {
 
 const cadastrar = async (req, res) => {
     try {
+
         let {
             nome,
             email,
@@ -77,21 +86,40 @@ const cadastrar = async (req, res) => {
             tipo,
             fotoPerfil,
             template,
-            unidadeEscolar
+            empresaId
         } = req.body;
 
         const usuarioLogado = req.user;
 
-        // só TI cadastra
         if (usuarioLogado.tipo !== "ADMINISTRADOR") {
             return res.status(403).json({
-                mensagem: "Somente TI pode cadastrar usuários"
+                mensagem: "Somente administradores podem cadastrar usuários."
             });
         }
 
-        if (!nome || !email || !senha || !tipo || !unidadeEscolar) {
+        if (!nome || !email || !senha || !tipo || !empresaId) {
             return res.status(400).json({
-                mensagem: "Campos obrigatórios não preenchidos"
+                mensagem: "Campos obrigatórios não preenchidos."
+            });
+        }
+
+        empresaId = Number(empresaId);
+
+        if (empresaId !== usuarioLogado.empresaId) {
+            return res.status(403).json({
+                mensagem: "Você só pode cadastrar usuários da sua empresa."
+            });
+        }
+
+        const empresa = await prisma.empresa.findUnique({
+            where: {
+                id: empresaId
+            }
+        });
+
+        if (!empresa) {
+            return res.status(404).json({
+                mensagem: "Empresa não encontrada."
             });
         }
 
@@ -101,23 +129,19 @@ const cadastrar = async (req, res) => {
 
         if (!TIPOS_VALIDOS.includes(tipo)) {
             return res.status(400).json({
-                mensagem: "Tipo inválido"
-            });
-        }
-
-        if (nome.length < 3) {
-            return res.status(400).json({
-                mensagem: "Nome muito curto"
+                mensagem: "Tipo inválido."
             });
         }
 
         const existe = await prisma.usuarios.findUnique({
-            where: { email }
+            where: {
+                email
+            }
         });
 
         if (existe) {
             return res.status(400).json({
-                mensagem: "Email já cadastrado"
+                mensagem: "Email já cadastrado."
             });
         }
 
@@ -135,124 +159,182 @@ const cadastrar = async (req, res) => {
                 tipo,
                 fotoPerfil,
                 template,
-                unidadeEscolar
+                empresaId
             }
         });
 
         const { senha: _, ...usuarioCriado } = novoUsuario;
 
         return res.status(201).json({
-            mensagem: "Usuário criado com sucesso",
+            mensagem: "Usuário criado com sucesso.",
             usuario: usuarioCriado
         });
 
     } catch (erro) {
+
         return res.status(500).json({
-            mensagem: "Erro ao cadastrar usuário",
+            mensagem: "Erro ao cadastrar usuário.",
             erro: erro.message
         });
+
     }
 };
-
 
 
 
 
 const listar = async (req, res) => {
     try {
+
         const lista = await prisma.usuarios.findMany({
-            select: {
-                id: true,
-                nome: true,
-                email: true,
-                bio: true,
-                tipo: true,
-                fotoPerfil: true,
-                template: true,
-                unidadeEscolar: true
+
+            where: {
+                empresaId: req.user.empresaId
+            },
+
+            include: {
+                empresa: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        logo: true
+                    }
+                }
             }
+
         });
 
         return res.status(200).json(lista);
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao listar usuários",
             erro: erro.message
         });
+
     }
 };
-
 
 
 const buscar = async (req, res) => {
     try {
-        const { id } = req.params;
 
-      const usuario = await prisma.usuarios.findUnique({
-    where: { id: Number(id) },
-    select: {
-        id: true,
-        nome: true,
-        email: true,
-        bio: true,
-        tipo: true,
-        fotoPerfil: true,
-        template: true,
-        unidadeEscolar: true
-    }
-});
+        const id = Number(req.params.id);
+
+        const usuario = await prisma.usuarios.findFirst({
+
+            where: {
+                id,
+                empresaId: req.user.empresaId
+            },
+
+            include: {
+                empresa: {
+                    select: {
+                        id: true,
+                        nome: true,
+                        logo: true
+                    }
+                }
+            }
+
+        });
 
         if (!usuario) {
             return res.status(404).json({
-                mensagem: "Usuário não encontrado"
+                mensagem: "Usuário não encontrado."
             });
         }
 
-        return res.status(200).json(usuario);
+        const { senha, ...usuarioSemSenha } = usuario;
+
+        return res.status(200).json(usuarioSemSenha);
 
     } catch (erro) {
+
         return res.status(500).json({
             mensagem: "Erro ao buscar usuário",
             erro: erro.message
         });
+
     }
 };
 
 
-
 const atualizar = async (req, res) => {
     try {
-        const { id } = req.params;
-        const dados = { ...req.body };
-        const usuarioLogado = req.user;
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: Number(id) }
+        const id = Number(req.params.id);
+        const dados = { ...req.body };
+
+        const usuario = await prisma.usuarios.findFirst({
+            where: {
+                id,
+                empresaId: req.user.empresaId
+            }
         });
 
         if (!usuario) {
             return res.status(404).json({
-                mensagem: "Usuário não encontrado"
+                mensagem: "Usuário não encontrado."
             });
         }
 
         if (
-            usuarioLogado.id !== Number(id) &&
-            usuarioLogado.tipo !== "ADMINISTRADOR"
+            req.user.id !== id &&
+            req.user.tipo !== "ADMINISTRADOR"
         ) {
             return res.status(403).json({
-                mensagem: "Sem permissão"
+                mensagem: "Sem permissão."
             });
         }
 
-        // aluno e verificado só podem mudar foto e template e bio
-        if (usuarioLogado.tipo !== "ADMINISTRADOR") {
-            delete dados.tipo;
-            delete dados.email;
-            delete dados.unidadeEscolar;
-            delete dados.senha;
+        delete dados.id;
+        delete dados.dataCriacao;
+
+        if (req.user.tipo !== "ADMINISTRADOR") {
+
             delete dados.nome;
+            delete dados.email;
+            delete dados.tipo;
+            delete dados.empresaId;
+            delete dados.senha;
+
+        } else {
+
+            if (dados.empresaId) {
+
+                dados.empresaId = Number(dados.empresaId);
+
+                if (dados.empresaId !== req.user.empresaId) {
+                    return res.status(403).json({
+                        mensagem: "Não é permitido mover usuários para outra empresa."
+                    });
+                }
+
+            }
+
+            if (dados.tipo) {
+
+                dados.tipo = dados.tipo.toUpperCase();
+
+                if (!TIPOS_VALIDOS.includes(dados.tipo)) {
+                    return res.status(400).json({
+                        mensagem: "Tipo de usuário inválido."
+                    });
+                }
+
+            }
+
+        }
+
+        if (dados.email) {
+            dados.email = dados.email.toLowerCase().trim();
+        }
+
+        if (dados.nome) {
+            dados.nome = dados.nome.trim();
         }
 
         if (dados.senha) {
@@ -263,96 +345,119 @@ const atualizar = async (req, res) => {
         }
 
         const atualizado = await prisma.usuarios.update({
-            where: { id: Number(id) },
+            where: {
+                id
+            },
             data: dados
         });
 
-        const { senha: _, ...usuarioFinal } = atualizado;
+        const { senha, ...usuarioFinal } = atualizado;
 
         return res.status(200).json({
-            mensagem: "Usuário atualizado",
+            mensagem: "Usuário atualizado com sucesso.",
             usuario: usuarioFinal
         });
 
     } catch (erro) {
+
         return res.status(500).json({
-            mensagem: "Erro ao atualizar",
+            mensagem: "Erro ao atualizar usuário.",
             erro: erro.message
         });
+
     }
 };
 
 
 
 const excluir = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const usuarioLogado = req.user;
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: Number(id) }
+    try {
+
+        const id = Number(req.params.id);
+
+        if (req.user.tipo !== "ADMINISTRADOR") {
+
+            return res.status(403).json({
+                mensagem: "Somente administradores podem excluir usuários."
+            });
+
+        }
+
+        const usuario = await prisma.usuarios.findFirst({
+
+            where: {
+                id,
+                empresaId: req.user.empresaId
+            }
+
         });
 
         if (!usuario) {
-            return res.status(404).json({
-                mensagem: "Usuário não encontrado"
-            });
-        }
 
-        if (usuarioLogado.tipo !== "ADMINISTRADOR") {
-            return res.status(403).json({
-                mensagem: "Somente TI pode excluir usuários"
+            return res.status(404).json({
+                mensagem: "Usuário não encontrado."
             });
+
         }
 
         await prisma.usuarios.delete({
-            where: { id: Number(id) }
+
+            where: {
+                id
+            }
+
         });
 
         return res.status(200).json({
-            mensagem: "Usuário excluído com sucesso"
+            mensagem: "Usuário excluído com sucesso."
         });
 
     } catch (erro) {
+
         return res.status(500).json({
-            mensagem: "Erro ao excluir usuário",
+            mensagem: "Erro ao excluir usuário.",
             erro: erro.message
         });
+
     }
+
 };
 
-
 const pesquisar = async (req, res) => {
+
     try {
+
         const { termo } = req.query;
 
         const usuarios = await prisma.usuarios.findMany({
+
             where: {
+
+                empresaId: req.user.empresaId,
+
                 nome: {
                     contains: termo,
                     mode: "insensitive"
                 }
-            },
-            select: {
-                id: true,
-                nome: true,
-                email: true,
-                bio: true,
-                tipo: true,
-                fotoPerfil: true,
-                template: true,
-                unidadeEscolar: true
+
             }
+
         });
 
-        return res.status(200).json({ usuarios });
+        return res.status(200).json({
+            usuarios
+        });
 
     } catch (erro) {
+
         return res.status(500).json({
-            mensagem: "Erro na pesquisa",
+            mensagem: "Erro ao pesquisar usuários.",
             erro: erro.message
         });
+
     }
+
 };
 
 const fotoPerfil = async (req, res) => {
@@ -370,12 +475,14 @@ const fotoPerfil = async (req, res) => {
 
     fs.renameSync(arquivo.path, caminho);
 
-    await prisma.usuarios.update({
-        where: { id: usuarioId },
-        data: {
-            fotoPerfil: caminho
-        }
-    });
+  await prisma.usuarios.update({
+    where: {
+        id: usuarioId
+    },
+    data: {
+        fotoPerfil: caminho
+    }
+});
 
     return res.status(200).json({
         mensagem: "Foto de perfil atualizada",
@@ -400,12 +507,14 @@ const atualizarTemplate = async (req, res) => {
 
         fs.renameSync(arquivo.path, caminho);
 
-        await prisma.usuarios.update({
-            where: { id: usuarioId },
-            data: {
-                template: caminho
-            }
-        });
+      await prisma.usuarios.update({
+    where: {
+        id: usuarioId
+    },
+    data: {
+        template: caminho
+    }
+});
 
         return res.status(200).json({
             mensagem: "Template atualizado com sucesso",

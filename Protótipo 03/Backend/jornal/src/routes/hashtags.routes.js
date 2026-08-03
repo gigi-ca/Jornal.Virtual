@@ -8,8 +8,6 @@ const {
     listarPublicacoes
 } = require("../controllers/hashtags.controller");
 
-const controller = require("../controllers/hashtags.controller");
-
 const { validate } = require("../middlewares/auth");
 
 router.get("/listar", validate, listar);

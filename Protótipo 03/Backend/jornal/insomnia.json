@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2026-06-10T14:46:24.235Z",
+  "__export_date": "2026-08-03T10:40:45.522Z",
   "__export_source": "backend-aula",
   "resources": [
     {
@@ -14,6 +14,90 @@
       "_type": "request_group",
       "parentId": "wrk_backend",
       "name": "jornal"
+    },
+    {
+      "_id": "fld_Empresa",
+      "_type": "request_group",
+      "parentId": "fld_jornal",
+      "name": "Empresa"
+    },
+    {
+      "_id": "req_Empresa_GET_ALL",
+      "_type": "request",
+      "parentId": "fld_Empresa",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Listar",
+      "method": "GET",
+      "url": "http://localhost:3000/empresa/listar"
+    },
+    {
+      "_id": "req_Empresa_GET_ID",
+      "_type": "request",
+      "parentId": "fld_Empresa",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Buscar",
+      "method": "GET",
+      "url": "http://localhost:3000/empresa/buscar/:id"
+    },
+    {
+      "_id": "req_Empresa_POST",
+      "_type": "request",
+      "parentId": "fld_Empresa",
+      "name": "Cadastrar",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "method": "POST",
+      "url": "http://localhost:3000/empresa/cadastrar",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"string\",\n  \"cnpj\": \"string\",\n  \"email\": \"string\",\n  \"telefone\": \"string\",\n  \"endereco\": \"string\",\n  \"numero\": \"string\",\n  \"bairro\": \"string\",\n  \"cidade\": \"string\",\n  \"estado\": \"string\",\n  \"cep\": \"string\",\n  \"logo\": \"string\",\n  \"corPrimaria\": \"string\",\n  \"corSecundaria\": \"string\",\n  \"dataCriacao\": \"2026-08-03T10:40:45.508Z\"\n}"
+      }
+    },
+    {
+      "_id": "req_Empresa_PUT",
+      "_type": "request",
+      "parentId": "fld_Empresa",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Atualizar",
+      "method": "PUT",
+      "url": "http://localhost:3000/empresa/atualizar/:id",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"string\",\n  \"cnpj\": \"string\",\n  \"email\": \"string\",\n  \"telefone\": \"string\",\n  \"endereco\": \"string\",\n  \"numero\": \"string\",\n  \"bairro\": \"string\",\n  \"cidade\": \"string\",\n  \"estado\": \"string\",\n  \"cep\": \"string\",\n  \"logo\": \"string\",\n  \"corPrimaria\": \"string\",\n  \"corSecundaria\": \"string\",\n  \"dataCriacao\": \"2026-08-03T10:40:45.508Z\"\n}"
+      }
+    },
+    {
+      "_id": "req_Empresa_DELETE",
+      "_type": "request",
+      "parentId": "fld_Empresa",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "name": "Excluir",
+      "method": "DELETE",
+      "url": "http://localhost:3000/empresa/excluir/:id"
     },
     {
       "_id": "fld_Usuarios",
@@ -64,7 +148,7 @@
       "url": "http://localhost:3000/usuarios/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nome\": \"string\",\n  \"email\": \"string\",\n  \"senha\": \"string\",\n  \"fotoPerfil\": \"string\",\n  \"template\": \"string\",\n  \"unidadeEscolar\": \"string\",\n  \"dataCriacao\": \"2026-06-10T14:46:24.233Z\"\n}"
+        "text": "{\n  \"nome\": \"string\",\n  \"email\": \"string\",\n  \"senha\": \"string\",\n  \"fotoPerfil\": \"string\",\n  \"template\": \"string\",\n  \"bio\": \"string\",\n  \"empresaId\": 0,\n  \"dataCriacao\": \"2026-08-03T10:40:45.522Z\"\n}"
       }
     },
     {
@@ -82,7 +166,7 @@
       "url": "http://localhost:3000/usuarios/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nome\": \"string\",\n  \"email\": \"string\",\n  \"senha\": \"string\",\n  \"fotoPerfil\": \"string\",\n  \"template\": \"string\",\n  \"unidadeEscolar\": \"string\",\n  \"dataCriacao\": \"2026-06-10T14:46:24.233Z\"\n}"
+        "text": "{\n  \"nome\": \"string\",\n  \"email\": \"string\",\n  \"senha\": \"string\",\n  \"fotoPerfil\": \"string\",\n  \"template\": \"string\",\n  \"bio\": \"string\",\n  \"empresaId\": 0,\n  \"dataCriacao\": \"2026-08-03T10:40:45.522Z\"\n}"
       }
     },
     {
@@ -148,7 +232,7 @@
       "url": "http://localhost:3000/noticias/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"titulo\": \"string\",\n  \"subtitulo\": \"string\",\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-06-10T14:46:24.235Z\",\n  \"dataAtualizacao\": \"2026-06-10T14:46:24.235Z\",\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"titulo\": \"string\",\n  \"subtitulo\": \"string\",\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-08-03T10:40:45.522Z\",\n  \"dataAtualizacao\": \"2026-08-03T10:40:45.522Z\",\n  \"usuarioId\": 0,\n  \"empresaId\": 0\n}"
       }
     },
     {
@@ -166,7 +250,7 @@
       "url": "http://localhost:3000/noticias/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"titulo\": \"string\",\n  \"subtitulo\": \"string\",\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-06-10T14:46:24.235Z\",\n  \"dataAtualizacao\": \"2026-06-10T14:46:24.235Z\",\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"titulo\": \"string\",\n  \"subtitulo\": \"string\",\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-08-03T10:40:45.522Z\",\n  \"dataAtualizacao\": \"2026-08-03T10:40:45.522Z\",\n  \"usuarioId\": 0,\n  \"empresaId\": 0\n}"
       }
     },
     {
@@ -232,7 +316,7 @@
       "url": "http://localhost:3000/midiasnoticias/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-06-10T14:46:24.235Z\",\n  \"noticiaId\": 0\n}"
+        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-08-03T10:40:45.522Z\",\n  \"noticiaId\": 0\n}"
       }
     },
     {
@@ -250,7 +334,7 @@
       "url": "http://localhost:3000/midiasnoticias/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-06-10T14:46:24.235Z\",\n  \"noticiaId\": 0\n}"
+        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-08-03T10:40:45.522Z\",\n  \"noticiaId\": 0\n}"
       }
     },
     {
@@ -316,7 +400,7 @@
       "url": "http://localhost:3000/publicacoes/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-06-10T14:46:24.235Z\",\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-08-03T10:40:45.522Z\",\n  \"usuarioId\": 0,\n  \"empresaId\": 0\n}"
       }
     },
     {
@@ -334,7 +418,7 @@
       "url": "http://localhost:3000/publicacoes/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-06-10T14:46:24.235Z\",\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-08-03T10:40:45.522Z\",\n  \"usuarioId\": 0,\n  \"empresaId\": 0\n}"
       }
     },
     {
@@ -400,7 +484,7 @@
       "url": "http://localhost:3000/midiaspublicacoes/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-06-10T14:46:24.235Z\",\n  \"publicacaoId\": 0\n}"
+        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-08-03T10:40:45.522Z\",\n  \"publicacaoId\": 0\n}"
       }
     },
     {
@@ -418,7 +502,7 @@
       "url": "http://localhost:3000/midiaspublicacoes/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-06-10T14:46:24.235Z\",\n  \"publicacaoId\": 0\n}"
+        "text": "{\n  \"nomeOriginal\": \"string\",\n  \"nomeArquivo\": \"string\",\n  \"mimeType\": \"string\",\n  \"path\": \"string\",\n  \"dataUpload\": \"2026-08-03T10:40:45.522Z\",\n  \"publicacaoId\": 0\n}"
       }
     },
     {
@@ -484,7 +568,7 @@
       "url": "http://localhost:3000/comentarios/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-06-10T14:46:24.235Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0,\n  \"comentarioPaiId\": 0\n}"
+        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-08-03T10:40:45.522Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0,\n  \"comentarioPaiId\": 0\n}"
       }
     },
     {
@@ -502,7 +586,7 @@
       "url": "http://localhost:3000/comentarios/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-06-10T14:46:24.235Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0,\n  \"comentarioPaiId\": 0\n}"
+        "text": "{\n  \"texto\": \"string\",\n  \"dataPublicacao\": \"2026-08-03T10:40:45.522Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0,\n  \"comentarioPaiId\": 0\n}"
       }
     },
     {
@@ -652,7 +736,7 @@
       "url": "http://localhost:3000/hashtags/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nome\": \"string\",\n  \"dataCriacao\": \"2026-06-10T14:46:24.235Z\"\n}"
+        "text": "{\n  \"nome\": \"string\",\n  \"empresaId\": 0,\n  \"dataCriacao\": \"2026-08-03T10:40:45.522Z\"\n}"
       }
     },
     {
@@ -670,7 +754,7 @@
       "url": "http://localhost:3000/hashtags/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"nome\": \"string\",\n  \"dataCriacao\": \"2026-06-10T14:46:24.235Z\"\n}"
+        "text": "{\n  \"nome\": \"string\",\n  \"empresaId\": 0,\n  \"dataCriacao\": \"2026-08-03T10:40:45.522Z\"\n}"
       }
     },
     {
@@ -736,7 +820,7 @@
       "url": "http://localhost:3000/denunciaspublicacao/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-06-10T14:46:24.235Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-08-03T10:40:45.522Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0\n}"
       }
     },
     {
@@ -754,7 +838,7 @@
       "url": "http://localhost:3000/denunciaspublicacao/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-06-10T14:46:24.235Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-08-03T10:40:45.522Z\",\n  \"publicacaoId\": 0,\n  \"usuarioId\": 0\n}"
       }
     },
     {
@@ -820,7 +904,7 @@
       "url": "http://localhost:3000/denunciascomentario/cadastrar",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-06-10T14:46:24.235Z\",\n  \"comentarioId\": 0,\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-08-03T10:40:45.522Z\",\n  \"comentarioId\": 0,\n  \"usuarioId\": 0\n}"
       }
     },
     {
@@ -838,7 +922,7 @@
       "url": "http://localhost:3000/denunciascomentario/atualizar/:id",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-06-10T14:46:24.235Z\",\n  \"comentarioId\": 0,\n  \"usuarioId\": 0\n}"
+        "text": "{\n  \"motivo\": \"string\",\n  \"dataDenuncia\": \"2026-08-03T10:40:45.522Z\",\n  \"comentarioId\": 0,\n  \"usuarioId\": 0\n}"
       }
     },
     {

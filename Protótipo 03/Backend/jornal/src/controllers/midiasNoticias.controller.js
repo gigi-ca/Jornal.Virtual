@@ -1,7 +1,6 @@
 const prisma = require("../data/prisma");
 const fs = require("fs");
 
-
 const cadastrar = async (req, res) => {
     try {
 
@@ -9,8 +8,11 @@ const cadastrar = async (req, res) => {
         const arquivo = req.file;
         const usuario = req.user;
 
-        const noticia = await prisma.noticias.findUnique({
-            where: { id: noticiaId }
+        const noticia = await prisma.noticias.findFirst({
+            where: {
+                id: noticiaId,
+                empresaId: usuario.empresaId
+            }
         });
 
         if (!noticia) {
@@ -74,6 +76,11 @@ const listar = async (req, res) => {
     try {
 
         const lista = await prisma.midiasNoticias.findMany({
+            where: {
+                noticia: {
+                    empresaId: req.user.empresaId
+                }
+            },
             include: {
                 noticia: true
             }
@@ -91,14 +98,18 @@ const listar = async (req, res) => {
     }
 };
 
-
 const buscar = async (req, res) => {
     try {
 
         const id = Number(req.params.id);
 
-        const midia = await prisma.midiasNoticias.findUnique({
-            where: { id },
+        const midia = await prisma.midiasNoticias.findFirst({
+            where: {
+                id,
+                noticia: {
+                    empresaId: req.user.empresaId
+                }
+            },
             include: {
                 noticia: true
             }
@@ -122,15 +133,19 @@ const buscar = async (req, res) => {
     }
 };
 
-
 const excluir = async (req, res) => {
     try {
 
         const id = Number(req.params.id);
         const usuario = req.user;
 
-        const midia = await prisma.midiasNoticias.findUnique({
-            where: { id },
+        const midia = await prisma.midiasNoticias.findFirst({
+            where: {
+                id,
+                noticia: {
+                    empresaId: usuario.empresaId
+                }
+            },
             include: {
                 noticia: true
             }
@@ -156,7 +171,9 @@ const excluir = async (req, res) => {
         }
 
         await prisma.midiasNoticias.delete({
-            where: { id }
+            where: {
+                id
+            }
         });
 
         return res.status(200).json({
