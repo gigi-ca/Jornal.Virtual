@@ -1,0 +1,76 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Usuário</title>
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+<body>
+
+    <div class="bolinhas bolinhas1"></div>
+    <div class="bolinhas bolinhas2"></div>
+    <div class="bolinhas bolinhas3"></div>
+
+    <header>
+        <div class="logo">
+            <img src="" alt="Logo">
+        </div>
+        <nav class="nav-principal">
+            <a href="inicio.html">Início</a>
+            <a href="feed.html">Feed</a>
+            <a href="conta.html" class="current">Perfil</a>
+            <a href="configuracoes.html">Configurações</a>
+        </nav>
+    </header>
+
+    <div class="perfil">
+        <div class="topo">
+            <img src="banner.jpg" alt="Banner">
+        </div>
+        <img id="foto" class="foto" src="perfil.jpg" alt="Foto do usuário">
+        <div class="conteudo">
+            <h1 class="nome" id="nome">Luiza Corazin</h1>
+            <p class="info">
+                <strong>Unidade Escolar:</strong>
+                <span id="unidade">SESI 356</span>
+            </p>
+            <p class="descricao" id="descricao">Estudante criativa e apaixonadapor tecnologia, design e  jornal virtual escolar.</p>
+            <div class="categoria" id="categoria">Administradora</div>
+
+            <div class="estatisticas">
+                <div class="card">
+                    <h2>15</h2>
+                    <span>Artigos</span>
+                </div>
+                <div class="card">
+                    <h2>42</h2>
+                    <span>Notícias</span>
+                </div>
+                <div class="card">
+                    <h2>08</h2>
+                    <span>Projetos</span>
+                </div>
+            </div>
+
+            <br>
+            <button onclick="abrirModal()">Editar Perfil</button>
+
+            <div class="modal-fundo" id="modalFundo">
+                <div class="modal">
+                    <h2>Editar Perfil</h2>
+                    <input type="text" id="inputFoto" placeholder="Foto de perfil">
+                    <input type="text" id="inputBanner" placeholder="Imagem do topo">
+
+                    <textarea id="inputDescricao" placeholder="Descrição"></textarea>
+
+                    <button onclick="salvarPerfil()">Salvar</button>
+                    <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/perfil.js"></script>
+</body>
+</html>
