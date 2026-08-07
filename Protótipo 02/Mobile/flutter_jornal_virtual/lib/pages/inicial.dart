@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_jornal_virtual/pages/pagina3.dart';
+import 'package:flutter_jornal_virtual/pages/perfil.dart';
+import 'package:flutter_jornal_virtual/pages/config.dart';
 
 import 'pag1.dart';
+import 'pagina_dois.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,7 +24,6 @@ class _HomePageState extends State<HomePage>
 
       body: Stack(
         children: [
-          // CONTEÚDO
           AnimatedSlide(
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeOut,
@@ -37,26 +40,83 @@ class _HomePageState extends State<HomePage>
                   backgroundColor: const Color(0xFFF4F1ED),
 
                   bottomNavigationBar: Container(
-                    height: 70,
+                    height: 65,
                     color: const Color(0xFFD92B68),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: const [
-                        Icon(
-                          Icons.home_outlined,
-                          color: Colors.white,
-                          size: 35,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.home,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
+                                onPressed: () {
+                                  setState(() {});
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Página Inicial atualizada",
+                                      ),
+                                      duration: Duration(milliseconds: 700),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
                         ),
-                        Icon(Icons.menu, color: Colors.white, size: 35),
-                        Icon(
-                          Icons.person_outline,
-                          color: Colors.white,
-                          size: 35,
+                        const Expanded(
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.menu,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                            onPressed: null,
+                          ),
                         ),
-                        Icon(
-                          Icons.settings_outlined,
-                          color: Colors.white,
-                          size: 35,
+                        Expanded(
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.account_circle,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const PerfilPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.settings,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ConfigPage(),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -66,7 +126,6 @@ class _HomePageState extends State<HomePage>
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          // HEADER
                           Container(
                             height: 90,
                             color: const Color(0xFFD92B68),
@@ -79,7 +138,6 @@ class _HomePageState extends State<HomePage>
                             ),
                           ),
 
-                          // MENU TOP
                           Container(
                             width: double.infinity,
                             color: const Color(0xFFDCCCB3),
@@ -116,7 +174,6 @@ class _HomePageState extends State<HomePage>
 
                           const SizedBox(height: 20),
 
-                          // ANIMAÇÃO
                           AnimatedCard(delay: 200, child: capaCard()),
 
                           const SizedBox(height: 25),
@@ -124,17 +181,51 @@ class _HomePageState extends State<HomePage>
                           sectionTitle("Acontece na Escola"),
 
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: AnimatedCard(
                                   delay: 400,
-                                  child: noticiaCard(),
+                                  child: noticiaCard(
+                                    titulo:
+                                        "Feira de Ciências 2024: Sustentabilidade na comunidade.",
+                                    imagePath: "/imgs/feiradeciencias.jpg",
+                                    backgroundColor: const Color(0xFFD92B68),
+                                    buttonColor: const Color(0xFFDCCCB3),
+                                    textColor: const Color(0xFF721831),
+                                    buttonTextColor: const Color(0xFF721831),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const Pagina3(),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
+
                               Expanded(
                                 child: AnimatedCard(
                                   delay: 600,
-                                  child: noticiaCard(),
+                                  child: noticiaCard(
+                                    titulo:
+                                        "Reconhecimento de iniciativas presentes no III Congresso...",
+                                    imagePath: "/imgs/horta.jpeg",
+                                    backgroundColor: const Color(0xFFDCCCB3),
+                                    buttonColor: const Color(0xFFD92B68),
+                                    textColor: const Color(0xFF721831),
+                                    buttonTextColor: Colors.white,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const Pagina3(),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ],
@@ -171,7 +262,6 @@ class _HomePageState extends State<HomePage>
             ),
           ),
 
-          // MENU LATERAL
           AnimatedPositioned(
             duration: const Duration(milliseconds: 400),
             left: showMenu ? 0 : -250,
@@ -183,13 +273,13 @@ class _HomePageState extends State<HomePage>
               padding: const EdgeInsets.only(top: 100),
               child: Column(
                 children: [
-                  menuItem(Icons.description, "Noticias"),
-                  menuItem(Icons.computer, "Opinião"),
-                  menuItem(Icons.calendar_month, "Eventos"),
-                  menuItem(Icons.folder, "Mural"),
-                  menuItem(Icons.book, "Trabalhos"),
-                  menuItem(Icons.podcasts, "Podcast"),
-                  menuItem(Icons.message, "Mensagens"),
+                  menuItem(context, Icons.description, "Noticias"),
+                  menuItem(context, Icons.computer, "Opinião"),
+                  menuItem(context, Icons.calendar_month, "Eventos"),
+                  menuItem(context, Icons.folder, "Mural"),
+                  menuItem(context, Icons.book, "Trabalhos"),
+                  menuItem(context, Icons.podcasts, "Podcast"),
+                  menuItem(context, Icons.message, "Feed"),
                 ],
               ),
             ),
@@ -216,18 +306,28 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget menuItem(IconData icon, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-      child: Row(
-        children: [
-          Icon(icon, size: 40, color: const Color(0xFFDCCCB3)),
-          const SizedBox(width: 15),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-        ],
+  Widget menuItem(BuildContext context, IconData icon, String title) {
+    return InkWell(
+      onTap: () {
+        if (title == "Mural") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PaginaDois()),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+        child: Row(
+          children: [
+            Icon(icon, size: 40, color: const Color(0xFFDCCCB3)),
+            const SizedBox(width: 15),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -238,7 +338,6 @@ class _HomePageState extends State<HomePage>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // BOLOTA
           Positioned(
             right: -20,
             top: -20,
@@ -251,8 +350,6 @@ class _HomePageState extends State<HomePage>
               ),
             ),
           ),
-
-          // CARD
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -266,15 +363,12 @@ class _HomePageState extends State<HomePage>
                 ),
               ],
             ),
-
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // LINHA COM TÍTULO + IMAGEM
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // TÍTULO
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,9 +382,7 @@ class _HomePageState extends State<HomePage>
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-
                           SizedBox(height: 10),
-
                           Text(
                             "SESI do Ceará conquista segundo lugar em competição internacional",
                             style: TextStyle(
@@ -302,10 +394,7 @@ class _HomePageState extends State<HomePage>
                         ],
                       ),
                     ),
-
                     const SizedBox(width: 15),
-
-                    // IMAGEM
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Image.asset(
@@ -317,15 +406,11 @@ class _HomePageState extends State<HomePage>
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 15),
-
-                // DESCRIÇÃO EMBAIXO
                 const Text(
-                  "Alunos da Escola SESI SENAI Sobral conquistaram o segundo lugar na competição internacional de vídeos, promovida pela WIPO destacando a relevância da propriedade intelectual.",
+                  "Alunos da Escola SESI SENAI Sobral conquistaram o second lugar na competição internacional de vídeos, promovida pela WIPO destacando a relevância da propriedade intelectual.",
                   style: TextStyle(fontSize: 13),
                 ),
-
                 const SizedBox(height: 15),
                 ElevatedButton(
                   onPressed: () {
@@ -354,48 +439,78 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget noticiaCard() {
+  Widget noticiaCard({
+    required String titulo,
+    required String imagePath,
+    required Color backgroundColor,
+    required Color buttonColor,
+    required Color textColor,
+    required Color buttonTextColor,
+    required VoidCallback onTap,
+  }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFDCCCB3),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             blurRadius: 6,
-            color: Colors.black,
+            color: Colors.black.withValues(alpha: 0.15),
             offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 140,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.asset(
+              imagePath,
+              height: 140,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 140,
+                  color: Colors.grey.shade400,
+                  child: const Icon(Icons.image, size: 40),
+                );
+              },
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Feira de Ciências 2024",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  titulo,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onTap,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD92B68),
+                    backgroundColor: buttonColor,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "LER MAIS",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: buttonTextColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -425,7 +540,6 @@ class _HomePageState extends State<HomePage>
   }
 }
 
-// ANIMAÇÃO DE BAIXO PRA CIMA
 class AnimatedCard extends StatefulWidget {
   final Widget child;
   final int delay;

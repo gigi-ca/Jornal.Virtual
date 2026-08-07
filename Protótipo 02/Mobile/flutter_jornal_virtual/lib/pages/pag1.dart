@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_jornal_virtual/pages/perfil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'inicial.dart';
@@ -14,7 +15,6 @@ class Pagina1 extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // TOPO
             Stack(
               children: [
                 Container(
@@ -277,26 +277,63 @@ Cada linha de código representa um passo para compreender como transformar o mu
       ),
 
       bottomNavigationBar: Container(
-        height: 78,
+        height: 65, 
         color: const Color(0xFFD91B65),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Icon(Icons.home_outlined, color: Colors.black, size: 32),
-
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
+            Expanded(
+              child: IconButton(
+                icon: const Icon(Icons.home, color: Colors.white, size: 30),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomePage()),
+                  );
+                },
               ),
-              child: const Icon(Icons.menu, size: 40),
             ),
 
-            Icon(Icons.person_outline, color: Colors.black, size: 32),
 
-            Icon(Icons.settings, color: Colors.black, size: 32),
+            Expanded(
+              child: Center(
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const IconButton(
+                    icon: Icon(Icons.menu, color: Colors.black, size: 30),
+                    onPressed:
+                        null, 
+                  ),
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: IconButton(
+                icon: const Icon(
+                  Icons.account_circle,
+                  color: Colors.white,
+                  size: 32,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PerfilPage()),
+                  );
+                },
+              ),
+            ),
+
+            Expanded(
+              child: IconButton(
+                icon: const Icon(Icons.settings, color: Colors.white, size: 30),
+                onPressed: () {},
+              ),
+            ),
           ],
         ),
       ),
