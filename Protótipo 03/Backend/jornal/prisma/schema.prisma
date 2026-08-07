@@ -13,30 +13,46 @@ enum TiposUsuarios {
 }
 
 model Empresa {
-  id             Int      @id @default(autoincrement())
-  nome           String
-  cnpj           String   @unique
+  id               Int      @id @default(autoincrement())
 
-  email          String?
-  telefone       String?
-  endereco       String?
-  numero         String?
-  bairro         String?
-  cidade         String?
-  estado         String?
-  cep            String?
+  nome             String
+  cnpj             String   @unique
 
-  logo           String?
+  email            String?
+  telefone         String?
+  endereco         String?
+  cidade           String?
+  estado           String?
+  cep              String?
 
-  corPrimaria    String?
-  corSecundaria  String?
+  logo             String?
 
-  dataCriacao    DateTime @default(now())
+  dataCriacao      DateTime @default(now())
 
-  usuarios       Usuarios[]
-  noticias       Noticias[]
-  publicacoes    Publicacoes[]
-  hashtags       Hashtags[]
+  tema             TemaEmpresa?
+
+  usuarios         Usuarios[]
+  noticias         Noticias[]
+  publicacoes      Publicacoes[]
+  hashtags         Hashtags[]
+}
+
+model TemaEmpresa {
+  id               Int      @id @default(autoincrement())
+
+  primary          String   @default("#2563eb")
+  primaryDark      String   @default("#1d4ed8")
+  secondary        String   @default("#7c3aed")
+  secondaryLight   String   @default("#a78bfa")
+  background       String   @default("#f8fafc")
+  surface          String   @default("#ffffff")
+  text             String   @default("#1f2937")
+  textLight        String   @default("#6b7280")
+  border           String   @default("#e5e7eb")
+  danger           String   @default("#ef4444")
+
+  empresaId        Int      @unique
+  empresa          Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 }
 
 model Usuarios {

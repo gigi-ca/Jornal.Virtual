@@ -12,39 +12,14 @@ const {
 const { validate } = require("../middlewares/auth");
 const { validaAdministrador } = require("../middlewares/validaCargo");
 
-router.post(
-    "/cadastrar",
-    validate,
-    validaAdministrador,
-    cadastrar
-);
+router.post("/cadastrar", validate, validaAdministrador, cadastrar);
 
-router.get(
-    "/listar",
-    validate,
-    validaAdministrador,
-    listar
-);
+router.get("/listar", validate, validaAdministrador, listar);
 
-router.get(
-    "/buscar/:id",
-    validate,
-    validaAdministrador,
-    buscar
-);
+router.get("/buscar/:id", validate, validaAdministrador, buscar);
 
-router.put(
-    "/atualizar/:id",
-    validate,
-    validaAdministrador,
-    atualizar
-);
+router.put("/atualizar/:id", validate, validaAdministrador, atualizar);
 
-router.delete(
-    "/excluir/:id",
-    validate,
-    validaAdministrador,
-    excluir
-);
+router.delete("/excluir/:id", validate, validaAdministrador, excluir);
 
 module.exports = router;
