@@ -50,7 +50,7 @@ const cadastrar = async (req, res) => {
             });
         }
 
-        const tema = await prisma.tema.create({
+        const tema = await prisma.temaEmpresa.create({
             data: {
                 empresaId: Number(empresaId),
                 primary,
@@ -84,7 +84,7 @@ const cadastrar = async (req, res) => {
 const listar = async (req, res) => {
     try {
 
-        const temas = await prisma.tema.findMany({
+        const temas = await prisma.temaEmpresa.findMany({
             include: {
                 empresa: {
                     select: {
@@ -110,12 +110,11 @@ const listar = async (req, res) => {
 
 const buscar = async (req, res) => {
     try {
-
         const empresaId = Number(req.params.empresaId);
 
-        const tema = await prisma.tema.findUnique({
+        const tema = await prisma.temaEmpresa.findUnique({
             where: {
-                empresaId
+                empresaId: empresaId
             },
             include: {
                 empresa: {
@@ -137,14 +136,15 @@ const buscar = async (req, res) => {
         return res.status(200).json(tema);
 
     } catch (erro) {
-
         return res.status(500).json({
             mensagem: "Erro ao buscar tema.",
             erro: erro.message
         });
-
     }
 };
+
+
+
 
 const atualizar = async (req, res) => {
     try {
@@ -157,7 +157,7 @@ const atualizar = async (req, res) => {
 
         const empresaId = Number(req.params.empresaId);
 
-        const tema = await prisma.tema.findUnique({
+        const tema = await prisma.temaEmpresa.findUnique({
             where: {
                 empresaId
             }
@@ -169,11 +169,37 @@ const atualizar = async (req, res) => {
             });
         }
 
-        const temaAtualizado = await prisma.tema.update({
+        const {
+            primary,
+            primaryDark,
+            secondary,
+            secondaryLight,
+            background,
+            surface,
+            text,
+            textLight,
+            border,
+            danger
+        } = req.body;
+
+        const dados = {};
+
+        if (primary !== undefined) dados.primary = primary;
+        if (primaryDark !== undefined) dados.primaryDark = primaryDark;
+        if (secondary !== undefined) dados.secondary = secondary;
+        if (secondaryLight !== undefined) dados.secondaryLight = secondaryLight;
+        if (background !== undefined) dados.background = background;
+        if (surface !== undefined) dados.surface = surface;
+        if (text !== undefined) dados.text = text;
+        if (textLight !== undefined) dados.textLight = textLight;
+        if (border !== undefined) dados.border = border;
+        if (danger !== undefined) dados.danger = danger;
+
+        const temaAtualizado = await prisma.temaEmpresa.update({
             where: {
                 empresaId
             },
-            data: req.body
+            data: dados
         });
 
         return res.status(200).json({
@@ -202,7 +228,7 @@ const excluir = async (req, res) => {
 
         const empresaId = Number(req.params.empresaId);
 
-        const tema = await prisma.tema.findUnique({
+        const tema = await prisma.temaEmpresa.findUnique({
             where: {
                 empresaId
             }
@@ -214,7 +240,7 @@ const excluir = async (req, res) => {
             });
         }
 
-        await prisma.tema.delete({
+        await prisma.temaEmpresa.delete({
             where: {
                 empresaId
             }

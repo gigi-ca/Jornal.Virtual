@@ -3,10 +3,11 @@ const prisma = require("../data/prisma");
 const cadastrar = async (req, res) => {
     try {
 
-        const { texto, hashtags } = req.body;
+        const { texto } = req.body;
         const usuarioId = req.user.id;
+        const empresaId = req.user.empresaId;
 
-        if (!texto && (!hashtags || hashtags.length === 0)) {
+        if (!texto || texto.trim() === "") {
             return res.status(400).json({
                 mensagem: "Publicação vazia"
             });
@@ -14,50 +15,54 @@ const cadastrar = async (req, res) => {
 
         const publicacao = await prisma.publicacoes.create({
             data: {
-                texto,
+                texto: texto.trim(),
                 usuarioId,
-                empresaId: req.user.empresaId
+                empresaId
             }
         });
 
-        if (hashtags && hashtags.length > 0) {
+        // Encontra as hashtags dentro do texto
+        const hashtagsEncontradas = texto.match(/#[a-zA-ZÀ-ÿ0-9_]+/g) || [];
 
-            for (let nome of hashtags) {
+        // Remove hashtags repetidas
+        const hashtagsUnicas = [
+            ...new Set(
+                hashtagsEncontradas.map(
+                    hashtag => hashtag.toLowerCase()
+                )
+            )
+        ];
 
-                nome = nome.trim().toLowerCase();
+        for (const nome of hashtagsUnicas) {
 
-                if (!nome) continue;
-
-                let tag = await prisma.hashtags.findFirst({
-                    where: {
-                        nome,
-                        empresaId: req.user.empresaId
-                    }
-                });
-
-                if (!tag) {
-                    tag = await prisma.hashtags.create({
-                        data: {
-                            nome,
-                            empresaId: req.user.empresaId
-                        }
-                    });
+            let tag = await prisma.hashtags.findFirst({
+                where: {
+                    nome,
+                    empresaId
                 }
+            });
 
-                await prisma.publicacoes.update({
-                    where: {
-                        id: publicacao.id
-                    },
+            if (!tag) {
+                tag = await prisma.hashtags.create({
                     data: {
-                        hashtags: {
-                            connect: {
-                                id: tag.id
-                            }
-                        }
+                        nome,
+                        empresaId
                     }
                 });
             }
 
+            await prisma.publicacoes.update({
+                where: {
+                    id: publicacao.id
+                },
+                data: {
+                    hashtags: {
+                        connect: {
+                            id: tag.id
+                        }
+                    }
+                }
+            });
         }
 
         return res.status(201).json({

@@ -16,10 +16,10 @@ router.post("/cadastrar", validate, validaAdministrador, cadastrar);
 
 router.get("/listar", validate, listar);
 
-router.get("/buscar/:id", validate, buscar);
+router.get("/buscar/:empresaId", validate, buscar);
 
-router.put("/atualizar/:id", validate, validaAdministrador, atualizar);
+router.put("/atualizar/:empresaId", validate, validaAdministrador, atualizar);
 
-router.delete("/excluir/:id", validate, validaAdministrador, excluir);
+router.delete("/excluir/:empresaId", validate, validaAdministrador, excluir);
 
 module.exports = router;

@@ -5,7 +5,6 @@ const cadastrar = async (req, res) => {
 
         const { titulo, subtitulo, texto } = req.body;
 
-        // Apenas usuário Verificado ou TI da própria empresa
         if (
             req.user.tipo !== "VERIFICADO" &&
             req.user.tipo !== "ADMINISTRADOR"
@@ -140,7 +139,7 @@ const atualizar = async (req, res) => {
             });
         }
 
-        // Autor ou TI da mesma empresa
+        
         if (
             noticia.usuarioId !== req.user.id &&
             req.user.tipo !== "ADMINISTRADOR"
@@ -196,7 +195,7 @@ const excluir = async (req, res) => {
             });
         }
 
-        // Autor ou TI da mesma empresa
+   
         if (
             noticia.usuarioId !== req.user.id &&
             req.user.tipo !== "ADMINISTRADOR"

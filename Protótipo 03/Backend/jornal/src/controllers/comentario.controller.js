@@ -1,6 +1,6 @@
 const prisma = require("../data/prisma");
 
-// CRIAR comentário (ou resposta)
+
 const cadastrar = async (req, res) => {
     try {
 
@@ -69,7 +69,7 @@ const cadastrar = async (req, res) => {
     }
 };
 
-// LISTAR comentários de uma publicação
+
 const listarPorPublicacao = async (req, res) => {
     try {
 
@@ -136,7 +136,7 @@ const listarPorPublicacao = async (req, res) => {
     }
 };
 
-// BUSCAR comentário
+
 const buscar = async (req, res) => {
     try {
 
@@ -176,7 +176,7 @@ const buscar = async (req, res) => {
     }
 };
 
-// EXCLUIR comentário
+
 const excluir = async (req, res) => {
     try {
 

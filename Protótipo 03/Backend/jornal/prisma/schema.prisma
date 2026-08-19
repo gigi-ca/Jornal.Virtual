@@ -7,7 +7,7 @@ datasource db {
 }
 
 enum TiposUsuarios {
-  ALUNO
+  USUARIO
   VERIFICADO
   ADMINISTRADOR
 }
@@ -38,21 +38,21 @@ model Empresa {
 }
 
 model TemaEmpresa {
-  id               Int      @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
 
-  primary          String   @default("#2563eb")
-  primaryDark      String   @default("#1d4ed8")
-  secondary        String   @default("#7c3aed")
-  secondaryLight   String   @default("#a78bfa")
-  background       String   @default("#f8fafc")
-  surface          String   @default("#ffffff")
-  text             String   @default("#1f2937")
-  textLight        String   @default("#6b7280")
-  border           String   @default("#e5e7eb")
-  danger           String   @default("#ef4444")
+  primary         String?
+  primaryDark     String?
+  secondary       String?
+  secondaryLight  String?
+  background      String?
+  surface         String?
+  text            String?
+  textLight       String?
+  border          String?
+  danger          String?
 
-  empresaId        Int      @unique
-  empresa          Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId       Int      @unique
+  empresa         Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 }
 
 model Usuarios {

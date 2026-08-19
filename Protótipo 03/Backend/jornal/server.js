@@ -19,7 +19,7 @@ const denunciasPublicacaoRoutes = require("./src/routes/denunciasPublicacao.rout
 const denunciasComentarioRoutes = require("./src/routes/denunciasComentario.routes");
 const hashtagsRoutes = require("./src/routes/hashtags.routes");
 const empresaRoutes = require("./src/routes/empresa.routes");
-
+const temaRoutes = require("./src/routes/tema.routes");
 
 app.use("/usuarios", usuariosRoutes);
 app.use("/publicacoes", publicacoesRoutes);
@@ -32,6 +32,7 @@ app.use("/denuncias-publicacao", denunciasPublicacaoRoutes);
 app.use("/denuncias-comentario", denunciasComentarioRoutes);
 app.use("/hashtags", hashtagsRoutes);
 app.use("/empresa", empresaRoutes);
+app.use("/tema", temaRoutes);
 
 
 

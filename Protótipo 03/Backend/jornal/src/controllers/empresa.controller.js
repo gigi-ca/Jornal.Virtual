@@ -15,24 +15,10 @@ const cadastrar = async (req, res) => {
             email,
             telefone,
             endereco,
-            numero,
-            bairro,
             cidade,
             estado,
             cep,
-            logo,
-
-            primary,
-            primaryDark,
-            secondary,
-            secondaryLight,
-            background,
-            surface,
-            text,
-            textLight,
-            border,
-            danger
-
+            logo
         } = req.body;
 
         if (!nome || !cnpj) {
@@ -60,30 +46,10 @@ const cadastrar = async (req, res) => {
                 email,
                 telefone,
                 endereco,
-                numero,
-                bairro,
                 cidade,
                 estado,
                 cep,
-                logo,
-
-                tema: {
-                    create: {
-                        primary,
-                        primaryDark,
-                        secondary,
-                        secondaryLight,
-                        background,
-                        surface,
-                        text,
-                        textLight,
-                        border,
-                        danger
-                    }
-                }
-            },
-            include: {
-                tema: true
+                logo
             }
         });
 
@@ -175,9 +141,6 @@ const atualizar = async (req, res) => {
         const empresa = await prisma.empresa.findUnique({
             where: {
                 id: empresaId
-            },
-            include: {
-                tema: true
             }
         });
 
@@ -193,24 +156,10 @@ const atualizar = async (req, res) => {
             email,
             telefone,
             endereco,
-            numero,
-            bairro,
             cidade,
             estado,
             cep,
-            logo,
-
-            primary,
-            primaryDark,
-            secondary,
-            secondaryLight,
-            background,
-            surface,
-            text,
-            textLight,
-            border,
-            danger
-
+            logo
         } = req.body;
 
         const empresaAtualizada = await prisma.empresa.update({
@@ -223,42 +172,10 @@ const atualizar = async (req, res) => {
                 email,
                 telefone,
                 endereco,
-                numero,
-                bairro,
                 cidade,
                 estado,
                 cep,
-                logo,
-
-                tema: empresa.tema
-                    ? {
-                          update: {
-                              primary,
-                              primaryDark,
-                              secondary,
-                              secondaryLight,
-                              background,
-                              surface,
-                              text,
-                              textLight,
-                              border,
-                              danger
-                          }
-                      }
-                    : {
-                          create: {
-                              primary,
-                              primaryDark,
-                              secondary,
-                              secondaryLight,
-                              background,
-                              surface,
-                              text,
-                              textLight,
-                              border,
-                              danger
-                          }
-                      }
+                logo
             },
             include: {
                 tema: true
