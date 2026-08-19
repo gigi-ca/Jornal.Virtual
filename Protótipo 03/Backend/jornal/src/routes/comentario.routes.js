@@ -15,11 +15,6 @@ router.post("/cadastrar", validate, cadastrar);
 router.get("/publicacao/:publicacaoId", listarPorPublicacao);
 router.get("/:id", buscar);
 
-router.delete(
-    "/:id",
-    validate,
-    validarExclusaoComentario,
-    excluir
-);
+router.delete("/:id", validate, validarExclusaoComentario, excluir);
 
 module.exports = router;

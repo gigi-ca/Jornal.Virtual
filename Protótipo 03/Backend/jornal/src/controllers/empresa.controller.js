@@ -9,31 +9,81 @@ const cadastrar = async (req, res) => {
             });
         }
 
-        const { nome, logo, dominio } = req.body;
+        const {
+            nome,
+            cnpj,
+            email,
+            telefone,
+            endereco,
+            numero,
+            bairro,
+            cidade,
+            estado,
+            cep,
+            logo,
 
-        if (!nome) {
+            primary,
+            primaryDark,
+            secondary,
+            secondaryLight,
+            background,
+            surface,
+            text,
+            textLight,
+            border,
+            danger
+
+        } = req.body;
+
+        if (!nome || !cnpj) {
             return res.status(400).json({
-                mensagem: "Nome da empresa é obrigatório."
+                mensagem: "Nome e CNPJ são obrigatórios."
             });
         }
 
-        const empresaExistente = await prisma.empresa.findFirst({
+        const empresaExistente = await prisma.empresa.findUnique({
             where: {
-                nome
+                cnpj
             }
         });
 
         if (empresaExistente) {
             return res.status(400).json({
-                mensagem: "Já existe uma empresa com esse nome."
+                mensagem: "Já existe uma empresa cadastrada com este CNPJ."
             });
         }
 
         const empresa = await prisma.empresa.create({
             data: {
                 nome,
+                cnpj,
+                email,
+                telefone,
+                endereco,
+                numero,
+                bairro,
+                cidade,
+                estado,
+                cep,
                 logo,
-                dominio
+
+                tema: {
+                    create: {
+                        primary,
+                        primaryDark,
+                        secondary,
+                        secondaryLight,
+                        background,
+                        surface,
+                        text,
+                        textLight,
+                        border,
+                        danger
+                    }
+                }
+            },
+            include: {
+                tema: true
             }
         });
 
@@ -57,7 +107,8 @@ const listar = async (req, res) => {
 
         const empresas = await prisma.empresa.findMany({
             include: {
-                usuarios: true
+                usuarios: true,
+                tema: true
             },
             orderBy: {
                 nome: "asc"
@@ -87,7 +138,8 @@ const buscar = async (req, res) => {
                 usuarios: true,
                 publicacoes: true,
                 noticias: true,
-                hashtags: true
+                hashtags: true,
+                tema: true
             }
         });
 
@@ -118,9 +170,14 @@ const atualizar = async (req, res) => {
             });
         }
 
+        const empresaId = Number(req.params.id);
+
         const empresa = await prisma.empresa.findUnique({
             where: {
-                id: Number(req.params.id)
+                id: empresaId
+            },
+            include: {
+                tema: true
             }
         });
 
@@ -130,11 +187,82 @@ const atualizar = async (req, res) => {
             });
         }
 
+        const {
+            nome,
+            cnpj,
+            email,
+            telefone,
+            endereco,
+            numero,
+            bairro,
+            cidade,
+            estado,
+            cep,
+            logo,
+
+            primary,
+            primaryDark,
+            secondary,
+            secondaryLight,
+            background,
+            surface,
+            text,
+            textLight,
+            border,
+            danger
+
+        } = req.body;
+
         const empresaAtualizada = await prisma.empresa.update({
             where: {
-                id: Number(req.params.id)
+                id: empresaId
             },
-            data: req.body
+            data: {
+                nome,
+                cnpj,
+                email,
+                telefone,
+                endereco,
+                numero,
+                bairro,
+                cidade,
+                estado,
+                cep,
+                logo,
+
+                tema: empresa.tema
+                    ? {
+                          update: {
+                              primary,
+                              primaryDark,
+                              secondary,
+                              secondaryLight,
+                              background,
+                              surface,
+                              text,
+                              textLight,
+                              border,
+                              danger
+                          }
+                      }
+                    : {
+                          create: {
+                              primary,
+                              primaryDark,
+                              secondary,
+                              secondaryLight,
+                              background,
+                              surface,
+                              text,
+                              textLight,
+                              border,
+                              danger
+                          }
+                      }
+            },
+            include: {
+                tema: true
+            }
         });
 
         return res.status(200).json({

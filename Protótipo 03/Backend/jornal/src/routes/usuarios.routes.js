@@ -22,7 +22,7 @@ const uploadMidia = require("../middlewares/upload.midia");
 const controller = require("../controllers/usuarios.controller");
 
 router.post("/login", Login);
-router.post("/cadastrar", validate, validaAdministrador,cadastrar);
+router.post("/cadastrar", validate, validaAdministrador, cadastrar);
 router.get("/listar", validate, listar);
 router.get("/buscar/:id", validate, buscar);
 router.put("/atualizar/:id", validate, atualizar);
