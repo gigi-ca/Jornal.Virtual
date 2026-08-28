@@ -1,27 +1,38 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Usuário</title>
-    <link rel="stylesheet" href="/css/perfil.css">
+    <link rel="stylesheet" href="../css/perfil.css">
+    <link rel="stylesheet" href="../css/global/global.css">
+    <link rel="stylesheet" href="../css/global/root.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
-<body>
 
+<body>
     <div class="bolinhas bolinhas1"></div>
     <div class="bolinhas bolinhas2"></div>
     <div class="bolinhas bolinhas3"></div>
+    <header class="header-global">
 
-    <header>
         <div class="logo">
-            <img src="" alt="Logo">
+            <i class="fa-solid fa-newspaper"></i>
+            <h2>Jornal<span>Online</span></h2>
         </div>
+
         <nav class="nav-principal">
-            <a href="inicio.html">Início</a>
-            <a href="feed.html">Feed</a>
-            <a href="conta.html" class="current">Perfil</a>
-            <a href="configuracoes.html">Configurações</a>
+            <a href="/html/inicio.html">Início</a>
+            <a href="/html/feed.html">Feed</a>
+            <a href="/html/perfil.html" class="ativo">Minha Conta</a>
+            <a href="/html/configuracoes.html">Configurações</a>
         </nav>
+
     </header>
 
     <div class="perfil">
@@ -32,12 +43,12 @@
         <div class="conteudo">
             <h1 class="nome" id="nome">Luiza Corazin</h1>
             <p class="info">
-                <strong>Unidade Escolar:</strong>
-                <span id="unidade">SESI 356</span>
+                <strong>REDE:</strong>
+                <span id="rede">SESI 356</span>
             </p>
-            <p class="descricao" id="descricao">Estudante criativa e apaixonadapor tecnologia, design e  jornal virtual escolar.</p>
+            <p class="descricao" id="descricao">Estudante criativa e apaixonadapor tecnologia, design e jornal virtual
+                escolar.</p>
             <div class="categoria" id="categoria">Administradora</div>
-
             <div class="estatisticas">
                 <div class="card">
                     <h2>15</h2>
@@ -52,25 +63,45 @@
                     <span>Projetos</span>
                 </div>
             </div>
-
             <br>
             <button onclick="abrirModal()">Editar Perfil</button>
-
             <div class="modal-fundo" id="modalFundo">
                 <div class="modal">
+                    <button class="fechar-modal" onclick="fecharModal()">×</button>
                     <h2>Editar Perfil</h2>
-                    <input type="text" id="inputFoto" placeholder="Foto de perfil">
-                    <input type="text" id="inputBanner" placeholder="Imagem do topo">
-
-                    <textarea id="inputDescricao" placeholder="Descrição"></textarea>
-
-                    <button onclick="salvarPerfil()">Salvar</button>
-                    <button class="btn-fechar" onclick="fecharModal()">Fechar</button>
+                    <div class="imagens-modal">
+                        <div class="imagem-modal">
+                            <label>Foto de Perfil</label>
+                            <div class="preview-foto">
+                                <img id="previewFoto" src="" alt="Foto de perfil">
+                            </div>
+                            <label class="botao-imagem">Escolher imagem
+                                <input type="file" id="inputFoto" accept="image/*">
+                            </label>
+                        </div>
+                        <div class="imagem-modal banner-modal">
+                            <label>Foto de Banner</label>
+                            <div class="preview-banner">
+                                <img id="previewBanner" src="" alt="Banner">
+                            </div>
+                            <label class="botao-imagem">Escolher imagem
+                                <input type="file" id="inputBanner" accept="image/*">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="campo-modal">
+                        <label>Descrição</label>
+                        <textarea id="inputDescricao" placeholder="Fale um pouco sobre você..."></textarea>
+                    </div>
+                    <div class="botoes-modal">
+                        <button class="botao-salvar" onclick="salvarPerfil()">Salvar Alterações</button>
+                        <button class="botao-cancelar" onclick="fecharModal()">Cancelar</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="/js/perfil.js"></script>
+    <script src="perfil.js"></script>
 </body>
+
 </html>

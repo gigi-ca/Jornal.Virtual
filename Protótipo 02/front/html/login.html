@@ -1,39 +1,130 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>A Voz do Sesi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login</title>
+
     <link rel="stylesheet" href="/css/login.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 </head>
 
+<body>
 
-<body class="inicio-body">
+    <main class="pagina-login">
 
-    
+        <section class="login-container">
 
-    <img class="inicio-img" src="/img/logo.png" alt="Logo A Voz do Sesi">
+            <div class="linha-titulo"></div>
 
-    <p class="inicio-cor">LOGIN</p>
-    <br>
+            <h1>LOGIN</h1>
 
-    <table class="inicio-table">
-        <tr>
-            <td><b>E-mail</b></td>
-            <td><input type="email" placeholder="Digite seu e-mail"></td>
-        </tr>
-        <tr>
-            <td><b>Senha</b></td>
-            <td><input type="password" ></td>
-        </tr>
-    </table>
+            <form action="/html/inicio.html">
 
-    
+                <!-- E-MAIL -->
+                <div class="campo">
 
-    <div>
-        <a href="/html/inicio.html">Entrar</a><br>
-        
-    </div>
+                    <label for="email">E-mail</label>
 
-    
+                    <div class="input-container">
+                        <span class="icone">✉</span>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Digite seu e-mail"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- SENHA -->
+                <div class="campo">
+
+                    <div class="senha-titulo">
+                        <label for="senha">Senha</label>
+
+                        <a href="#">Esqueceu a senha?</a>
+                    </div>
+
+                    <div class="input-container">
+
+                        <span class="icone">⌑</span>
+
+                        <input
+                            type="password"
+                            id="senha"
+                            name="senha"
+                            placeholder="Digite sua senha"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="mostrar-senha"
+                            id="mostrarSenha"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LEMBRAR-ME -->
+                <label class="lembrar">
+
+                    <input type="checkbox">
+
+                    <span class="checkbox"></span>
+
+                    Lembrar-me
+
+                </label>
+
+
+                <!-- ENTRAR -->
+                <button type="submit" class="botao-entrar">
+                    Entrar
+                </button>
+
+            </form>
+
+
+           
+        </section>
+
+    </main>
+
+
+    <script>
+        const senha = document.getElementById("senha");
+        const botaoMostrar = document.getElementById("mostrarSenha");
+
+        botaoMostrar.addEventListener("click", function () {
+
+            if (senha.type === "password") {
+                senha.type = "text";
+                botaoMostrar.textContent = "🙈";
+            } else {
+                senha.type = "password";
+                botaoMostrar.textContent = "👁";
+            }
+
+        });
+    </script>
+
 </body>
 </html>

@@ -1,127 +1,50 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-/* Evita qualquer rolagem indesejada na tela */
-html, body {
+html,
+body {
     width: 100%;
-    height: 100vh;
-    overflow: hidden; 
+    min-height: 100vh;
 }
 
 body {
-    background: linear-gradient(180deg, #d81b60 0%, #ff5b94 100%);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
 
-body{
-    margin:0;
-    min-height:100vh;
-    font-family:'Poppins', sans-serif;
-    overflow-x:hidden;
     background:
-        radial-gradient(circle at 15% 20%, rgba(255,255,255,.12) 0 130px, transparent 131px),
-        radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0 170px, transparent 171px),
-        radial-gradient(circle at 12% 85%, rgba(255,255,255,.08) 0 110px, transparent 111px),
-        radial-gradient(circle at 92% 80%, rgba(255,255,255,.10) 0 160px, transparent 161px),
-        linear-gradient(180deg,#d91f62,#ff4d88);
+        radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.12) 0 130px, transparent 131px),
+        radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.10) 0 170px, transparent 171px),
+        radial-gradient(circle at 12% 85%, rgba(255, 255, 255, 0.08) 0 110px, transparent 111px),
+        radial-gradient(circle at 92% 80%, rgba(255, 255, 255, 0.10) 0 160px, transparent 161px),
+        linear-gradient(180deg, var(--primary), var(--secondary));
 }
 
-.bolinhas{
-    position:fixed;
-    width:180px;
-    height:180px;
-    pointer-events:none;
-    opacity:.35;
-    background-image:radial-gradient(white 2px, transparent 2px);
-    background-size:18px 18px;
+.bolinhas {
+    position: fixed;
+    width: 180px;
+    height: 180px;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: radial-gradient(var(--surface) 2px, transparent 2px);
+    background-size: 18px 18px;
 }
 
-.bolinhas1{
-    top:100px;
-    right:50px;
+.bolinhas1 {
+    top: 100px;
+    right: 50px;
 }
 
-.bolinhas2{
-    bottom:80px;
-    left:80px;
+.bolinhas2 {
+    bottom: 80px;
+    left: 80px;
 }
 
-.bolinhas3{
-    bottom:-50px;
-    right:200px;
+.bolinhas3 {
+    bottom: -50px;
+    right: 200px;
 }
 
-/* NAVBAR */
-header{
-    width:100%;
-    height:85px;
-    background:#cf2f63;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 45px;
-    box-shadow:0 5px 20px rgba(0,0,0,.15);
-}
-
-.logo img{
-    width:60px;
-}
-
-.nav-principal{
-    display:flex;
-    gap:18px;
-    flex-wrap:wrap;
-}
-
-.nav-principal a{
-    color:white;
-    text-decoration:none;
-    font-weight:700;
-    padding:10px 14px;
-    border-radius:999px;
-    transition:background .2s ease;
-}
-
-.nav-principal a:hover,
-.nav-principal a.current{
-    background:rgba(255,255,255,0.18);
-}
-
-nav {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-nav a {
-    text-decoration: none;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 20px;
-    transition: 0.3s;
-}
-
-nav a:hover {
-    background: rgba(255, 255, 255, 0.18);
-}
-
-nav .ativo {
-    background: #ff4d88;
-    color: #fff;
-}
-
-/* CONTEÚDO PRINCIPAL centralizado no espaço restante */
 main {
-    flex: 1;
     width: 100%;
+    min-height: calc(100vh - 82px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -132,8 +55,8 @@ main {
 
 .card-config {
     width: 100%;
-    max-width: 500px; 
-    background: #f8f9fa;
+    max-width: 500px;
+    background: var(--surface);
     border-radius: 28px;
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
@@ -141,7 +64,7 @@ main {
 
 .topo-card {
     height: 160px;
-    background: linear-gradient(135deg, #ffadc9, #ff5c94);
+    background: linear-gradient(135deg, #ffadc9, var(--secondary));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -150,15 +73,12 @@ main {
     padding-bottom: 20px;
 }
 
-/* ONDA / CURVA SUPERIOR DO CARD */
-
-
 .topo-card::before {
     content: "";
     position: absolute;
     width: 120%;
     height: 90px;
-    background: #f8f9fa;
+    background: var(--surface);
     border-radius: 70%;
     bottom: -30px;
     left: 50%;
@@ -176,22 +96,21 @@ main {
     width: 85px;
     height: 85px;
     border-radius: 50%;
-    background: #cf2f63;
+    background: var(--primary-dark);
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 38px;
-    color: #fff;
-    border: 10px solid #f8f9fa;
-    
+    color: var(--surface);
+    border: 10px solid var(--surface);
 }
 
 .topo-card h1 {
     position: relative;
     z-index: 2;
-    color: #1a2a47;
+    color: var(--text);
     font-size: 25px;
-    font-weight: 700;
+    font-weight: 600;
     bottom: -35px;
 }
 
@@ -204,8 +123,8 @@ main {
     justify-content: space-between;
     align-items: center;
     text-decoration: none;
-    color: #1a2a47;
-    background: #fff;
+    color: var(--text);
+    background: var(--surface);
     border-radius: 14px;
     padding: 12px 18px;
     margin-bottom: 12px;
@@ -228,8 +147,8 @@ main {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #ffe2ec;
-    color: #ff4d88;
+    background: var(--background);
+    color: var(--secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -238,25 +157,25 @@ main {
 
 .esquerda span {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 500;
+    color: var(--text);
 }
 
-.item > .fa-chevron-right {
-    color: #1a2a47;
+.item>.fa-chevron-right {
+    color: var(--text);
     font-size: 14px;
 }
 
-/* ITEM SAIR DA CONTA */
 .sair {
     background: #ffebee;
 }
 
 .sair .esquerda i {
-    background: #ff4d88;
-    color: #fff;
+    background: var(--secondary);
+    color: var(--surface);
 }
 
-
 .sair span {
-    color: #ff2e6d;
+    color: var(--primary);
+    font-weight: 500;
 }

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Criar Notícia - JornalOnline</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/global/global.css">
+    <link rel="stylesheet" href="/css/global/root.css">
+    <link rel="stylesheet" href="/css/criar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="header-global">
+
+        <div class="logo">
+            <i class="fa-solid fa-newspaper"></i>
+            <h2>Jornal<span>Online</span></h2>
+        </div>
+
+
+        <nav class="nav-principal">
+
+            <a href="/html/inicio.html" class="ativo">Início</a>
+            <a href="/html/feed.html">Feed</a>
+            <a href="/html/perfil.html">Minha Conta</a>
+            <a href="/html/configuracoes.html">
+                Configurações
+            </a>
+        </nav>
+
+    </header>
+    <!-- CONTEÚDO -->
+
+    <main class="container">
+
+        <div class="topo">
+
+            <div>
+
+                <span class="subtitulo">
+                    JORNAL ONLINE
+                </span>
+
+                <h1>
+                    Criar nova notícia
+                </h1>
+
+                <p>
+                    Preencha as informações abaixo para publicar uma nova notícia.
+                </p>
+
+            </div>
+
+            <a href="inicio.html" class="voltar">
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+                Voltar
+
+            </a>
+
+        </div>
+
+
+        <div class="layout">
+
+            <!-- FORMULÁRIO -->
+
+            <section class="formulario">
+
+                <h2>
+                    Informações da notícia
+                </h2>
+
+                <form id="formNoticia">
+
+                    <!-- TÍTULO -->
+
+                    <div class="campo">
+
+                        <label for="titulo">
+                            Título da notícia
+                        </label>
+
+                        <input type="text" id="titulo" placeholder="Digite o título da notícia" maxlength="120"
+                            required>
+
+                        <small>
+                            <span id="contadorTitulo">0</span>/120
+                        </small>
+
+                    </div>
+
+
+                    <!-- CATEGORIA -->
+
+                    <div class="campo">
+
+                        <label for="categoria">
+                            Categoria
+                        </label>
+
+                        <select id="categoria" required>
+
+                            <option value="">
+                                Selecione uma categoria
+                            </option>
+
+                            <option value="Tecnologia">
+                                Tecnologia
+                            </option>
+
+                            <option value="Saúde">
+                                Saúde
+                            </option>
+
+                            <option value="Educação">
+                                Educação
+                            </option>
+
+                            <option value="Economia">
+                                Economia
+                            </option>
+
+                            <option value="Meio Ambiente">
+                                Meio Ambiente
+                            </option>
+
+                            <option value="Esportes">
+                                Esportes
+                            </option>
+
+                            <option value="Cultura">
+                                Cultura
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- AUTOR -->
+
+                    <div class="campo">
+
+                        <label for="autor">
+                            Autor
+                        </label>
+
+                        <input type="text" id="autor" placeholder="Nome do autor" required>
+
+                    </div>
+
+
+                    <!-- IMAGEM -->
+
+                    <div class="campo">
+
+                        <label for="imagem">
+                            Imagem da notícia
+                        </label>
+
+                        <div class="upload">
+
+                            <i class="fa-solid fa-image"></i>
+
+                            <p>
+                                Selecione uma imagem
+                            </p>
+
+                            <span>
+                                JPG, JPEG ou PNG
+                            </span>
+
+                            <input type="file" id="imagem" accept="image/png, image/jpeg">
+
+                        </div>
+
+                        <div id="previewImagem" class="preview-imagem"></div>
+
+                    </div>
+
+
+                    <!-- RESUMO -->
+
+                    <div class="campo">
+
+                        <label for="resumo">
+                            Resumo
+                        </label>
+
+                        <textarea id="resumo" maxlength="250" placeholder="Escreva um pequeno resumo da notícia..."
+                            required></textarea>
+
+                        <small>
+                            <span id="contadorResumo">0</span>/250
+                        </small>
+
+                    </div>
+
+
+                    <!-- CONTEÚDO -->
+
+                    <div class="campo">
+
+                        <label for="conteudo">
+                            Conteúdo da notícia
+                        </label>
+
+                        <textarea id="conteudo" class="conteudo" placeholder="Escreva o conteúdo completo da notícia..."
+                            required></textarea>
+
+                    </div>
+
+
+                    <!-- AÇÕES -->
+
+                    <div class="acoes">
+
+                        <a href="inicio.html" class="btn-cancelar">
+                            Cancelar
+                        </a>
+
+                        <button type="submit" class="btn-publicar">
+
+                            <i class="fa-solid fa-paper-plane"></i>
+
+                            Publicar notícia
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <!-- PRÉ-VISUALIZAÇÃO -->
+
+            <aside class="preview">
+
+                <div class="preview-topo">
+
+                    <span>
+                        PRÉ-VISUALIZAÇÃO
+                    </span>
+
+                    <i class="fa-solid fa-eye"></i>
+
+                </div>
+
+
+                <article class="preview-card">
+
+                    <div class="preview-foto" id="previewFoto">
+
+                        <i class="fa-solid fa-image"></i>
+
+                        <span>
+                            Sua imagem aparecerá aqui
+                        </span>
+
+                    </div>
+
+
+                    <div class="preview-conteudo">
+
+                        <span class="preview-categoria" id="previewCategoria">
+
+                            Categoria
+
+                        </span>
+
+
+                        <h2 id="previewTitulo">
+
+                            Título da notícia
+
+                        </h2>
+
+
+                        <p id="previewResumo">
+
+                            O resumo da notícia aparecerá aqui.
+
+                        </p>
+
+
+                        <div class="preview-autor">
+
+                            <i class="fa-solid fa-user"></i>
+
+                            <span id="previewAutor">
+                                Autor
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+
+    <!-- MENSAGEM -->
+
+    <div class="mensagem" id="mensagem">
+
+        <i class="fa-solid fa-circle-check"></i>
+
+        <span>
+            Notícia publicada com sucesso!
+        </span>
+
+    </div>
+
+
+    <script src="/js/criar.js"></script>
+
+</body>
+
+</html>

@@ -6,24 +6,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Configurações</title>
   <meta name="view-transition" content="same-origin">
+  <link rel="stylesheet" href="/css/global/global.css">
+  <link rel="stylesheet" href="/css/global/root.css">
   <link rel="stylesheet" href="/css/configuracoes.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
 </head>
 
 <body>
 
-  <header>
+  <header class="header-global">
+
     <div class="logo">
-      <img src="" alt="Logo">
+      <i class="fa-solid fa-newspaper"></i>
+      <h2>Jornal<span>Online</span></h2>
     </div>
+
+
     <nav class="nav-principal">
-      <div class="indicador"></div>
-      <a href="/html/inicio.html">Inicio</a>
+
+      <a href="/html/inicio.html">Início</a>
       <a href="/html/feed.html">Feed</a>
       <a href="/html/perfil.html">Minha Conta</a>
-      <a href="/html/configuracoes.html" class="ativo">Configurações</a>
+      <a href="/html/configuracoes.html" class="ativo">
+        Configurações
+      </a>
     </nav>
+
   </header>
+
 
   <div class="bolinhas bolinhas1"></div>
   <div class="bolinhas bolinhas2"></div>
@@ -44,7 +59,7 @@
 
       <div class="menu">
 
-        <a href="/html/sobre.html" class="item">
+        <a href="./sobre.html" class="item">
           <div class="esquerda">
             <i class="fa-solid fa-circle-info"></i>
             <span>Sobre</span>
@@ -52,7 +67,7 @@
           <i class="fa-solid fa-chevron-right"></i>
         </a>
 
-        <a href="admm.html" class="item">
+        <a href="/html/adm.html" class="item">
           <div class="esquerda">
             <i class="fa-solid fa-user-shield"></i>
             <span>Administração</span>
@@ -60,18 +75,10 @@
           <i class="fa-solid fa-chevron-right"></i>
         </a>
 
-        <a href="ddpessoais.html" class="item">
+        <a href="dadospessoais.html" class="item">
           <div class="esquerda">
             <i class="fa-solid fa-user"></i>
             <span>Dados Pessoais</span>
-          </div>
-          <i class="fa-solid fa-chevron-right"></i>
-        </a>
-
-        <a href="/html/adm.html" class="item">
-          <div class="esquerda">
-            <i class="fa-solid fa-desktop"></i>
-            <span>Página do ADM</span>
           </div>
           <i class="fa-solid fa-chevron-right"></i>
         </a>
@@ -91,5 +98,7 @@
   </main>
 
 </body>
+<script src="/js/configuracoes.js"></script>
+<script src="/js/global/tema.js"></script>
 
 </html>

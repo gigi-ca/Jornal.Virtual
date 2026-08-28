@@ -1,0 +1,135 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Montserrat", sans-serif;
+}
+
+
+.header-global {
+    width: 100%;
+    height: 82px;
+    background: linear-gradient(
+        90deg,
+        var(--primary),
+        var(--secondary)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 7%;
+
+    color: var(--surface);
+
+    box-shadow: 0 4px 15px var(--primary-dark);
+    position: relative;
+    z-index: 10;
+}
+
+.header-global .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--surface);
+}
+
+.header-global .logo i {
+    font-size: 28px;
+}
+
+.header-global .logo h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.header-global .logo span {
+    font-weight: 300;
+}
+
+.header-global .nav-principal {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+
+}
+
+.header-global .nav-principal a {
+    color: var(--surface);
+    text-decoration: none;
+    font-size: 15.5px;
+    font-weight: 400;
+    padding: 8px 0;
+    position: relative;
+    transition: 0.3s;
+}
+
+.header-global .nav-principal a:hover {
+    opacity: 0.9;
+}
+
+.header-global .nav-principal a::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 2px;
+    background: var(--surface);
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.header-global .nav-principal a:hover::after,
+.header-global .nav-principal a.ativo::after {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+
+    .header-global {
+        height: auto;
+        min-height: 85px;
+        padding: 12px 20px;
+        gap: 15px;
+    }
+
+    .header-global .logo img {
+        width: 50px;
+    }
+
+    .header-global .nav-principal {
+        gap: 20px;
+    }
+
+    .header-global .nav-principal a {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .header-global {
+        padding: 10px 15px;
+    }
+
+    .header-global .logo img {
+        width: 45px;
+    }
+
+    .header-global .nav-principal {
+        gap: 12px;
+    }
+
+    .header-global .nav-principal a {
+        font-size: 12px;
+    }
+}
+
+html {
+    overflow-y: scroll;
+}

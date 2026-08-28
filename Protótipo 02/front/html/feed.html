@@ -1,83 +1,88 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Feed Social</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="/css/feed.css">
+    <title>Feed Social</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/global/global.css">
+    <link rel="stylesheet" href="/css/global/root.css">
+    <link rel="stylesheet" href="/css/feed.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
 
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
-<header class="topo">
-  <div class="header-inner">
-    <div class="logo">
-      <img src="newss.png" alt="Logo">
-    </div>
+    <header class="header-global">
 
-    <nav class="nav-principal">
-      <a href="feed.html" class="current">Feed</a>
-      <a href="inicio.html">Início</a>
-      <a href="conta.html">Minha conta</a>
-      <a href="configuracoes.html">Configurações</a>
-    </nav>
-  </div>
-</header>
-
-<div class="container">
-
-    <div class="esquerda">
-
-        <div class="card">
-            <h2>Nova publicação</h2>
-
-   
-
-            <textarea
-                id="texto"
-                placeholder="O que está acontecendo? Use hashtags..."
-            ></textarea>
-
-            <button id="publicar">
-                Publicar
-            </button>
+        <div class="logo">
+            <i class="fa-solid fa-newspaper"></i>
+            <h2>Jornal<span>Online</span></h2>
         </div>
 
-        <div class="card">
-            <h2>  Hashtags em Alta</h2>
 
-            <canvas
-                id="nuvem"
-                width="500"
-                height="350"
-            ></canvas>
+        <nav class="nav-principal">
+
+            <a href="/html/inicio.html">Início</a>
+            <a href="/html/feed.html" class="ativo">Feed</a>
+            <a href="/html/perfil.html">Minha Conta</a>
+            <a href="/html/configuracoes.html">
+                Configurações
+            </a>
+        </nav>
+
+    </header>
+
+    <div class="container">
+
+        <div class="esquerda">
+
+            <div class="card">
+                <h2>Nova publicação</h2>
+
+
+
+                <textarea id="texto" placeholder="O que está acontecendo? Use hashtags..."></textarea>
+
+                <button id="publicar">
+                    Publicar
+                </button>
+            </div>
+
+            <div class="card">
+                <h2> Hashtags em Alta</h2>
+
+                <canvas id="nuvem" width="500" height="350"></canvas>
+            </div>
+
         </div>
 
+        <div class="feed">
+
+            <h2>Feed</h2>
+
+            <div id="listaPublicacoes"></div>
+
+        </div>
+
+
     </div>
 
-    <div class="feed">
-
-        <h2>Feed</h2>
-
-        <div id="listaPublicacoes"></div>
-
+    <div id="modalHashtags" class="modal">
+        <div class="modal-content modal-hashtags-content">
+            <button class="close-modal" onclick="fecharHashtagsModal()" aria-label="Fechar modal">×</button>
+            <h2>Hashtags em Alta</h2>
+            <ul id="listaHashtags"></ul>
+        </div>
     </div>
 
-
-</div>
-
-<div id="modalHashtags" class="modal">
-  <div class="modal-content modal-hashtags-content">
-    <button class="close-modal" onclick="fecharHashtagsModal()" aria-label="Fechar modal">×</button>
-    <h2>Hashtags em Alta</h2>
-    <ul id="listaHashtags"></ul>
-  </div>
-</div>
-
-<script src="/js/feed.js"></script>
+    <script src="/js/feed.js"></script>
 
 </body>
+
 </html>
