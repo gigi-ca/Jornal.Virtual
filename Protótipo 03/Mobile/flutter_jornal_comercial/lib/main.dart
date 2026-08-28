@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'core/theme/app_theme.dart';
+import 'screens/auth/login_screen.dart';
+
 void main() {
-  runApp(const MainApp());
+  runApp(const JornalApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class JornalApp extends StatelessWidget {
+  const JornalApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Jornal 360°',
+      theme: AppTheme.light,
+      home: const LoginScreen(),
     );
   }
 }
