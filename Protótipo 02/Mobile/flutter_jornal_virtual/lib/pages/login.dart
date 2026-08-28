@@ -14,7 +14,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool _animate = false;
   bool _obscurePassword = true;
-  bool _isLoading = false; // NOVA VARIÁVEL PARA O CARREGAMENTO
+  bool _isLoading = false; 
 
   // CONTROLADORES
   final TextEditingController emailController = TextEditingController();
@@ -31,12 +31,10 @@ class _LoginState extends State<Login> {
     });
   }
 
-  // FUNÇÃO LOGIN CONECTADA COM O BACKEND
   Future<void> fazerLogin() async {
     String email = emailController.text.trim();
     String senha = senhaController.text.trim();
 
-    // Validação básica de campos vazios
     if (email.isEmpty || senha.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Por favor, preencha todos os campos")),
@@ -44,28 +42,26 @@ class _LoginState extends State<Login> {
       return;
     }
 
-    // Ativa o círculo de carregamento e desativa cliques repetidos
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Como você está na Web, usamos localhost:3000
-      final url = Uri.parse('http://localhost:3000/usuarios/login');
+
+      final url = Uri.parse('http://localhost:192.168.56.1/usuarios/login');
 
       final resposta = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
-          'senha': senha, // Deve bater exatamente com o que seu req.body espera no Node
+          'senha': senha,
         }),
       );
 
-      // Se o backend retornou sucesso (Status 200 ou 201)
       if (resposta.statusCode == 200 || resposta.statusCode == 201) {
         final dados = jsonDecode(resposta.body);
-        String token = dados['token'] ?? ''; // Guarda o token JWT gerado
+        String token = dados['token'] ?? ''; 
         
         print('Login efetuado com sucesso! Token: $token');
 

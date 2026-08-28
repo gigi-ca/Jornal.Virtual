@@ -3,40 +3,56 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 enum TiposUsuarios {
-  ALUNO
+  USUARIO
   VERIFICADO
   ADMINISTRADOR
 }
 
 model Empresa {
-  id             Int      @id @default(autoincrement())
-  nome           String
-  cnpj           String   @unique
+  id               Int      @id @default(autoincrement())
 
-  email          String?
-  telefone       String?
-  endereco       String?
-  numero         String?
-  bairro         String?
-  cidade         String?
-  estado         String?
-  cep            String?
+  nome             String
+  cnpj             String   @unique
 
-  logo           String?
+  email            String?
+  telefone         String?
+  endereco         String?
+  cidade           String?
+  estado           String?
+  cep              String?
 
-  corPrimaria    String?
-  corSecundaria  String?
+  logo             String?
 
-  dataCriacao    DateTime @default(now())
+  dataCriacao      DateTime @default(now())
 
-  usuarios       Usuarios[]
-  noticias       Noticias[]
-  publicacoes    Publicacoes[]
-  hashtags       Hashtags[]
+  tema             TemaEmpresa?
+
+  usuarios         Usuarios[]
+  noticias         Noticias[]
+  publicacoes      Publicacoes[]
+  hashtags         Hashtags[]
+}
+
+model TemaEmpresa {
+  id              Int      @id @default(autoincrement())
+
+  primary         String?
+  primaryDark     String?
+  secondary       String?
+  secondaryLight  String?
+  background      String?
+  surface         String?
+  text            String?
+  textLight       String?
+  border          String?
+  danger          String?
+
+  empresaId       Int      @unique
+  empresa         Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 }
 
 model Usuarios {

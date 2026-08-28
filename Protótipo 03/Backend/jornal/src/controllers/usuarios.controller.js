@@ -4,7 +4,7 @@ const jsonwebtoken = require("jsonwebtoken");
 require("dotenv").config();
 
 const TIPOS_VALIDOS = [
-    "ALUNO",
+    "USUARIO",
     "VERIFICADO",
     "ADMINISTRADOR"
 ];
@@ -30,13 +30,25 @@ const Login = async (req, res) => {
             .digest("hex");
 
         const usuario = await prisma.usuarios.findUnique({
-            where: { email },
+            where: {
+                email
+            },
             include: {
-                empresa: true
+                empresa: {
+                    include: {
+                        tema: true
+                    }
+                }
             }
         });
 
-        if (!usuario || usuario.senha !== senhaHash) {
+        if (!usuario) {
+            return res.status(401).json({
+                mensagem: "Email ou senha inválidos"
+            });
+        }
+
+        if (usuario.senha !== senhaHash) {
             return res.status(401).json({
                 mensagem: "Email ou senha inválidos"
             });
@@ -55,12 +67,9 @@ const Login = async (req, res) => {
             }
         );
 
-        const { senha: _, ...usuarioSemSenha } = usuario;
-
         return res.status(200).json({
             mensagem: "Login realizado com sucesso",
-            token,
-            usuario: usuarioSemSenha
+            token
         });
 
     } catch (erro) {
@@ -72,7 +81,6 @@ const Login = async (req, res) => {
 
     }
 };
-
 
 
 const cadastrar = async (req, res) => {
@@ -292,6 +300,7 @@ const atualizar = async (req, res) => {
 
         delete dados.id;
         delete dados.dataCriacao;
+        delete dados.empresa;
 
         if (req.user.tipo !== "ADMINISTRADOR") {
 
@@ -337,11 +346,13 @@ const atualizar = async (req, res) => {
             dados.nome = dados.nome.trim();
         }
 
-        if (dados.senha) {
+        if (dados.senha && dados.senha.trim() !== "") {
             dados.senha = crypto
                 .createHash("md5")
                 .update(dados.senha)
                 .digest("hex");
+        } else {
+            delete dados.senha;
         }
 
         const atualizado = await prisma.usuarios.update({
@@ -367,7 +378,6 @@ const atualizar = async (req, res) => {
 
     }
 };
-
 
 
 const excluir = async (req, res) => {

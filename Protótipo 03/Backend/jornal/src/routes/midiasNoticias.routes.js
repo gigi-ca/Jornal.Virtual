@@ -11,29 +11,12 @@ const {
 const uploadMidia = require("../middlewares/upload.midia");
 const { validate } = require("../middlewares/auth");
 
-router.post(
-    "/cadastrar/:id",
-    validate,
-    uploadMidia,
-    cadastrar
-);
+router.post("/cadastrar/:id", validate, uploadMidia, cadastrar);
 
-router.get(
-    "/listar",
-    validate,
-    listar
-);
+router.get("/listar", validate, listar);
 
-router.get(
-    "/buscar/:id",
-    validate,
-    buscar
-);
+router.get("/buscar/:id", validate, buscar);
 
-router.delete(
-    "/excluir/:id",
-    validate,
-    excluir
-);
+router.delete("/excluir/:id", validate, excluir);
 
 module.exports = router;

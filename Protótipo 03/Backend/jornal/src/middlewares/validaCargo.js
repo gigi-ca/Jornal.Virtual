@@ -35,7 +35,7 @@ const validaVerificado = (req, res, next) => {
     next();
 };
 
-const validaAluno = (req, res, next) => {
+const validaUsuario = (req, res, next) => {
 
     if (!req.user) {
         return res.status(401).json({
@@ -44,7 +44,7 @@ const validaAluno = (req, res, next) => {
     }
 
     if (
-        req.user.tipo !== "ALUNO" &&
+        req.user.tipo !== "USUARIO" &&
         req.user.tipo !== "VERIFICADO" &&
         req.user.tipo !== "ADMINISTRADOR"
     ) {
@@ -81,6 +81,6 @@ const validaProprioPerfil = (req, res, next) => {
 module.exports = {
     validaAdministrador,
     validaVerificado,
-    validaAluno,
+    validaUsuario,
     validaProprioPerfil
 };
