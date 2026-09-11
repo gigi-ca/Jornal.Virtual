@@ -1,89 +1,70 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE `Empresa` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(191) NOT NULL,
+    `cnpj` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
+    `telefone` VARCHAR(191) NULL,
+    `endereco` VARCHAR(191) NULL,
+    `cidade` VARCHAR(191) NULL,
+    `estado` VARCHAR(191) NULL,
+    `cep` VARCHAR(191) NULL,
+    `logo` VARCHAR(191) NULL,
+    `dataCriacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-  - You are about to drop the column `atualizar_data` on the `noticias` table. All the data in the column will be lost.
-  - You are about to drop the column `data_hora` on the `noticias` table. All the data in the column will be lost.
-  - You are about to drop the column `status` on the `noticias` table. All the data in the column will be lost.
-  - You are about to drop the column `sub_titulo` on the `noticias` table. All the data in the column will be lost.
-  - You are about to drop the `_hashtagtonoticias` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `comentario` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `denuncia_comentario` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `denuncia_noticia` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `hashtag` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `midia` table. If the table is not empty, all the data it contains will be lost.
-  - Added the required column `dataAtualizacao` to the `Noticias` table without a default value. This is not possible if the table is not empty.
-  - Made the column `usuarioId` on table `noticias` required. This step will fail if there are existing NULL values in that column.
-  - Added the required column `unidadeEscolar` to the `Usuarios` table without a default value. This is not possible if the table is not empty.
+    UNIQUE INDEX `Empresa_cnpj_key`(`cnpj`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-*/
--- DropForeignKey
-ALTER TABLE `_hashtagtonoticias` DROP FOREIGN KEY `_HashtagToNoticias_A_fkey`;
+-- CreateTable
+CREATE TABLE `TemaEmpresa` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `primary` VARCHAR(191) NULL,
+    `primaryDark` VARCHAR(191) NULL,
+    `secondary` VARCHAR(191) NULL,
+    `secondaryLight` VARCHAR(191) NULL,
+    `background` VARCHAR(191) NULL,
+    `surface` VARCHAR(191) NULL,
+    `text` VARCHAR(191) NULL,
+    `textLight` VARCHAR(191) NULL,
+    `border` VARCHAR(191) NULL,
+    `danger` VARCHAR(191) NULL,
+    `empresaId` INTEGER NOT NULL,
 
--- DropForeignKey
-ALTER TABLE `_hashtagtonoticias` DROP FOREIGN KEY `_HashtagToNoticias_B_fkey`;
+    UNIQUE INDEX `TemaEmpresa_empresaId_key`(`empresaId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- DropForeignKey
-ALTER TABLE `comentario` DROP FOREIGN KEY `Comentario_noticiasId_fkey`;
+-- CreateTable
+CREATE TABLE `Usuarios` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `senha` VARCHAR(191) NOT NULL,
+    `fotoPerfil` VARCHAR(191) NULL,
+    `template` VARCHAR(191) NULL,
+    `bio` VARCHAR(191) NULL,
+    `tipo` ENUM('USUARIO', 'VERIFICADO', 'ADMINISTRADOR') NOT NULL,
+    `empresaId` INTEGER NOT NULL,
+    `dataCriacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
--- DropForeignKey
-ALTER TABLE `comentario` DROP FOREIGN KEY `Comentario_usuarioId_fkey`;
+    UNIQUE INDEX `Usuarios_email_key`(`email`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- DropForeignKey
-ALTER TABLE `denuncia_comentario` DROP FOREIGN KEY `Denuncia_comentario_comentarioId_fkey`;
+-- CreateTable
+CREATE TABLE `Noticias` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `titulo` VARCHAR(191) NOT NULL,
+    `subtitulo` VARCHAR(191) NULL,
+    `texto` VARCHAR(191) NOT NULL,
+    `dataPublicacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `dataAtualizacao` DATETIME(3) NOT NULL,
+    `usuarioId` INTEGER NOT NULL,
+    `empresaId` INTEGER NOT NULL,
 
--- DropForeignKey
-ALTER TABLE `denuncia_comentario` DROP FOREIGN KEY `Denuncia_comentario_usuarioId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `denuncia_noticia` DROP FOREIGN KEY `Denuncia_noticia_noticiasId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `denuncia_noticia` DROP FOREIGN KEY `Denuncia_noticia_usuarioId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `midia` DROP FOREIGN KEY `Midia_noticiasId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `noticias` DROP FOREIGN KEY `Noticias_usuarioId_fkey`;
-
--- DropIndex
-DROP INDEX `Noticias_usuarioId_fkey` ON `noticias`;
-
--- AlterTable
-ALTER TABLE `noticias` DROP COLUMN `atualizar_data`,
-    DROP COLUMN `data_hora`,
-    DROP COLUMN `status`,
-    DROP COLUMN `sub_titulo`,
-    ADD COLUMN `dataAtualizacao` DATETIME(3) NOT NULL,
-    ADD COLUMN `dataPublicacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    ADD COLUMN `subtitulo` VARCHAR(191) NULL,
-    MODIFY `usuarioId` INTEGER NOT NULL;
-
--- AlterTable
-ALTER TABLE `usuarios` ADD COLUMN `bio` VARCHAR(191) NULL,
-    ADD COLUMN `dataCriacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    ADD COLUMN `fotoPerfil` VARCHAR(191) NULL,
-    ADD COLUMN `template` VARCHAR(191) NULL,
-    ADD COLUMN `unidadeEscolar` VARCHAR(191) NOT NULL,
-    MODIFY `tipo` ENUM('ALUNO', 'VERIFICADO', 'ADMINISTRADOR') NOT NULL;
-
--- DropTable
-DROP TABLE `_hashtagtonoticias`;
-
--- DropTable
-DROP TABLE `comentario`;
-
--- DropTable
-DROP TABLE `denuncia_comentario`;
-
--- DropTable
-DROP TABLE `denuncia_noticia`;
-
--- DropTable
-DROP TABLE `hashtag`;
-
--- DropTable
-DROP TABLE `midia`;
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `MidiasNoticias` (
@@ -104,6 +85,7 @@ CREATE TABLE `Publicacoes` (
     `texto` VARCHAR(191) NULL,
     `dataPublicacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `usuarioId` INTEGER NOT NULL,
+    `empresaId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -147,9 +129,10 @@ CREATE TABLE `Curtidas` (
 CREATE TABLE `Hashtags` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(191) NOT NULL,
+    `empresaId` INTEGER NOT NULL,
     `dataCriacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `Hashtags_nome_key`(`nome`),
+    UNIQUE INDEX `Hashtags_nome_empresaId_key`(`nome`, `empresaId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -185,13 +168,25 @@ CREATE TABLE `_HashtagsToPublicacoes` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
+ALTER TABLE `TemaEmpresa` ADD CONSTRAINT `TemaEmpresa_empresaId_fkey` FOREIGN KEY (`empresaId`) REFERENCES `Empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Usuarios` ADD CONSTRAINT `Usuarios_empresaId_fkey` FOREIGN KEY (`empresaId`) REFERENCES `Empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `Noticias` ADD CONSTRAINT `Noticias_usuarioId_fkey` FOREIGN KEY (`usuarioId`) REFERENCES `Usuarios`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Noticias` ADD CONSTRAINT `Noticias_empresaId_fkey` FOREIGN KEY (`empresaId`) REFERENCES `Empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `MidiasNoticias` ADD CONSTRAINT `MidiasNoticias_noticiaId_fkey` FOREIGN KEY (`noticiaId`) REFERENCES `Noticias`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Publicacoes` ADD CONSTRAINT `Publicacoes_usuarioId_fkey` FOREIGN KEY (`usuarioId`) REFERENCES `Usuarios`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Publicacoes` ADD CONSTRAINT `Publicacoes_empresaId_fkey` FOREIGN KEY (`empresaId`) REFERENCES `Empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `MidiasPublicacoes` ADD CONSTRAINT `MidiasPublicacoes_publicacaoId_fkey` FOREIGN KEY (`publicacaoId`) REFERENCES `Publicacoes`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -210,6 +205,9 @@ ALTER TABLE `Curtidas` ADD CONSTRAINT `Curtidas_usuarioId_fkey` FOREIGN KEY (`us
 
 -- AddForeignKey
 ALTER TABLE `Curtidas` ADD CONSTRAINT `Curtidas_publicacaoId_fkey` FOREIGN KEY (`publicacaoId`) REFERENCES `Publicacoes`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Hashtags` ADD CONSTRAINT `Hashtags_empresaId_fkey` FOREIGN KEY (`empresaId`) REFERENCES `Empresa`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `DenunciasPublicacao` ADD CONSTRAINT `DenunciasPublicacao_publicacaoId_fkey` FOREIGN KEY (`publicacaoId`) REFERENCES `Publicacoes`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
