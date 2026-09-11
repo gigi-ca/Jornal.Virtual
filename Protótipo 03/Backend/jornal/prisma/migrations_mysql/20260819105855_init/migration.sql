@@ -1,0 +1,11 @@
+-- AlterTable
+ALTER TABLE `temaempresa` ALTER COLUMN `primary` DROP DEFAULT,
+    ALTER COLUMN `primaryDark` DROP DEFAULT,
+    ALTER COLUMN `secondary` DROP DEFAULT,
+    ALTER COLUMN `secondaryLight` DROP DEFAULT,
+    ALTER COLUMN `background` DROP DEFAULT,
+    ALTER COLUMN `surface` DROP DEFAULT,
+    ALTER COLUMN `text` DROP DEFAULT,
+    ALTER COLUMN `textLight` DROP DEFAULT,
+    ALTER COLUMN `border` DROP DEFAULT,
+    ALTER COLUMN `danger` DROP DEFAULT;

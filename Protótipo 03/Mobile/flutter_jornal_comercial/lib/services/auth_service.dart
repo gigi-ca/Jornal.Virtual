@@ -20,22 +20,11 @@ class AuthService {
 
     final prefs = await SharedPreferences.getInstance();
 
-    if (response['token'] != null) {
+    if (response is Map && response['token'] != null) {
       await prefs.setString(
         'token',
-        response['token'],
+        response['token'].toString(),
       );
-    }
-
-    if (response['usuario'] != null) {
-      final usuario = response['usuario'];
-
-      if (usuario['id'] != null) {
-        await prefs.setInt(
-          'usuarioId',
-          usuario['id'],
-        );
-      }
     }
 
     return Map<String, dynamic>.from(response);
@@ -53,6 +42,5 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove('token');
-    await prefs.remove('usuarioId');
   }
 }

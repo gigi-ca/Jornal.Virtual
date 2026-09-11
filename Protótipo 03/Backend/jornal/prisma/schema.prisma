@@ -3,7 +3,11 @@ generator client {
 }
 
 datasource db {
+<<<<<<< HEAD
   provider = "mysql"
+=======
+  provider  = "mysql"
+>>>>>>> 3aa25da7ffcd96f2726ca0befa938173ba14cab3
 }
 
 
