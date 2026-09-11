@@ -29,6 +29,8 @@ const Login = async (req, res) => {
             .update(senha)
             .digest("hex");
 
+        console.log(email, senhaHash);
+
         const usuario = await prisma.usuarios.findUnique({
             where: {
                 email
@@ -41,6 +43,8 @@ const Login = async (req, res) => {
                 }
             }
         });
+
+       
 
         if (!usuario) {
             return res.status(401).json({
