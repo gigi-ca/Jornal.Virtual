@@ -1,6 +1,44 @@
-// const prisma = require("../data/prisma");
-// const fs = require("fs");
+const prisma = require("../data/prisma");
+const fs = require("fs");
 
+const buscar = async (req, res) => {
+    try {
+        const servico = req.params.servico;
+        const id = parseInt(req.params.id);
+
+        //localhost:3000/midia/usuario/1
+
+        let midia = "";
+
+        if (servico == "usuario") {
+            midia = await prisma.usuario.findUnique({
+                where: { id },
+            });
+
+        }else if(servico == "publicacao"){
+            midia = await prisma.publicacao.findUnique({
+                where: { id },
+            });
+        }
+
+
+        if (!midia) {
+            return res.status(404).json({ erro: "Arquivo não encontrado" });
+        }
+
+        if (!fs.existsSync(midia.path)) {
+            return res.status(404).json({ erro: "Arquivo não encontrado no servidor" });
+        }
+
+        res.sendFile(midia.path, { root: "." });
+    } catch (erro) {
+        return res.status(500).json({ erro: "Erro ao buscar arquivo" });
+    }
+};
+
+module.exports = {
+    buscar,
+}
 // const cadastrar = async (req, res) => {
 //   try {
 //     const idPublicacao = parseInt(req.params.id);
@@ -37,28 +75,6 @@
 // const listar = async (req, res) => {
 //   const lista = await prisma.midia.findMany();
 //   res.status(200).json(lista);
-// };
-
-// const buscar = async (req, res) => {
-//   try {
-//     const id = parseInt(req.params.id);
-
-//     const midia = await prisma.midia.findUnique({
-//       where: { id },
-//     });
-
-//     if (!midia) {
-//       return res.status(404).json({ erro: "Arquivo não encontrado" });
-//     }
-
-//     if (!fs.existsSync(midia.path)) {
-//       return res.status(404).json({ erro: "Arquivo não encontrado no servidor" });
-//     }
-
-//     res.sendFile(midia.path, { root: "." });
-//   } catch (erro) {
-//     return res.status(500).json({ erro: "Erro ao buscar arquivo" });
-//   }
 // };
 
 // const atualizar = async (req, res) => {

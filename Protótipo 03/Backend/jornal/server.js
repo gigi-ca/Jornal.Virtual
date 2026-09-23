@@ -21,6 +21,8 @@ const hashtagsRoutes = require("./src/routes/hashtags.routes");
 const empresaRoutes = require("./src/routes/empresa.routes");
 const temaRoutes = require("./src/routes/tema.routes");
 
+const midiaRoutes = require("./src/routes/midia.routes");
+
 app.use("/usuarios", usuariosRoutes);
 app.use("/publicacoes", publicacoesRoutes);
 app.use("/curtidas", curtidasRoutes);
@@ -34,7 +36,7 @@ app.use("/hashtags", hashtagsRoutes);
 app.use("/empresa", empresaRoutes);
 app.use("/tema", temaRoutes);
 
-
+app.use("/midia", midiaRoutes);
 
 app.listen(3000, () => {
     console.log("Servidor rodando na porta 3000");

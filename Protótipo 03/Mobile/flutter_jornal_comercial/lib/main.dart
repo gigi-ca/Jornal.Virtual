@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'core/theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 
 void main() {
@@ -16,9 +17,7 @@ class JornalApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Arial',
         scaffoldBackgroundColor: const Color(0xFFF8F7FC),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6C3CEB),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6C3CEB)),
       ),
       home: const LoginScreen(),
     );

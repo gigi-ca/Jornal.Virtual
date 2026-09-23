@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/api_constants.dart';
@@ -20,6 +22,7 @@ class AuthService {
 
     final prefs = await SharedPreferences.getInstance();
 
+<<<<<<< HEAD
     if (response is Map && response['token'] != null) {
       await prefs.setString(
         'token',
@@ -30,9 +33,97 @@ class AuthService {
         'email',
         email,
       );
+=======
+    final token = response['token'];
+
+    if (token == null || token.toString().isEmpty) {
+      throw Exception('Token não recebido pelo servidor.');
+>>>>>>> 343439030d4e8b4369f34026e3970531e0004bde
     }
 
-    return Map<String, dynamic>.from(response);
+    // Salva o token
+    await prefs.setString(
+      'token',
+      token.toString(),
+    );
+
+    // Decodifica as informações que o backend colocou no JWT
+    final dadosToken = _decodificarToken(
+      token.toString(),
+    );
+
+    if (dadosToken != null) {
+      // Salva o ID do usuário
+      if (dadosToken['id'] != null) {
+        await prefs.setInt(
+          'usuarioId',
+          dadosToken['id'],
+        );
+      }
+
+      // Salva o nome
+      if (dadosToken['nome'] != null) {
+        await prefs.setString(
+          'usuarioNome',
+          dadosToken['nome'].toString(),
+        );
+      }
+
+      // Salva o tipo do usuário
+      if (dadosToken['tipo'] != null) {
+        await prefs.setString(
+          'usuarioTipo',
+          dadosToken['tipo'].toString(),
+        );
+      }
+
+      // Salva a empresa
+      if (dadosToken['empresaId'] != null) {
+        await prefs.setInt(
+          'empresaId',
+          dadosToken['empresaId'],
+        );
+      }
+    }
+
+    // Cria um objeto usuario para manter compatibilidade
+    // caso alguma parte do aplicativo precise de response['usuario'].
+    final usuario = <String, dynamic>{
+      'id': dadosToken?['id'],
+      'nome': dadosToken?['nome'],
+      'tipo': dadosToken?['tipo'],
+      'empresaId': dadosToken?['empresaId'],
+    };
+
+    return {
+      ...Map<String, dynamic>.from(response),
+      'usuario': usuario,
+    };
+  }
+
+  Map<String, dynamic>? _decodificarToken(String token) {
+    try {
+      final partes = token.split('.');
+
+      if (partes.length != 3) {
+        return null;
+      }
+
+      final payload = partes[1];
+
+      final normalized = base64Url.normalize(payload);
+
+      final decoded = utf8.decode(
+        base64Url.decode(normalized),
+      );
+
+      return Map<String, dynamic>.from(
+        jsonDecode(decoded),
+      );
+    } catch (e) {
+      print('Erro ao decodificar token: $e');
+      return null;
+    }
   }
 
   Future<bool> isLoggedIn() async {
@@ -42,16 +133,48 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
+<<<<<<< HEAD
   Future<String?> getEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('email');
+=======
+  Future<int?> getUsuarioId() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getInt('usuarioId');
+  }
+
+  Future<String?> getUsuarioNome() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString('usuarioNome');
+  }
+
+  Future<String?> getUsuarioTipo() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString('usuarioTipo');
+  }
+
+  Future<int?> getEmpresaId() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getInt('empresaId');
+>>>>>>> 343439030d4e8b4369f34026e3970531e0004bde
   }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove('token');
+<<<<<<< HEAD
     await prefs.remove('email');
     await prefs.remove('historico_noticias');
+=======
+    await prefs.remove('usuarioId');
+    await prefs.remove('usuarioNome');
+    await prefs.remove('usuarioTipo');
+    await prefs.remove('empresaId');
+>>>>>>> 343439030d4e8b4369f34026e3970531e0004bde
   }
 }

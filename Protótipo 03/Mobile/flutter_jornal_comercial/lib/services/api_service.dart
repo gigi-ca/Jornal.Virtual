@@ -14,7 +14,6 @@ class ApiService {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-
       if (token != null && token.isNotEmpty)
         'Authorization': 'Bearer $token',
     };
@@ -68,6 +67,46 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  Future<dynamic> uploadArquivo(
+    String endpoint,
+    String caminhoArquivo,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final token = prefs.getString('token');
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse(
+        '${ApiConstants.baseUrl}$endpoint',
+      ),
+    );
+
+    request.headers['Accept'] = 'application/json';
+
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] =
+          'Bearer $token';
+    }
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'arquivo',
+        caminhoArquivo,
+      ),
+    );
+
+    final streamedResponse =
+        await request.send();
+
+    final response =
+        await http.Response.fromStream(
+      streamedResponse,
+    );
+
+    return _handleResponse(response);
+  }
+
   dynamic _handleResponse(http.Response response) {
     dynamic data;
 
@@ -79,12 +118,23 @@ class ApiService {
       }
     }
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300) {
       return data;
     }
 
-    if (data is Map && data['mensagem'] != null) {
-      throw Exception(data['mensagem']);
+    if (data is Map &&
+        data['mensagem'] != null) {
+      throw Exception(
+        data['mensagem'],
+      );
+    }
+
+    if (data is Map &&
+        data['erro'] != null) {
+      throw Exception(
+        data['erro'],
+      );
     }
 
     throw Exception(
