@@ -7,7 +7,12 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+<<<<<<< HEAD
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/adapter-neon": "^7.10.0",
+=======
     "@prisma/adapter-mariadb": "7.10.0",
+>>>>>>> 705b4014bda1ff851460a3e15c66cdb0775210dd
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "7.10.0",
     "cors": "^2.8.6",

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/api_constants.dart';
@@ -20,14 +22,50 @@ class AuthService {
 
     final prefs = await SharedPreferences.getInstance();
 
-    if (response is Map && response['token'] != null) {
+    if (response['token'] != null) {
       await prefs.setString(
         'token',
-        response['token'].toString(),
+        response['token'],
       );
     }
 
+    if (response['usuario'] != null) {
+      final usuario = response['usuario'];
+
+      if (usuario['id'] != null) {
+        await prefs.setInt(
+          'usuarioId',
+          usuario['id'],
+        );
+      }
+    }
+
     return Map<String, dynamic>.from(response);
+  }
+
+  Map<String, dynamic>? _decodificarToken(String token) {
+    try {
+      final partes = token.split('.');
+
+      if (partes.length != 3) {
+        return null;
+      }
+
+      final payload = partes[1];
+
+      final normalized = base64Url.normalize(payload);
+
+      final decoded = utf8.decode(
+        base64Url.decode(normalized),
+      );
+
+      return Map<String, dynamic>.from(
+        jsonDecode(decoded),
+      );
+    } catch (e) {
+      print('Erro ao decodificar token: $e');
+      return null;
+    }
   }
 
   Future<bool> isLoggedIn() async {

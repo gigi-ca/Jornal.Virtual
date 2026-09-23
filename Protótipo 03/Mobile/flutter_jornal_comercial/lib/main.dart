@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
+
+import 'core/theme/app_theme.dart';
+
+=======
+>>>>>>> 705b4014bda1ff851460a3e15c66cdb0775210dd
 import 'screens/auth/login_screen.dart';
 
 void main() {
