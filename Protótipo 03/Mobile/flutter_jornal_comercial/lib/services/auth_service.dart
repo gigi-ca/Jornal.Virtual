@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,29 +23,22 @@ class AuthService {
 
     final prefs = await SharedPreferences.getInstance();
 
-<<<<<<< HEAD
-    if (response is Map && response['token'] != null) {
-      await prefs.setString(
-        'token',
-        response['token'].toString(),
-      );
-
-      await prefs.setString(
-        'email',
-        email,
-      );
-=======
     final token = response['token'];
 
     if (token == null || token.toString().isEmpty) {
       throw Exception('Token não recebido pelo servidor.');
->>>>>>> 343439030d4e8b4369f34026e3970531e0004bde
     }
 
     // Salva o token
     await prefs.setString(
       'token',
       token.toString(),
+    );
+
+    // Salva o email
+    await prefs.setString(
+      'email',
+      email,
     );
 
     // Decodifica as informações que o backend colocou no JWT
@@ -128,16 +122,18 @@ class AuthService {
 
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
+
     final token = prefs.getString('token');
 
     return token != null && token.isNotEmpty;
   }
 
-<<<<<<< HEAD
   Future<String?> getEmail() async {
     final prefs = await SharedPreferences.getInstance();
+
     return prefs.getString('email');
-=======
+  }
+
   Future<int?> getUsuarioId() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -160,21 +156,17 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
 
     return prefs.getInt('empresaId');
->>>>>>> 343439030d4e8b4369f34026e3970531e0004bde
   }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove('token');
-<<<<<<< HEAD
     await prefs.remove('email');
-    await prefs.remove('historico_noticias');
-=======
     await prefs.remove('usuarioId');
     await prefs.remove('usuarioNome');
     await prefs.remove('usuarioTipo');
     await prefs.remove('empresaId');
->>>>>>> 343439030d4e8b4369f34026e3970531e0004bde
+    await prefs.remove('historico_noticias');
   }
 }

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../../core/constants/api_constants.dart';
@@ -6,6 +7,8 @@ import '../../models/noticia.dart';
 import '../../services/noticia_service.dart';
 import '../configuracoes/config.dart';
 import '../noticia/noticia_detalhes_screen.dart';
+import '../feed/feed_screen.dart';
+import '../perfil/perfil_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -881,6 +884,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
+          // INÍCIO
           Expanded(
             child: _NavigationItem(
               icon: Icons.home_rounded,
@@ -888,20 +892,46 @@ class _HomeScreenState extends State<HomeScreen> {
               selected: true,
             ),
           ),
+
+          // FEED
           Expanded(
-            child: _NavigationItem(
-              icon: Icons.article_outlined,
-              label: 'Feed',
-              selected: false,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FeedScreen(),
+                  ),
+                );
+              },
+              child: const _NavigationItem(
+                icon: Icons.article_outlined,
+                label: 'Feed',
+                selected: false,
+              ),
             ),
           ),
+
+          // PERFIL
           Expanded(
-            child: _NavigationItem(
-              icon: Icons.person_outline_rounded,
-              label: 'Perfil',
-              selected: false,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PerfilScreen(),
+                  ),
+                );
+              },
+              child: const _NavigationItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Perfil',
+                selected: false,
+              ),
             ),
           ),
+
+          // CONFIGURAÇÕES
           Expanded(
             child: GestureDetector(
               onTap: () {

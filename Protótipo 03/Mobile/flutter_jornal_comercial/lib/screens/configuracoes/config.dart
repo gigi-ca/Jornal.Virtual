@@ -36,7 +36,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (!mounted) return;
 
     setState(() {
-      _email = email;
+      _email = email as String?;
       _historico = historico;
       _carregando = false;
     });
