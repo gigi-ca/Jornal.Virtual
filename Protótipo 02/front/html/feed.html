@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,34 +10,28 @@
     <link rel="stylesheet" href="/css/global/root.css">
     <link rel="stylesheet" href="/css/feed.css">
 
-
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 1. BIBLIOTECA WORDCLOUD INCLUÍDA -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.0.6/wordcloud2.min.js"></script>
 </head>
 
 <body>
 
     <header class="header-global">
-
         <div class="logo">
             <i class="fa-solid fa-newspaper"></i>
             <h2>Jornal<span>Online</span></h2>
         </div>
 
-
         <nav class="nav-principal">
-
             <a href="/html/inicio.html">Início</a>
             <a href="/html/feed.html" class="ativo">Feed</a>
             <a href="/html/perfil.html">Minha Conta</a>
-            <a href="/html/configuracoes.html">
-                Configurações
-            </a>
+            <a href="/html/configuracoes.html">Configurações</a>
         </nav>
-
     </header>
 
     <div class="container">
@@ -44,35 +40,31 @@
 
             <div class="card">
                 <h2>Nova publicação</h2>
-
-
-
                 <textarea id="texto" placeholder="O que está acontecendo? Use hashtags..."></textarea>
-
-                <button id="publicar">
-                    Publicar
-                </button>
+                <button id="publicar">Publicar</button>
             </div>
 
             <div class="card">
-                <h2> Hashtags em Alta</h2>
-
-                <canvas id="nuvem" width="500" height="350"></canvas>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2>Hashtags em Alta</h2>
+                    <!-- 2. BOTÃO PARA ABRIR O MODAL DA LISTA -->
+                    <button onclick="abrirHashtagsModal()" style="background:none; border:none; color:var(--primary); cursor:pointer; font-weight:600;">Ver lista</button>
+                </div>
+                
+                <!-- 3. CANVAS DE LARGURA AJUSTADA -->
+                <canvas id="nuvem" width="310" height="250"></canvas>
             </div>
 
         </div>
 
         <div class="feed">
-
             <h2>Feed</h2>
-
             <div id="listaPublicacoes"></div>
-
         </div>
-
 
     </div>
 
+    <!-- MODAL HASHTAGS -->
     <div id="modalHashtags" class="modal">
         <div class="modal-content modal-hashtags-content">
             <button class="close-modal" onclick="fecharHashtagsModal()" aria-label="Fechar modal">×</button>
@@ -84,6 +76,16 @@
     <script src="/js/feed.js"></script>
     <script src="/js/global/tema.js"></script>
 
-</body>
+    <!-- FUNÇÕES DE CONTROLE DO MODAL -->
+    <script>
+        function abrirHashtagsModal() {
+            document.getElementById("modalHashtags").classList.add("open");
+        }
 
+        function fecharHashtagsModal() {
+            document.getElementById("modalHashtags").classList.remove("open");
+        }
+    </script>
+
+</body>
 </html>
