@@ -25,6 +25,11 @@ class AuthService {
         'token',
         response['token'].toString(),
       );
+
+      await prefs.setString(
+        'email',
+        email,
+      );
     }
 
     return Map<String, dynamic>.from(response);
@@ -32,15 +37,21 @@ class AuthService {
 
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-
     final token = prefs.getString('token');
 
     return token != null && token.isNotEmpty;
+  }
+
+  Future<String?> getEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('email');
   }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove('token');
+    await prefs.remove('email');
+    await prefs.remove('historico_noticias');
   }
 }
