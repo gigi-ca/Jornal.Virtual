@@ -3,176 +3,274 @@ import 'package:flutter/material.dart';
 import '../services/publicacao_service.dart';
 
 class HashtagsEmAlta extends StatefulWidget {
-  const HashtagsEmAlta({
-    super.key,
-  });
+  const HashtagsEmAlta({super.key});
 
   @override
-  State<HashtagsEmAlta> createState() =>
-      _HashtagsEmAltaState();
+  State<HashtagsEmAlta> createState() => _HashtagsEmAltaState();
 }
 
-class _HashtagsEmAltaState
-    extends State<HashtagsEmAlta> {
-  final PublicacaoService _service =
-      PublicacaoService();
+class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
+  final PublicacaoService _service = PublicacaoService();
 
-  List<dynamic> _hashtags = [];
-  bool _carregando = true;
+  late Future<List<dynamic>> _hashtagsFuture;
+
+  // Cores vibrantes para o Top 3 (1º, 2º e 3º lugar)
+  static const List<Color> _coresVibrantes = [
+    Color(0xFF8E24AA), // 1º Lugar - Roxo
+    Color(0xFFD52B6D), // 2º Lugar - Rosa
+    Color(0xFF00ACC1), // 3º Lugar - Ciano/Azul
+  ];
 
   @override
   void initState() {
     super.initState();
-    _carregar();
+    _hashtagsFuture = _carregarHashtags();
   }
 
-  Future<void> _carregar() async {
-    try {
-      final ranking =
-          await _service.listarRankingHashtags();
+  Future<List<dynamic>> _carregarHashtags() {
+    return _service.listarRankingHashtags();
+  }
 
-      if (!mounted) return;
-
-      setState(() {
-        _hashtags = ranking;
-        _carregando = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _carregando = false;
-      });
-    }
+  // Método público para atualizar o ranking quando houver novas publicações
+  void atualizarRanking() {
+    setState(() {
+      _hashtagsFuture = _carregarHashtags();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_carregando) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    return FutureBuilder<List<dynamic>>(
+      future: _hashtagsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _carregando();
+        }
 
-    if (_hashtags.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: const Text(
-          'Ainda não existem hashtags em alta.',
-          style: TextStyle(
-            color: Colors.grey,
-          ),
-        ),
-      );
-    }
+        if (snapshot.hasError) {
+          return _erro();
+        }
 
-    final quantidadeMaxima =
-        (_hashtags.first['quantidadePublicacoes'] ?? 1)
-            as int;
+        final hashtags = snapshot.data ?? [];
 
+        if (hashtags.isEmpty) {
+          return _vazio();
+        }
+
+        return _conteudoRanking(hashtags);
+      },
+    );
+  }
+
+  Widget _carregando() {
     return Container(
+      height: 180,
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFF0DCE4),
+      decoration: _decoracao(),
+      child: const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFFD52B6D),
+          strokeWidth: 2.5,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+      ),
+    );
+  }
+
+  Widget _erro() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _decoracao(),
+      child: const Column(
+        children: [
+          Icon(
+            Icons.cloud_off_outlined,
+            color: Color(0xFFD52B6D),
+            size: 32,
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Não foi possível carregar o ranking.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _vazio() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _decoracao(),
+      child: const Column(
         children: [
-          const Text(
-            'Hashtags em alta',
+          Icon(
+            Icons.tag,
+            color: Color(0xFFD52B6D),
+            size: 32,
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Ainda não existem hashtags no ranking.',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+              fontSize: 14,
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          const SizedBox(height: 18),
+  Widget _conteudoRanking(List<dynamic> hashtags) {
+    final lista = hashtags
+        .whereType<Map>()
+        .map(
+          (item) {
+            final nome = item['nome']?.toString().trim() ?? '';
 
-          ..._hashtags.take(10).map(
-            (hashtag) {
-              final quantidade =
-                  hashtag['quantidadePublicacoes'] ?? 0;
+            final quantidade = int.tryParse(
+                  item['quantidadePublicacoes']?.toString() ?? '0',
+                ) ??
+                0;
 
-              double proporcao =
-                  quantidadeMaxima == 0
-                      ? 0
-                      : quantidade /
-                          quantidadeMaxima;
+            return _HashtagItem(
+              nome: nome.isEmpty
+                  ? '#sem_nome'
+                  : nome.startsWith('#')
+                      ? nome
+                      : '#$nome',
+              quantidade: quantidade,
+            );
+          },
+        )
+        .where((item) => item.nome.isNotEmpty)
+        .toList();
 
-              proporcao =
-                  proporcao.clamp(0.0, 1.0);
+    if (lista.isEmpty) {
+      return _vazio();
+    }
 
-              final tamanho =
-                  14 + (proporcao * 7);
+    // 1. Ordena todas as hashtags da mais usada para a menos usada
+    lista.sort((a, b) => b.quantidade.compareTo(a.quantidade));
 
-              return Padding(
-                padding:
-                    const EdgeInsets.only(bottom: 14),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            hashtag['nome'] ?? '',
-                            style: TextStyle(
-                              color:
-                                  const Color(0xFFC92768),
-                              fontSize: tamanho,
-                              fontWeight:
-                                  FontWeight.w700,
-                            ),
+    // 2. Filtra estritamente apenas o Top 3
+    final ranking = lista.take(3).toList();
+
+    final quantidadeMaior = ranking.first.quantidade;
+    final quantidadeMenor = ranking.last.quantidade;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _decoracao(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Assuntos do Momento',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF18213D),
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Ver lista',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFD52B6D),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: ranking.length,
+            separatorBuilder: (context, index) => const Divider(
+              height: 16,
+              color: Color(0xFFF0F0F0),
+            ),
+            itemBuilder: (context, index) {
+              final item = ranking[index];
+              final posicao = index + 1;
+              final corDaHashtag = _coresVibrantes[index % _coresVibrantes.length];
+
+              final proporcao = quantidadeMaior == quantidadeMenor
+                  ? 0.5
+                  : (item.quantidade - quantidadeMenor) /
+                      (quantidadeMaior - quantidadeMenor);
+
+              final tamanhoFonte = 14.0 + (proporcao * 3.0);
+
+              return InkWell(
+                onTap: () {},
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  child: Row(
+                    children: [
+                      // Posição no ranking (1º, 2º ou 3º)
+                      SizedBox(
+                        width: 28,
+                        child: Text(
+                          '$posicaoº',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: corDaHashtag,
                           ),
-                        ),
-
-                        Text(
-                          '$quantidade',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: proporcao,
-                        minHeight: 5,
-                        backgroundColor:
-                            const Color(0xFFF5E7ED),
-                        valueColor:
-                            const AlwaysStoppedAnimation(
-                          Color(0xFFC92768),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+
+                      // Nome da Hashtag + Número de publicações
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.nome,
+                              style: TextStyle(
+                                fontSize: tamanhoFonte,
+                                fontWeight: FontWeight.w700,
+                                color: corDaHashtag,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${item.quantidade} ${item.quantidade == 1 ? 'publicação' : 'publicações'}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -181,4 +279,28 @@ class _HashtagsEmAltaState
       ),
     );
   }
+
+  BoxDecoration _decoracao() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.04),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+}
+
+class _HashtagItem {
+  final String nome;
+  final int quantidade;
+
+  const _HashtagItem({
+    required this.nome,
+    required this.quantidade,
+  });
 }

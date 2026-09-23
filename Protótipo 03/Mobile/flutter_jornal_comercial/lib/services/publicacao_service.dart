@@ -1,4 +1,3 @@
-import '../core/constants/api_constants.dart';
 import '../models/publicacao.dart';
 import 'api_service.dart';
 
@@ -7,22 +6,16 @@ class PublicacaoService {
 
   Future<List<Publicacao>> listarPublicacoes() async {
     final response = await _apiService.get(
-      '${ApiConstants.publicacoes}/listar',
+      '/publicacoes/listar',
     );
 
-    dynamic dados = response;
-
-    if (response is Map) {
-      dados = response['publicacoes'] ??
-          response['data'] ??
-          response;
+    if (response is! List) {
+      throw Exception(
+        'Formato de publicações inválido.',
+      );
     }
 
-    if (dados is! List) {
-      return [];
-    }
-
-    return dados
+    return response
         .map(
           (item) => Publicacao.fromJson(
             Map<String, dynamic>.from(item),
@@ -31,33 +24,69 @@ class PublicacaoService {
         .toList();
   }
 
-  Future<Publicacao> criarPublicacao({
+  Future<Publicacao> buscarPublicacao(
+    int id,
+  ) async {
+    final response = await _apiService.get(
+      '/publicacoes/buscar/$id',
+    );
+
+    return Publicacao.fromJson(
+      Map<String, dynamic>.from(response),
+    );
+  }
+
+  Future<int> criarPublicacao({
     required String texto,
   }) async {
     final response = await _apiService.post(
-      '${ApiConstants.publicacoes}/cadastrar',
+      '/publicacoes/cadastrar',
       body: {
         'texto': texto,
       },
     );
 
-    return Publicacao.fromJson(
-      Map<String, dynamic>.from(response['publicacao']),
+    final publicacao =
+        response['publicacao'];
+
+    if (publicacao == null ||
+        publicacao['id'] == null) {
+      throw Exception(
+        'Não foi possível obter o ID da publicação.',
+      );
+    }
+
+    return int.parse(
+      publicacao['id'].toString(),
     );
   }
 
-  Future<void> curtir(int publicacaoId) async {
+  Future<void> adicionarMidia(
+    int publicacaoId,
+    String caminhoArquivo,
+  ) async {
+    await _apiService.uploadArquivo(
+      '/midias-publicacoes/cadastrar/$publicacaoId',
+      caminhoArquivo,
+    );
+  }
+
+  Future<void> curtir(
+    int publicacaoId,
+  ) async {
     await _apiService.post(
-      '${ApiConstants.curtidas}/curtir',
+      '/curtidas/curtir',
       body: {
         'publicacaoId': publicacaoId,
       },
     );
   }
 
-  Future<void> descurtir(int publicacaoId) async {
+  Future<void> descurtir(
+    int publicacaoId,
+  ) async {
     await _apiService.delete(
-      '${ApiConstants.curtidas}/descurtir',
+      '/curtidas/descurtir',
       body: {
         'publicacaoId': publicacaoId,
       },
@@ -68,18 +97,16 @@ class PublicacaoService {
     int publicacaoId,
   ) async {
     final response = await _apiService.get(
-      '${ApiConstants.comentarios}/publicacao/$publicacaoId',
+      '/comentarios/publicacao/$publicacaoId',
     );
 
-    if (response is List) {
-      return response;
+    if (response is! List) {
+      throw Exception(
+        'Formato de comentários inválido.',
+      );
     }
 
-    if (response is Map) {
-      return response['comentarios'] ?? [];
-    }
-
-    return [];
+    return response;
   }
 
   Future<void> criarComentario({
@@ -93,56 +120,28 @@ class PublicacaoService {
     };
 
     if (comentarioPaiId != null) {
-      body['comentarioPaiId'] = comentarioPaiId;
+      body['comentarioPaiId'] =
+          comentarioPaiId;
     }
 
     await _apiService.post(
-      '${ApiConstants.comentarios}/cadastrar',
+      '/comentarios/cadastrar',
       body: body,
     );
   }
 
-  Future<void> excluirComentario(int comentarioId) async {
-    await _apiService.delete(
-      '${ApiConstants.comentarios}/$comentarioId',
-    );
-  }
-
-  Future<List<dynamic>> listarRankingHashtags() async {
+  Future<List<dynamic>>
+      listarRankingHashtags() async {
     final response = await _apiService.get(
-      '${ApiConstants.hashtags}/ranking',
-    );
-
-    if (response is List) {
-      return response;
-    }
-
-    if (response is Map) {
-      return response['ranking'] ??
-          response['hashtags'] ??
-          [];
-    }
-
-    return [];
-  }
-
-  Future<List<Publicacao>> listarPublicacoesPorHashtag(
-    String nome,
-  ) async {
-    final response = await _apiService.get(
-      '${ApiConstants.hashtags}/publicacoes/${Uri.encodeComponent(nome)}',
+      '/hashtags/ranking',
     );
 
     if (response is! List) {
-      return [];
+      throw Exception(
+        'Formato do ranking de hashtags inválido.',
+      );
     }
 
-    return response
-        .map(
-          (item) => Publicacao.fromJson(
-            Map<String, dynamic>.from(item),
-          ),
-        )
-        .toList();
+    return response;
   }
 }

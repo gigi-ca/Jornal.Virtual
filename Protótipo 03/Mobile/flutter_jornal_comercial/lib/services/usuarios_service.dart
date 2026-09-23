@@ -44,16 +44,24 @@ class UsuarioService {
       final id = dados['id'];
 
       if (id == null) {
-        throw Exception('ID do usuário não encontrado no token.');
+        throw Exception(
+          'ID do usuário não encontrado no token.',
+        );
       }
 
-      final usuarioId = id is int ? id : int.parse(id.toString());
+      final usuarioId =
+          id is int ? id : int.parse(id.toString());
 
-      await prefs.setInt('usuarioId', usuarioId);
+      await prefs.setInt(
+        'usuarioId',
+        usuarioId,
+      );
 
       return usuarioId;
     } catch (e) {
-      throw Exception('Não foi possível identificar o usuário.');
+      throw Exception(
+        'Não foi possível identificar o usuário.',
+      );
     }
   }
 
@@ -96,14 +104,16 @@ class UsuarioService {
       );
     }
 
-    if (response['usuario'] is! Map) {
+    final usuario = response['usuario'];
+
+    if (usuario is! Map) {
       throw Exception(
         'Usuário atualizado não encontrado na resposta.',
       );
     }
 
     return Usuario.fromJson(
-      Map<String, dynamic>.from(response['usuario']),
+      Map<String, dynamic>.from(usuario),
     );
   }
 }

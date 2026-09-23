@@ -88,38 +88,60 @@ const listar = async (req, res) => {
     }
 };
 
+// const buscar = async (req, res) => {
+//     try {
+
+//         const id = Number(req.params.id);
+
+//         const midia = await prisma.midiasPublicacoes.findFirst({
+//             where: {
+//                 id,
+//                 publicacao: {
+//                     empresaId: req.user.empresaId
+//                 }
+//             },
+//             include: {
+//                 publicacao: true
+//             }
+//         });
+
+//         if (!midia) {
+//             return res.status(404).json({
+//                 mensagem: "Mídia não encontrada"
+//             });
+//         }
+
+//         return res.status(200).json(midia);
+
+//     } catch (erro) {
+
+//         return res.status(500).json({
+//             mensagem: "Erro ao buscar mídia",
+//             erro: erro.message
+//         });
+//     }
+// };
+
 const buscar = async (req, res) => {
-    try {
+  try {
+    const id = Number(req.params.id);
 
-        const id = Number(req.params.id);
+    const midia = await prisma.midiasPublicacoes.findUnique({
+      where: { id },
+    });
 
-        const midia = await prisma.midiasPublicacoes.findFirst({
-            where: {
-                id,
-                publicacao: {
-                    empresaId: req.user.empresaId
-                }
-            },
-            include: {
-                publicacao: true
-            }
-        });
-
-        if (!midia) {
-            return res.status(404).json({
-                mensagem: "Mídia não encontrada"
-            });
-        }
-
-        return res.status(200).json(midia);
-
-    } catch (erro) {
-
-        return res.status(500).json({
-            mensagem: "Erro ao buscar mídia",
-            erro: erro.message
-        });
+    if (!midia) {
+      return res.status(404).json({ erro: "Arquivo não encontrado" });
     }
+
+    if (!fs.existsSync(midia.path)) {
+      return res.status(404).json({ erro: "Arquivo não encontrado no servidor" });
+    }
+
+    res.sendFile(midia.path, { root: "." });
+  } catch (erro) {
+    return res.status(500).json({ erro: "Erro ao buscar arquivo" });
+  }
 };
 
 const excluir = async (req, res) => {

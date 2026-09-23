@@ -25,8 +25,10 @@ class _ComentariosModalState
       TextEditingController();
 
   List<dynamic> _comentarios = [];
+
   bool _carregando = true;
   bool _enviando = false;
+
   int? _comentarioRespondendo;
 
   @override
@@ -54,13 +56,27 @@ class _ComentariosModalState
       setState(() {
         _carregando = false;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst(
+              'Exception: ',
+              '',
+            ),
+          ),
+        ),
+      );
     }
   }
 
   Future<void> _enviarComentario() async {
-    final texto = _controller.text.trim();
+    final texto =
+        _controller.text.trim();
 
-    if (texto.isEmpty) return;
+    if (texto.isEmpty) {
+      return;
+    }
 
     setState(() {
       _enviando = true;
@@ -68,13 +84,16 @@ class _ComentariosModalState
 
     try {
       await _service.criarComentario(
-        publicacaoId: widget.publicacao.id,
+        publicacaoId:
+            widget.publicacao.id,
         texto: texto,
         comentarioPaiId:
             _comentarioRespondendo,
       );
 
       _controller.clear();
+
+      if (!mounted) return;
 
       setState(() {
         _comentarioRespondendo = null;
@@ -104,16 +123,62 @@ class _ComentariosModalState
   }
 
   String _nome(dynamic comentario) {
-    return comentario['autor']?['nome'] ??
-        'Usuário';
+    if (comentario is! Map) {
+      return 'Usuário';
+    }
+
+    final autor =
+        comentario['autor'];
+
+    if (autor is Map &&
+        autor['nome'] != null) {
+      return autor['nome'].toString();
+    }
+
+    return 'Usuário';
   }
 
-  Widget _comentarioWidget(dynamic comentario) {
+  String _nomeResposta(dynamic resposta) {
+    if (resposta is! Map) {
+      return 'Usuário';
+    }
+
+    final autor =
+        resposta['autor'];
+
+    if (autor is Map &&
+        autor['nome'] != null) {
+      return autor['nome'].toString();
+    }
+
+    return 'Usuário';
+  }
+
+  String _texto(dynamic item) {
+    if (item is! Map) {
+      return '';
+    }
+
+    return item['texto']?.toString() ?? '';
+  }
+
+  Widget _comentarioWidget(
+    dynamic comentario,
+  ) {
+    if (comentario is! Map) {
+      return const SizedBox.shrink();
+    }
+
     final respostas =
-        comentario['respostas'] as List? ?? [];
+        comentario['respostas'] is List
+            ? comentario['respostas']
+                as List<dynamic>
+            : <dynamic>[];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(
+        bottom: 16,
+      ),
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
@@ -137,11 +202,15 @@ class _ComentariosModalState
 
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding:
+                      const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF9F5F7),
+                    color:
+                        const Color(0xFFF9F5F7),
                     borderRadius:
-                        BorderRadius.circular(13),
+                        BorderRadius.circular(
+                      13,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment:
@@ -149,16 +218,19 @@ class _ComentariosModalState
                     children: [
                       Text(
                         _nome(comentario),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                        style:
+                            const TextStyle(
+                          fontWeight:
+                              FontWeight.bold,
                         ),
                       ),
 
                       const SizedBox(height: 5),
 
                       Text(
-                        comentario['texto'] ?? '',
-                        style: const TextStyle(
+                        _texto(comentario),
+                        style:
+                            const TextStyle(
                           height: 1.4,
                         ),
                       ),
@@ -170,16 +242,29 @@ class _ComentariosModalState
           ),
 
           Padding(
-            padding: const EdgeInsets.only(
+            padding:
+                const EdgeInsets.only(
               left: 48,
               top: 5,
             ),
             child: TextButton(
               onPressed: () {
-                setState(() {
-                  _comentarioRespondendo =
-                      comentario['id'];
-                });
+                final id =
+                    comentario['id'];
+
+                if (id is int) {
+                  setState(() {
+                    _comentarioRespondendo =
+                        id;
+                  });
+                } else if (id != null) {
+                  setState(() {
+                    _comentarioRespondendo =
+                        int.tryParse(
+                      id.toString(),
+                    );
+                  });
+                }
               },
               child: const Text(
                 'Responder',
@@ -192,72 +277,93 @@ class _ComentariosModalState
 
           if (respostas.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(
+              padding:
+                  const EdgeInsets.only(
                 left: 48,
               ),
               child: Column(
                 children: respostas
                     .map(
-                      (resposta) => Container(
-                        margin: const EdgeInsets.only(
-                          bottom: 10,
-                        ),
-                        padding:
-                            const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color:
-                              const Color(0xFFFBF8F9),
-                          borderRadius:
-                              BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            const CircleAvatar(
-                              radius: 15,
-                              backgroundColor:
-                                  Color(0xFFF4D5E2),
-                              child: Icon(
-                                Icons.person,
-                                size: 16,
-                                color:
-                                    Color(0xFFC92768),
-                              ),
+                      (resposta) {
+                        return Container(
+                          margin:
+                              const EdgeInsets.only(
+                            bottom: 10,
+                          ),
+                          padding:
+                              const EdgeInsets.all(
+                            10,
+                          ),
+                          decoration:
+                              BoxDecoration(
+                            color:
+                                const Color(
+                              0xFFFBF8F9,
                             ),
+                            borderRadius:
+                                BorderRadius.circular(
+                              12,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start,
+                            children: [
+                              const CircleAvatar(
+                                radius: 15,
+                                backgroundColor:
+                                    Color(
+                                  0xFFF4D5E2,
+                                ),
+                                child: Icon(
+                                  Icons.person,
+                                  size: 16,
+                                  color: Color(
+                                    0xFFC92768,
+                                  ),
+                                ),
+                              ),
 
-                            const SizedBox(width: 8),
+                              const SizedBox(
+                                width: 8,
+                              ),
 
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment
-                                        .start,
-                                children: [
-                                  Text(
-                                    resposta['autor']
-                                            ?['nome'] ??
-                                        'Usuário',
-                                    style:
-                                        const TextStyle(
-                                      fontWeight:
-                                          FontWeight.bold,
-                                      fontSize: 13,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment
+                                          .start,
+                                  children: [
+                                    Text(
+                                      _nomeResposta(
+                                        resposta,
+                                      ),
+                                      style:
+                                          const TextStyle(
+                                        fontWeight:
+                                            FontWeight
+                                                .bold,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(
-                                    height: 3,
-                                  ),
-                                  Text(
-                                    resposta['texto'] ??
-                                        '',
-                                  ),
-                                ],
+
+                                    const SizedBox(
+                                      height: 3,
+                                    ),
+
+                                    Text(
+                                      _texto(
+                                        resposta,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
+                            ],
+                          ),
+                        );
+                      },
                     )
                     .toList(),
               ),
@@ -274,16 +380,21 @@ class _ComentariosModalState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
       minChildSize: 0.45,
       maxChildSize: 0.95,
-      builder: (context, scrollController) {
+      builder:
+          (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration:
+              const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+            borderRadius:
+                BorderRadius.vertical(
               top: Radius.circular(24),
             ),
           ),
@@ -295,14 +406,18 @@ class _ComentariosModalState
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color:
+                      Colors.grey.shade300,
                   borderRadius:
-                      BorderRadius.circular(10),
+                      BorderRadius.circular(
+                    10,
+                  ),
                 ),
               ),
 
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding:
+                    const EdgeInsets.all(20),
                 child: Row(
                   children: [
                     const Expanded(
@@ -310,15 +425,20 @@ class _ComentariosModalState
                         'Comentários',
                         style: TextStyle(
                           fontSize: 21,
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                              FontWeight.bold,
                         ),
                       ),
                     ),
 
                     IconButton(
                       onPressed: () =>
-                          Navigator.pop(context),
-                      icon: const Icon(Icons.close),
+                          Navigator.pop(
+                        context,
+                      ),
+                      icon: const Icon(
+                        Icons.close,
+                      ),
                     ),
                   ],
                 ),
@@ -334,8 +454,10 @@ class _ComentariosModalState
                         ? const Center(
                             child: Text(
                               'Ainda não há comentários.',
-                              style: TextStyle(
-                                color: Colors.grey,
+                              style:
+                                  TextStyle(
+                                color:
+                                    Colors.grey,
                               ),
                             ),
                           )
@@ -348,31 +470,40 @@ class _ComentariosModalState
                               horizontal: 20,
                             ),
                             itemCount:
-                                _comentarios.length,
+                                _comentarios
+                                    .length,
                             itemBuilder:
                                 (context, index) {
                               return _comentarioWidget(
-                                _comentarios[index],
+                                _comentarios[
+                                    index],
                               );
                             },
                           ),
               ),
 
-              if (_comentarioRespondendo != null)
+              if (_comentarioRespondendo !=
+                  null)
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
+                  width:
+                      double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 7,
                   ),
-                  color: const Color(0xFFF9F5F7),
+                  color:
+                      const Color(0xFFF9F5F7),
                   child: Row(
                     children: [
                       const Expanded(
                         child: Text(
                           'Respondendo a um comentário',
                           style: TextStyle(
-                            color: Color(0xFFC92768),
+                            color:
+                                Color(
+                              0xFFC92768,
+                            ),
                             fontSize: 12,
                           ),
                         ),
@@ -385,7 +516,10 @@ class _ComentariosModalState
                                 null;
                           });
                         },
-                        child: const Text('Cancelar'),
+                        child:
+                            const Text(
+                          'Cancelar',
+                        ),
                       ),
                     ],
                   ),
@@ -393,12 +527,14 @@ class _ComentariosModalState
 
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding:
+                      const EdgeInsets.all(14),
                   child: Row(
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: _controller,
+                          controller:
+                              _controller,
                           minLines: 1,
                           maxLines: 3,
                           decoration:
@@ -408,7 +544,8 @@ class _ComentariosModalState
                             border:
                                 OutlineInputBorder(
                               borderRadius:
-                                  BorderRadius.circular(
+                                  BorderRadius
+                                      .circular(
                                 22,
                               ),
                             ),
@@ -425,10 +562,9 @@ class _ComentariosModalState
                       const SizedBox(width: 8),
 
                       IconButton(
-                        onPressed:
-                            _enviando
-                                ? null
-                                : _enviarComentario,
+                        onPressed: _enviando
+                            ? null
+                            : _enviarComentario,
                         icon: _enviando
                             ? const SizedBox(
                                 width: 20,
@@ -440,8 +576,9 @@ class _ComentariosModalState
                               )
                             : const Icon(
                                 Icons.send,
-                                color:
-                                    Color(0xFFC92768),
+                                color: Color(
+                                  0xFFC92768,
+                                ),
                               ),
                       ),
                     ],

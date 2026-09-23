@@ -1,4 +1,7 @@
+
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../services/publicacao_service.dart';
 
@@ -23,7 +26,33 @@ class _NovaPublicacaoModalState
   final PublicacaoService _service =
       PublicacaoService();
 
+  final ImagePicker _picker = ImagePicker();
+
   bool _carregando = false;
+
+  XFile? _midiaSelecionada;
+
+  Future<void> _selecionarMidia() async {
+    try {
+      final arquivo = await _picker.pickMedia();
+
+      if (arquivo == null) return;
+
+      setState(() {
+        _midiaSelecionada = arquivo;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Não foi possível selecionar a mídia: $e',
+          ),
+        ),
+      );
+    }
+  }
 
   Future<void> _publicar() async {
     final texto = _textoController.text.trim();
@@ -45,9 +74,17 @@ class _NovaPublicacaoModalState
     });
 
     try {
-      await _service.criarPublicacao(
+      final publicacaoId =
+          await _service.criarPublicacao(
         texto: texto,
       );
+
+      if (_midiaSelecionada != null) {
+        await _service.adicionarMidia(
+          publicacaoId,
+          _midiaSelecionada!.path,
+        );
+      }
 
       if (!mounted) return;
 
@@ -119,7 +156,6 @@ class _NovaPublicacaoModalState
                       ),
                     ),
                   ),
-
                   IconButton(
                     onPressed: _carregando
                         ? null
@@ -165,6 +201,73 @@ class _NovaPublicacaoModalState
                   fontSize: 12,
                 ),
               ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _carregando
+                        ? null
+                        : _selecionarMidia,
+                    icon: const Icon(
+                      Icons.photo_library_outlined,
+                    ),
+                    label: const Text(
+                      'Adicionar foto/vídeo',
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_midiaSelecionada != null) ...[
+                const SizedBox(height: 12),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF6F8),
+                    borderRadius:
+                        BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFEDE4E7),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.attach_file,
+                        color: Color(0xFFC92768),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      Expanded(
+                        child: Text(
+                          _midiaSelecionada!.name,
+                          overflow:
+                              TextOverflow.ellipsis,
+                        ),
+                      ),
+
+                      IconButton(
+                        onPressed: _carregando
+                            ? null
+                            : () {
+                                setState(() {
+                                  _midiaSelecionada =
+                                      null;
+                                });
+                              },
+                        icon: const Icon(
+                          Icons.close,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 20),
 

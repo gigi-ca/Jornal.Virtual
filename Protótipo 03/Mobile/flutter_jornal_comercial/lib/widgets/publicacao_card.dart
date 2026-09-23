@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
+import '../core/constants/api_constants.dart';
+import '../core/theme/app_colors.dart';
 import '../models/publicacao.dart';
 import '../services/publicacao_service.dart';
-import '../core/theme/app_colors.dart';
 import 'comentarios_modal.dart';
 
 class PublicacaoCard extends StatefulWidget {
@@ -18,14 +20,18 @@ class PublicacaoCard extends StatefulWidget {
   });
 
   @override
-  State<PublicacaoCard> createState() => _PublicacaoCardState();
+  State<PublicacaoCard> createState() =>
+      _PublicacaoCardState();
 }
 
-class _PublicacaoCardState extends State<PublicacaoCard> {
-  final PublicacaoService _service = PublicacaoService();
+class _PublicacaoCardState
+    extends State<PublicacaoCard> {
+  final PublicacaoService _service =
+      PublicacaoService();
 
   late bool _curtida;
   late int _quantidadeCurtidas;
+
   bool _carregandoCurtida = false;
 
   @override
@@ -33,23 +39,18 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
     super.initState();
 
     _quantidadeCurtidas =
-        widget.publicacao.curtidas.length;
+        widget.publicacao.quantidadeCurtidas;
 
-    _curtida = widget.publicacao.curtidas.any(
-      (curtida) {
-        final usuario = curtida['usuario'];
-
-        if (usuario is Map) {
-          return usuario['id'] == widget.usuarioId;
-        }
-
-        return curtida['usuarioId'] == widget.usuarioId;
-      },
-    );
+    _curtida = widget.usuarioId != null &&
+        widget.publicacao.curtidaPorUsuario(
+          widget.usuarioId!,
+        );
   }
 
   Future<void> _alternarCurtida() async {
-    if (_carregandoCurtida) return;
+    if (_carregandoCurtida) {
+      return;
+    }
 
     setState(() {
       _carregandoCurtida = true;
@@ -57,14 +58,25 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
 
     try {
       if (_curtida) {
-        await _service.descurtir(widget.publicacao.id);
+        await _service.descurtir(
+          widget.publicacao.id,
+        );
+
+        if (!mounted) return;
 
         setState(() {
           _curtida = false;
-          _quantidadeCurtidas--;
+
+          if (_quantidadeCurtidas > 0) {
+            _quantidadeCurtidas--;
+          }
         });
       } else {
-        await _service.curtir(widget.publicacao.id);
+        await _service.curtir(
+          widget.publicacao.id,
+        );
+
+        if (!mounted) return;
 
         setState(() {
           _curtida = true;
@@ -124,7 +136,8 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
   }
 
   String _tipoAutor() {
-    final tipo = widget.publicacao.autor?['tipo'];
+    final tipo =
+        widget.publicacao.autor?['tipo'];
 
     switch (tipo) {
       case 'ADMINISTRADOR':
@@ -139,9 +152,11 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
   }
 
   String? _fotoAutor() {
-    final foto = widget.publicacao.autor?['fotoPerfil'];
+    final foto =
+        widget.publicacao.autor?['fotoPerfil'];
 
-    if (foto == null || foto.toString().isEmpty) {
+    if (foto == null ||
+        foto.toString().isEmpty) {
       return null;
     }
 
@@ -151,7 +166,141 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
       return fotoString;
     }
 
-    return '${'http://localhost:3000'}/$fotoString';
+    return '${ApiConstants.baseUrl}/$fotoString';
+  }
+
+  String _urlMidia(dynamic midia) {
+    if (midia is! Map) {
+      return '';
+    }
+
+    final path =
+        midia['path']?.toString() ?? '';
+
+    if (path.isEmpty) {
+      return '';
+    }
+
+    if (path.startsWith('http')) {
+      return path;
+    }
+
+    return '${ApiConstants.baseUrl}/$path';
+  }
+
+  bool _ehVideo(dynamic midia) {
+    if (midia is! Map) {
+      return false;
+    }
+
+    final mimeType =
+        midia['mimeType']?.toString().toLowerCase();
+
+    if (mimeType != null &&
+        mimeType.startsWith('video/')) {
+      return true;
+    }
+
+    final nomeArquivo =
+        midia['nomeArquivo']?.toString().toLowerCase() ??
+            '';
+
+    return nomeArquivo.endsWith('.mp4') ||
+        nomeArquivo.endsWith('.webm') ||
+        nomeArquivo.endsWith('.mkv');
+  }
+
+  Widget _buildMidias() {
+    if (widget.publicacao.midias.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: widget.publicacao.midias
+          .map<Widget>((midia) {
+        final url = _urlMidia(midia);
+
+        if (url.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(
+            top: 14,
+          ),
+          child: _ehVideo(midia)
+              ? _VideoPublicacao(url: url)
+              : ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(14),
+                  child: Image.network(
+                    url,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder:
+                        (
+                      context,
+                      child,
+                      loadingProgress,
+                    ) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+
+                      return const SizedBox(
+                        height: 250,
+                        child: Center(
+                          child:
+                              CircularProgressIndicator(),
+                        ),
+                      );
+                    },
+                    errorBuilder:
+                        (
+                      context,
+                      error,
+                      stackTrace,
+                    ) {
+                      return Container(
+                        height: 180,
+                        width: double.infinity,
+                        decoration:
+                            BoxDecoration(
+                          color:
+                              const Color(
+                            0xFFF8F5F7,
+                          ),
+                          borderRadius:
+                              BorderRadius.circular(
+                            14,
+                          ),
+                        ),
+                        child: const Column(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons
+                                  .broken_image_outlined,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Não foi possível carregar a imagem.',
+                              style: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -159,7 +308,9 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
     final foto = _fotoAutor();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(
+        bottom: 16,
+      ),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -176,19 +327,23 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               CircleAvatar(
                 radius: 23,
-                backgroundColor: const Color(0xFFF4D5E2),
-                backgroundImage:
-                    foto != null ? NetworkImage(foto) : null,
+                backgroundColor:
+                    const Color(0xFFF4D5E2),
+                backgroundImage: foto != null
+                    ? NetworkImage(foto)
+                    : null,
                 child: foto == null
                     ? const Icon(
                         Icons.person,
-                        color: Color(0xFFC92768),
+                        color:
+                            Color(0xFFC92768),
                       )
                     : null,
               ),
@@ -203,7 +358,8 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                     Text(
                       _nomeAutor(),
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight:
+                            FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
@@ -214,7 +370,8 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                       '${_tipoAutor()} · '
                       '${_formatarData(widget.publicacao.dataPublicacao)}',
                       style: const TextStyle(
-                        color: AppColors.textSecondary,
+                        color: AppColors
+                            .textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -226,7 +383,8 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                 onPressed: () {},
                 icon: const Icon(
                   Icons.more_horiz,
-                  color: AppColors.textSecondary,
+                  color: AppColors
+                      .textSecondary,
                 ),
               ),
             ],
@@ -244,28 +402,49 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
               ),
             ),
 
-          if (widget.publicacao.hashtags.isNotEmpty) ...[
+          if (widget.publicacao.hashtags
+              .isNotEmpty) ...[
             const SizedBox(height: 12),
 
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: widget.publicacao.hashtags.map(
-                (hashtag) {
-                  final nome =
-                      hashtag['nome']?.toString() ?? '';
+              children: widget
+                  .publicacao.hashtags
+                  .map(
+                    (hashtag) {
+                      if (hashtag is! Map) {
+                        return const SizedBox
+                            .shrink();
+                      }
 
-                  return Text(
-                    nome,
-                    style: const TextStyle(
-                      color: Color(0xFFC92768),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  );
-                },
-              ).toList(),
+                      final nome =
+                          hashtag['nome']
+                                  ?.toString() ??
+                              '';
+
+                      if (nome.isEmpty) {
+                        return const SizedBox
+                            .shrink();
+                      }
+
+                      return Text(
+                        nome,
+                        style:
+                            const TextStyle(
+                          color:
+                              Color(0xFFC92768),
+                          fontWeight:
+                              FontWeight.w600,
+                        ),
+                      );
+                    },
+                  )
+                  .toList(),
             ),
           ],
+
+          _buildMidias(),
 
           const SizedBox(height: 16),
 
@@ -280,9 +459,11 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
             children: [
               InkWell(
                 onTap: _alternarCurtida,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius:
+                    BorderRadius.circular(30),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding:
+                      const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 7,
                   ),
@@ -294,8 +475,11 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                             : Icons.favorite_border,
                         size: 21,
                         color: _curtida
-                            ? const Color(0xFFE83272)
-                            : AppColors.textSecondary,
+                            ? const Color(
+                                0xFFE83272,
+                              )
+                            : AppColors
+                                .textSecondary,
                       ),
 
                       const SizedBox(width: 6),
@@ -304,9 +488,13 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                         '$_quantidadeCurtidas',
                         style: TextStyle(
                           color: _curtida
-                              ? const Color(0xFFE83272)
-                              : AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
+                              ? const Color(
+                                  0xFFE83272,
+                                )
+                              : AppColors
+                                  .textSecondary,
+                          fontWeight:
+                              FontWeight.w500,
                         ),
                       ),
                     ],
@@ -321,34 +509,43 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                   await showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => ComentariosModal(
-                      publicacao: widget.publicacao,
+                    backgroundColor:
+                        Colors.transparent,
+                    builder: (_) =>
+                        ComentariosModal(
+                      publicacao:
+                          widget.publicacao,
                     ),
                   );
 
                   widget.atualizar?.call();
                 },
-                borderRadius: BorderRadius.circular(30),
+                borderRadius:
+                    BorderRadius.circular(30),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding:
+                      const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 7,
                   ),
                   child: Row(
                     children: [
                       const Icon(
-                        Icons.chat_bubble_outline,
+                        Icons
+                            .chat_bubble_outline,
                         size: 20,
-                        color: AppColors.textSecondary,
+                        color: AppColors
+                            .textSecondary,
                       ),
 
                       const SizedBox(width: 6),
 
                       Text(
-                        '${widget.publicacao.comentarios.length}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
+                        '${widget.publicacao.quantidadeComentarios}',
+                        style:
+                            const TextStyle(
+                          color: AppColors
+                              .textSecondary,
                         ),
                       ),
                     ],
@@ -358,6 +555,144 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _VideoPublicacao
+    extends StatefulWidget {
+  final String url;
+
+  const _VideoPublicacao({
+    required this.url,
+  });
+
+  @override
+  State<_VideoPublicacao> createState() =>
+      _VideoPublicacaoState();
+}
+
+class _VideoPublicacaoState
+    extends State<_VideoPublicacao> {
+  late final VideoPlayerController
+      _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller =
+        VideoPlayerController.networkUrl(
+      Uri.parse(widget.url),
+    );
+
+    _inicializarVideo();
+  }
+
+  Future<void> _inicializarVideo() async {
+    try {
+      await _controller.initialize();
+
+      if (!mounted) return;
+
+      setState(() {});
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_controller.value.isInitialized) {
+      return Container(
+        height: 250,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.black12,
+          borderRadius:
+              BorderRadius.circular(14),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: AspectRatio(
+        aspectRatio:
+            _controller.value.aspectRatio,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            VideoPlayer(_controller),
+
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_controller.value.isPlaying) {
+                    _controller.pause();
+                  } else {
+                    _controller.play();
+                  }
+                });
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: Center(
+                  child: AnimatedOpacity(
+                    opacity:
+                        _controller.value.isPlaying
+                            ? 0
+                            : 1,
+                    duration:
+                        const Duration(
+                      milliseconds: 200,
+                    ),
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration:
+                          const BoxDecoration(
+                        color: Color(0xFFC92768),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 34,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            Positioned(
+              left: 8,
+              right: 8,
+              bottom: 4,
+              child: VideoProgressIndicator(
+                _controller,
+                allowScrubbing: true,
+                padding:
+                    const EdgeInsets.symmetric(
+                  vertical: 8,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

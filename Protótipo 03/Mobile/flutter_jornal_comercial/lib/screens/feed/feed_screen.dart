@@ -13,13 +13,11 @@ class FeedScreen extends StatefulWidget {
   });
 
   @override
-  State<FeedScreen> createState() =>
-      _FeedScreenState();
+  State<FeedScreen> createState() => _FeedScreenState();
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final PublicacaoService _service =
-      PublicacaoService();
+  final PublicacaoService _service = PublicacaoService();
 
   late Future<List<Publicacao>> _publicacoesFuture;
 
@@ -29,54 +27,55 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
 
-    _publicacoesFuture =
-        _carregarPublicacoes();
-
+    _publicacoesFuture = _carregarPublicacoes();
     _carregarUsuario();
   }
 
   Future<void> _carregarUsuario() async {
-    final prefs =
-        await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
     if (!mounted) return;
 
     setState(() {
-      _usuarioId =
-          prefs.getInt('usuarioId');
+      _usuarioId = prefs.getInt('usuarioId');
     });
   }
 
-  Future<List<Publicacao>>
-      _carregarPublicacoes() async {
+  Future<List<Publicacao>> _carregarPublicacoes() async {
     return _service.listarPublicacoes();
   }
 
-  void _atualizarFeed() {
+  Future<void> _atualizarFeed() async {
+    final novaConsulta = _carregarPublicacoes();
+
+    if (!mounted) return;
+
     setState(() {
-      _publicacoesFuture =
-          _carregarPublicacoes();
+      _publicacoesFuture = novaConsulta;
     });
+
+    await novaConsulta;
   }
 
   Future<void> _abrirNovaPublicacao() async {
     await showDialog(
       context: context,
-      builder: (_) => NovaPublicacaoModal(
-        atualizar: _atualizarFeed,
-      ),
+      builder: (_) {
+        return NovaPublicacaoModal(
+          atualizar: () {
+            _atualizarFeed();
+          },
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF8F5F7),
-
+      backgroundColor: const Color(0xFFF8F5F7),
       appBar: AppBar(
-        backgroundColor:
-            const Color(0xFFD52B6D),
+        backgroundColor: const Color(0xFFD52B6D),
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -92,12 +91,9 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ],
       ),
-
-      floatingActionButton:
-          FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _abrirNovaPublicacao,
-        backgroundColor:
-            const Color(0xFFC92768),
+        backgroundColor: const Color(0xFFC92768),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text(
@@ -107,43 +103,24 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ),
       ),
-
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final telaGrande =
-              constraints.maxWidth >= 900;
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 1200,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: telaGrande
-                    ? Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 7,
-                            child: _feed(),
-                          ),
-
-                          const SizedBox(width: 20),
-
-                          SizedBox(
-                            width: 300,
-                            child:
-                                const HashtagsEmAlta(),
-                          ),
-                        ],
-                      )
-                    : _feed(),
-              ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 900,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const HashtagsEmAlta(),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: _feed(),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -152,8 +129,7 @@ class _FeedScreenState extends State<FeedScreen> {
     return FutureBuilder<List<Publicacao>>(
       future: _publicacoesFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState ==
-            ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(40),
@@ -172,26 +148,23 @@ class _FeedScreenState extends State<FeedScreen> {
                   size: 45,
                   color: Colors.grey,
                 ),
-
                 const SizedBox(height: 10),
-
                 const Text(
                   'Não foi possível carregar o feed.',
                 ),
-
                 const SizedBox(height: 10),
-
                 ElevatedButton(
                   onPressed: _atualizarFeed,
-                  child: const Text('Tentar novamente'),
+                  child: const Text(
+                    'Tentar novamente',
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        final publicacoes =
-            snapshot.data ?? [];
+        final publicacoes = snapshot.data ?? [];
 
         if (publicacoes.isEmpty) {
           return Center(
@@ -199,8 +172,7 @@ class _FeedScreenState extends State<FeedScreen> {
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: const Column(
                 mainAxisSize: MainAxisSize.min,
@@ -210,9 +182,7 @@ class _FeedScreenState extends State<FeedScreen> {
                     size: 50,
                     color: Color(0xFFC92768),
                   ),
-
                   SizedBox(height: 12),
-
                   Text(
                     'Ainda não há publicações.',
                     style: TextStyle(
@@ -220,9 +190,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   SizedBox(height: 5),
-
                   Text(
                     'Seja a primeira pessoa a publicar!',
                     style: TextStyle(
@@ -236,18 +204,19 @@ class _FeedScreenState extends State<FeedScreen> {
         }
 
         return RefreshIndicator(
-          onRefresh: () async {
-            _atualizarFeed();
-          },
+          onRefresh: _atualizarFeed,
           child: ListView.builder(
-            padding:
-                const EdgeInsets.only(bottom: 100),
+            padding: const EdgeInsets.only(
+              bottom: 100,
+            ),
             itemCount: publicacoes.length,
             itemBuilder: (context, index) {
               return PublicacaoCard(
                 publicacao: publicacoes[index],
                 usuarioId: _usuarioId,
-                atualizar: _atualizarFeed,
+                atualizar: () {
+                  _atualizarFeed();
+                },
               );
             },
           ),
