@@ -40,27 +40,19 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authService.login(
-        email: email,
-        senha: senha,
-      );
+      await _authService.login(email: email, senha: senha);
 
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        _erro = e.toString().replaceFirst(
-          'Exception: ',
-          '',
-        );
+        _erro = e.toString().replaceFirst('Exception: ', '');
       });
     } finally {
       if (!mounted) return;
@@ -85,14 +77,9 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 30,
-              vertical: 32,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 32),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 410,
-              ),
+              constraints: const BoxConstraints(maxWidth: 410),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -100,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
                               width: 8,
@@ -110,16 +97,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 shape: BoxShape.circle,
                               ),
                             ),
-
                             const SizedBox(width: 8),
-
-                            const Text(
-                              'JORNAL VIRTUAL',
-                              style: TextStyle(
-                                color: AppColors.text,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.2,
+                            Flexible(
+                              child: Text(
+                                'JORNAL VIRTUAL',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
                             ),
                           ],
@@ -324,40 +312,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-        color: AppColors.textLight,
-        fontSize: 14,
-      ),
-      prefixIcon: Icon(
-        icon,
-        size: 20,
-        color: AppColors.textSecondary,
-      ),
+      hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 14),
+      prefixIcon: Icon(icon, size: 20, color: AppColors.textSecondary),
       suffixIcon: suffix,
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 15,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.primary,
-          width: 1.4,
-        ),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
       ),
     );
   }
