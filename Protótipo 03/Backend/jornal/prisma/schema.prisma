@@ -3,8 +3,13 @@ generator client {
 }
 
 datasource db {
+<<<<<<< HEAD
   provider  = "mysql"
+=======
+  provider = "mysql"
+>>>>>>> 705b4014bda1ff851460a3e15c66cdb0775210dd
 }
+
 
 enum TiposUsuarios {
   USUARIO

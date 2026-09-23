@@ -126,15 +126,10 @@ function atualizarNuvem(){
         document.getElementById("nuvem"),
         {
             list: lista,
-
             gridSize: 10,
-
             weightFactor: 1,
-
             rotateRatio: 0.3,
-
             rotationSteps: 2,
-
             backgroundColor: "#ffffff",
 
             color: function(){
@@ -161,12 +156,10 @@ function toggleMenu(pubId){
     const menu = document.getElementById(`menu-${pubId}`);
     const isVisible = menu.style.display === "block";
     
-    // Fechar todos os menus
     document.querySelectorAll(".dropdown-menu").forEach(m => {
         m.style.display = "none";
     });
     
-    // Abrir o menu clicado se estava fechado
     if(!isVisible){
         menu.style.display = "block";
     }
@@ -192,7 +185,6 @@ function curtirPost(pubId){
     }
 }
 
-// Fechar menu ao clicar fora
 document.addEventListener("click", function(event){
     if(!event.target.closest(".menu-post")){
         document.querySelectorAll(".dropdown-menu").forEach(menu => {

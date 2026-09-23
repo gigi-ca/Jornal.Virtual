@@ -23,21 +23,20 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
 
     if (response['token'] != null) {
-      final token = response['token'];
+      await prefs.setString(
+        'token',
+        response['token'],
+      );
+    }
 
-      await prefs.setString('token', token);
+    if (response['usuario'] != null) {
+      final usuario = response['usuario'];
 
-      final usuario = _decodificarToken(token);
-
-      if (usuario != null) {
-        if (usuario['id'] != null) {
-          await prefs.setInt(
-            'usuarioId',
-            usuario['id'],
-          );
-        }
-
-        response['usuario'] = usuario;
+      if (usuario['id'] != null) {
+        await prefs.setInt(
+          'usuarioId',
+          usuario['id'],
+        );
       }
     }
 
@@ -81,6 +80,5 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove('token');
-    await prefs.remove('usuarioId');
   }
 }

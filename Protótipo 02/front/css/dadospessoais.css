@@ -1,26 +1,3 @@
-/* ================================
-   RESET
-================================ */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f8f8fa;
-    color: #202126;
-}
-
-
-/* ================================
-   CABEÇALHO
-================================ */
-
-/* MENU */
-
 .menu {
     display: flex;
     align-items: center;
@@ -29,11 +6,9 @@ body {
 
 .menu a {
     text-decoration: none;
-    color: white;
-
+    color: var(--surface);
     font-size: 17px;
     font-weight: 500;
-
     transition: opacity 0.2s ease;
 }
 
@@ -41,84 +16,53 @@ body {
     opacity: 0.75;
 }
 
-
-/* ================================
-   CONTAINER
-================================ */
-
 .container {
     width: min(1330px, calc(100% - 80px));
     margin: 0 auto;
-
     padding-top: 58px;
     padding-bottom: 60px;
 }
-
-
-/* ================================
-   CABEÇALHO DA PÁGINA
-================================ */
 
 .page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-
     margin-bottom: 45px;
 }
 
 .subtitle {
     display: block;
-
-    color: #c9005b;
-
+    color: var(--primary);
     font-size: 14px;
     font-weight: 700;
-
     margin-bottom: 20px;
 }
 
 .page-header h1 {
     font-size: 38px;
     line-height: 1.1;
-
     margin-bottom: 18px;
-
     font-weight: 700;
 }
 
 .page-header p {
     color: #737379;
-
     font-size: 17px;
 }
-
-
-/* ================================
-   BOTÃO VOLTAR
-================================ */
 
 .btn-voltar {
     display: flex;
     align-items: center;
     gap: 14px;
-
     padding: 17px 24px;
-
-    background: white;
-
+    background: var(--surface);
     border: 1px solid #e5e5e7;
     border-radius: 12px;
-
-    color: #c9005b;
-
+    color: var(--primary);
     text-decoration: none;
-
     font-size: 16px;
     font-weight: 600;
-
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.02);
-
     transition: all 0.2s ease;
 }
 
@@ -127,32 +71,18 @@ body {
 }
 
 .btn-voltar:hover {
-    background: #fff4f8;
+    background: var(--background);
     transform: translateX(-2px);
 }
 
-
-/* ================================
-   CARD DA CONTA
-================================ */
-
 .account-card {
     width: min(910px, 100%);
-
     margin: 0 auto;
-
-    background: white;
-
+    background: var(--surface);
     border-radius: 22px;
-
     padding: 32px 36px 38px;
-
-    box-shadow:
-        0 12px 35px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05);
 }
-
-
-/* TÍTULO DO CARD */
 
 .card-title {
     margin-bottom: 35px;
@@ -160,64 +90,40 @@ body {
 
 .card-title h2 {
     font-size: 24px;
-
     margin-bottom: 12px;
 }
 
 .card-title p {
     color: #85858b;
-
     font-size: 16px;
 }
 
-
-/* ================================
-   INFORMAÇÕES
-================================ */
-
 .info-item {
     min-height: 104px;
-
     border: 1px solid #e7e7e9;
-
     border-radius: 13px;
-
     display: flex;
     align-items: center;
-
     padding: 18px 20px;
-
     margin-bottom: 24px;
-
-    transition: border-color 0.2s ease,
-                box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .info-item:hover {
     border-color: #e3bfd0;
-
     box-shadow: 0 4px 15px rgba(201, 0, 91, 0.04);
 }
-
-
-/* ÍCONE */
 
 .icon {
     width: 66px;
     height: 66px;
-
     min-width: 66px;
-
     border-radius: 50%;
-
-    background: #fde8f0;
-
+    background: var(--background);
     display: flex;
     align-items: center;
     justify-content: center;
-
-    color: #c9005b;
-
+    color: var(--primary);
     margin-right: 26px;
 }
 
@@ -225,68 +131,44 @@ body {
     font-size: 26px;
 }
 
-
-/* TEXTO */
-
 .info-text {
     display: flex;
     flex-direction: column;
-
     gap: 7px;
 }
 
 .label {
     font-size: 14px;
-
     color: #737379;
-
     font-weight: 600;
 }
 
 .info-text strong {
     font-size: 20px;
-
     font-weight: 600;
-
-    color: #202126;
+    color: var(--text);
 }
 
 .info-text small {
     font-size: 14px;
-
     color: #85858b;
-
     margin-top: 1px;
 }
-
-
-/* SENHA */
 
 .password {
     letter-spacing: 4px;
 }
 
-
-/* ================================
-   ESQUECEU A SENHA
-================================ */
-
 .forgot-password {
     display: flex;
     justify-content: center;
     align-items: center;
-
     gap: 15px;
-
     margin-top: 56px;
-
-    color: #c9005b;
-
+    color: var(--primary);
     text-decoration: none;
-
     font-size: 17px;
     font-weight: 600;
-
     transition: opacity 0.2s ease;
 }
 
@@ -298,16 +180,11 @@ body {
     opacity: 0.7;
 }
 
-
-/* ================================
-   RESPONSIVIDADE
-================================ */
-
 @media (max-width: 800px) {
-
     .logo {
         font-size: 24px;
     }
+
 
     .logo i {
         font-size: 29px;
@@ -323,13 +200,11 @@ body {
 
     .container {
         width: calc(100% - 35px);
-
         padding-top: 40px;
     }
 
     .page-header {
         flex-direction: column;
-
         gap: 25px;
     }
 
@@ -353,7 +228,6 @@ body {
         width: 55px;
         height: 55px;
         min-width: 55px;
-
         margin-right: 18px;
     }
 
@@ -365,16 +239,15 @@ body {
         font-size: 17px;
     }
 
+
 }
 
-
 @media (max-width: 480px) {
-
     .menu {
         width: 100%;
-
         justify-content: center;
     }
+
 
     .page-header h1 {
         font-size: 28px;
@@ -387,7 +260,6 @@ body {
 
     .account-card {
         border-radius: 16px;
-
         padding: 24px 15px;
     }
 
@@ -402,7 +274,6 @@ body {
 
     .info-item {
         min-height: 90px;
-
         padding: 14px;
     }
 
@@ -410,7 +281,6 @@ body {
         width: 48px;
         height: 48px;
         min-width: 48px;
-
         margin-right: 14px;
     }
 
@@ -424,7 +294,6 @@ body {
 
     .info-text strong {
         font-size: 15px;
-
         word-break: break-word;
     }
 
@@ -434,7 +303,6 @@ body {
 
     .forgot-password {
         font-size: 15px;
-
         margin-top: 40px;
     }
 
