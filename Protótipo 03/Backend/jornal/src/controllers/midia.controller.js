@@ -15,8 +15,12 @@ const buscar = async (req, res) => {
                 where: { id },
             });
 
-        }else if(servico == "publicacao"){
-            midia = await prisma.publicacao.findUnique({
+        } else if (servico == "publicacao") {
+            midia = await prisma.midiasPublicacoes.findUnique({
+                where: { id },
+            });
+        } else if (servico == "noticia") {
+            midia = await prisma.midiasNoticias.findUnique({
                 where: { id },
             });
         }
@@ -30,7 +34,11 @@ const buscar = async (req, res) => {
             return res.status(404).json({ erro: "Arquivo não encontrado no servidor" });
         }
 
-        res.sendFile(midia.path, { root: "." });
+        if (servico == "usuario") {
+            res.sendFile(midia.fotoPerfil, { root: "." });
+        } else {
+            res.sendFile(midia.path, { root: "." });
+        }
     } catch (erro) {
         return res.status(500).json({ erro: "Erro ao buscar arquivo" });
     }
