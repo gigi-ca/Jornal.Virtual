@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -79,11 +77,21 @@ class _NovaPublicacaoModalState
         texto: texto,
       );
 
+      print('ID DA PUBLICAÇÃO: $publicacaoId');
+
       if (_midiaSelecionada != null) {
-        await _service.adicionarMidia(
-          publicacaoId,
-          _midiaSelecionada!.path,
+        print(
+          'CAMINHO DA MÍDIA: ${_midiaSelecionada!.path}',
         );
+
+        print(
+          'NOME DA MÍDIA: ${_midiaSelecionada!.name}',
+        );
+
+     await _service.adicionarMidia(
+  publicacaoId,
+  _midiaSelecionada!,
+);
       }
 
       if (!mounted) return;
@@ -101,6 +109,8 @@ class _NovaPublicacaoModalState
       );
     } catch (e) {
       if (!mounted) return;
+
+      print('ERRO AO PUBLICAR: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -24,6 +24,11 @@ const buscar = async (req, res) => {
                 where: { id },
             });
         }
+        // }else if(servico == "template"){
+        //     midia = await prisma.midiasTemplates.findUnique({
+        //         where: { id },
+        //     });
+        // }
 
 
         if (!midia) {

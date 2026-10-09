@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/api_constants.dart';
@@ -69,7 +70,8 @@ class ApiService {
 
   Future<dynamic> uploadArquivo(
     String endpoint,
-    String caminhoArquivo,
+    List<int> bytes,
+    String nomeArquivo,
   ) async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -89,10 +91,64 @@ class ApiService {
           'Bearer $token';
     }
 
+    final extensao = nomeArquivo
+        .split('.')
+        .last
+        .toLowerCase();
+
+    MediaType? tipoArquivo;
+
+    switch (extensao) {
+      case 'jpg':
+      case 'jpeg':
+        tipoArquivo = MediaType(
+          'image',
+          'jpeg',
+        );
+        break;
+
+      case 'png':
+        tipoArquivo = MediaType(
+          'image',
+          'png',
+        );
+        break;
+
+      case 'webp':
+        tipoArquivo = MediaType(
+          'image',
+          'webp',
+        );
+        break;
+
+      case 'mp4':
+        tipoArquivo = MediaType(
+          'video',
+          'mp4',
+        );
+        break;
+
+      case 'webm':
+        tipoArquivo = MediaType(
+          'video',
+          'webm',
+        );
+        break;
+
+      case 'mkv':
+        tipoArquivo = MediaType(
+          'video',
+          'x-matroska',
+        );
+        break;
+    }
+
     request.files.add(
-      await http.MultipartFile.fromPath(
+      http.MultipartFile.fromBytes(
         'arquivo',
-        caminhoArquivo,
+        bytes,
+        filename: nomeArquivo,
+        contentType: tipoArquivo,
       ),
     );
 
@@ -107,7 +163,9 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  dynamic _handleResponse(http.Response response) {
+  dynamic _handleResponse(
+    http.Response response,
+  ) {
     dynamic data;
 
     if (response.body.isNotEmpty) {
@@ -138,7 +196,8 @@ class ApiService {
     }
 
     throw Exception(
-      'Erro ${response.statusCode}: ${response.reasonPhrase}',
+      'Erro ${response.statusCode}: '
+      '${response.reasonPhrase}',
     );
   }
 }

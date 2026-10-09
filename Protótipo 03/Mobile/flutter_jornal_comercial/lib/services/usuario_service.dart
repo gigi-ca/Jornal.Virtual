@@ -1,51 +1,81 @@
-import '../core/constants/api_constants.dart';
-import 'api_service.dart';
+// import 'package:image_picker/image_picker.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
-class UsuarioService {
-  final ApiService _apiService = ApiService();
+// import '../core/constants/api_constants.dart';
+// import 'api_service.dart';
 
-  Future<Map<String, dynamic>> buscarUsuario(
-    int usuarioId,
-  ) async {
-    final response = await _apiService.get(
-      '${ApiConstants.usuarios}/buscar/$usuarioId',
-    );
+// class UsuarioService {
+//   final ApiService _apiService = ApiService();
 
-    return Map<String, dynamic>.from(response);
-  }
+//   Future<Map<String, dynamic>> buscarUsuario(
+//     int usuarioId,
+//   ) async {
+//     final response = await _apiService.get(
+//       '${ApiConstants.usuarios}/buscar/$usuarioId',
+//     );
 
-  Future<void> atualizarBio(
-    int usuarioId,
-    String bio,
-  ) async {
-    await _apiService.put(
-      '${ApiConstants.usuarios}/atualizar/$usuarioId',
-      body: {
-        'bio': bio,
-      },
-    );
-  }
+//     return Map<String, dynamic>.from(response);
+//   }
 
-  Future<void> atualizarFoto(
-    String caminhoArquivo,
-  ) async {
-    await _apiService.uploadArquivo(
-      '${ApiConstants.usuarios}/foto-perfil',
-      caminhoArquivo,
-    );
-  }
+//   Future<void> atualizarBio(
+//     int usuarioId,
+//     String bio,
+//   ) async {
+//     await _apiService.put(
+//       '${ApiConstants.usuarios}/atualizar/$usuarioId',
+//       body: {
+//         'bio': bio,
+//       },
+//     );
+//   }
 
-  Future<void> atualizarTemplate(
-    int usuarioId,
-    String caminhoArquivo,
-  ) async {
-    await _apiService.uploadArquivo(
-      '${ApiConstants.usuarios}/template/$usuarioId',
-      caminhoArquivo,
-    );
-  }
+//   Future<void> atualizarFoto(
+//     XFile arquivo,
+//   ) async {
+//     final bytes = await arquivo.readAsBytes();
 
-  Future<Object?> atualizarUsuario({required int usuarioId, required String bio}) async {}
+//     await _apiService.uploadArquivo(
+//       '${ApiConstants.usuarios}/foto-perfil',
+//       bytes,
+//       arquivo.name,
+//     );
+//   }
 
-  Future<Object?> buscarUsuarioLogado() async {}
-}
+//   Future<void> atualizarTemplate(
+//     int usuarioId,
+//     XFile arquivo,
+//   ) async {
+//     final bytes = await arquivo.readAsBytes();
+
+//     await _apiService.uploadArquivo(
+//       '${ApiConstants.usuarios}/template/$usuarioId',
+//       bytes,
+//       arquivo.name,
+//     );
+//   }
+
+//   Future<int> _obterUsuarioId() async {
+//     final prefs = await SharedPreferences.getInstance();
+
+//     final id = prefs.getInt('usuarioId');
+
+//     if (id == null) {
+//       throw Exception('Usuário não encontrado');
+//     }
+
+//     return id;
+//   }
+
+//   Future<Map<String, dynamic>> buscarUsuarioLogado() async {
+//     final usuarioId = await _obterUsuarioId();
+
+//     return buscarUsuario(usuarioId);
+//   }
+
+//   Future<void> atualizarUsuario({
+//     required int usuarioId,
+//     required String bio,
+//   }) async {
+//     await atualizarBio(usuarioId, bio);
+//   }
+// }

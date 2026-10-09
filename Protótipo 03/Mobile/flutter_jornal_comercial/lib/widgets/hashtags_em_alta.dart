@@ -14,11 +14,11 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
 
   late Future<List<dynamic>> _hashtagsFuture;
 
-  // Cores vibrantes para o Top 3 (1º, 2º e 3º lugar)
+  
   static const List<Color> _coresVibrantes = [
-    Color(0xFF8E24AA), // 1º Lugar - Roxo
-    Color(0xFFD52B6D), // 2º Lugar - Rosa
-    Color(0xFF00ACC1), // 3º Lugar - Ciano/Azul
+    Color(0xFF8E24AA),
+    Color(0xFFD52B6D), 
+    Color(0xFF00ACC1), 
   ];
 
   @override
@@ -31,7 +31,7 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
     return _service.listarRankingHashtags();
   }
 
-  // Método público para atualizar o ranking quando houver novas publicações
+
   void atualizarRanking() {
     setState(() {
       _hashtagsFuture = _carregarHashtags();
@@ -158,10 +158,9 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
       return _vazio();
     }
 
-    // 1. Ordena todas as hashtags da mais usada para a menos usada
+    
     lista.sort((a, b) => b.quantidade.compareTo(a.quantidade));
 
-    // 2. Filtra estritamente apenas o Top 3
     final ranking = lista.take(3).toList();
 
     final quantidadeMaior = ranking.first.quantidade;
@@ -185,22 +184,22 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
                   color: Color(0xFF18213D),
                 ),
               ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Ver lista',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFD52B6D),
-                  ),
-                ),
-              ),
+              // TextButton(
+              //   onPressed: () {},
+              //   style: TextButton.styleFrom(
+              //     padding: EdgeInsets.zero,
+              //     minimumSize: Size.zero,
+              //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              //   ),
+              //   child: const Text(
+              //     'Ver lista',
+              //     style: TextStyle(
+              //       fontSize: 13,
+              //       fontWeight: FontWeight.w600,
+              //       color: Color(0xFFD52B6D),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
           const SizedBox(height: 16),

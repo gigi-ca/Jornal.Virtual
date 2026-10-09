@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/api_constants.dart';
@@ -114,6 +115,39 @@ class UsuarioService {
 
     return Usuario.fromJson(
       Map<String, dynamic>.from(usuario),
+    );
+  }
+
+  // ============================================================
+  // ATUALIZAR FOTO DE PERFIL
+  // ============================================================
+
+  Future<void> atualizarFoto(
+    XFile arquivo,
+  ) async {
+    final bytes = await arquivo.readAsBytes();
+
+    await _apiService.uploadArquivo(
+      '${ApiConstants.usuarios}/foto-perfil',
+      bytes,
+      arquivo.name,
+    );
+  }
+
+  // ============================================================
+  // ATUALIZAR TEMPLATE
+  // ============================================================
+
+  Future<void> atualizarTemplate(
+    int usuarioId,
+    XFile arquivo,
+  ) async {
+    final bytes = await arquivo.readAsBytes();
+
+    await _apiService.uploadArquivo(
+      '${ApiConstants.usuarios}/template/$usuarioId',
+      bytes,
+      arquivo.name,
     );
   }
 }

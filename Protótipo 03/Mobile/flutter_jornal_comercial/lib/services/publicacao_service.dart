@@ -1,3 +1,5 @@
+import 'package:image_picker/image_picker.dart';
+
 import '../models/publicacao.dart';
 import 'api_service.dart';
 
@@ -46,8 +48,7 @@ class PublicacaoService {
       },
     );
 
-    final publicacao =
-        response['publicacao'];
+    final publicacao = response['publicacao'];
 
     if (publicacao == null ||
         publicacao['id'] == null) {
@@ -63,11 +64,14 @@ class PublicacaoService {
 
   Future<void> adicionarMidia(
     int publicacaoId,
-    String caminhoArquivo,
+    XFile arquivo,
   ) async {
+    final bytes = await arquivo.readAsBytes();
+
     await _apiService.uploadArquivo(
       '/midias-publicacoes/cadastrar/$publicacaoId',
-      caminhoArquivo,
+      bytes,
+      arquivo.name,
     );
   }
 
@@ -120,8 +124,7 @@ class PublicacaoService {
     };
 
     if (comentarioPaiId != null) {
-      body['comentarioPaiId'] =
-          comentarioPaiId;
+      body['comentarioPaiId'] = comentarioPaiId;
     }
 
     await _apiService.post(
@@ -130,8 +133,7 @@ class PublicacaoService {
     );
   }
 
-  Future<List<dynamic>>
-      listarRankingHashtags() async {
+  Future<List<dynamic>> listarRankingHashtags() async {
     final response = await _apiService.get(
       '/hashtags/ranking',
     );
@@ -143,5 +145,23 @@ class PublicacaoService {
     }
 
     return response;
+  }
+
+  // Excluir a própria publicação
+  Future<void> excluirPublicacao(
+    int publicacaoId,
+  ) async {
+    await _apiService.delete(
+      '/publicacoes/excluir/$publicacaoId',
+    );
+  }
+
+  // Excluir o próprio comentário
+  Future<void> excluirComentario(
+    int comentarioId,
+  ) async {
+    await _apiService.delete(
+      '/comentarios/$comentarioId',
+    );
   }
 }
