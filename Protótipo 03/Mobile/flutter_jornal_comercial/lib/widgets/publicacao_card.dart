@@ -20,37 +20,105 @@ class PublicacaoCard extends StatefulWidget {
   });
 
   @override
-  State<PublicacaoCard> createState() =>
-      _PublicacaoCardState();
+  State<PublicacaoCard> createState() => _PublicacaoCardState();
 }
 
-class _PublicacaoCardState
-    extends State<PublicacaoCard> {
-  final PublicacaoService _service =
-      PublicacaoService();
+class _PublicacaoCardState extends State<PublicacaoCard> {
+  final PublicacaoService _service = PublicacaoService();
 
   late bool _curtida;
   late int _quantidadeCurtidas;
 
   bool _carregandoCurtida = false;
+  bool _excluindoPublicacao = false;
 
   @override
   void initState() {
     super.initState();
 
-    _quantidadeCurtidas =
-        widget.publicacao.quantidadeCurtidas;
+    _quantidadeCurtidas = widget.publicacao.quantidadeCurtidas;
 
     _curtida = widget.usuarioId != null &&
-        widget.publicacao.curtidaPorUsuario(
-          widget.usuarioId!,
-        );
+        widget.publicacao.curtidaPorUsuario(widget.usuarioId!);
+  }
+
+  bool get _ehDonoPublicacao {
+    if (widget.usuarioId == null) return false;
+
+    final idAutor = widget.publicacao.autor?['id'];
+
+    return idAutor != null &&
+        idAutor.toString() == widget.usuarioId.toString();
+  }
+
+  Future<void> _excluirPublicacao() async {
+    if (!_ehDonoPublicacao || _excluindoPublicacao) {
+      return;
+    }
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir publicação'),
+        content: const Text(
+          'Tem certeza de que deseja excluir esta publicação? '
+          'Essa ação não poderá ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true || !mounted) return;
+
+    setState(() {
+      _excluindoPublicacao = true;
+    });
+
+    try {
+      await _service.excluirPublicacao(widget.publicacao.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Publicação excluída com sucesso.'),
+        ),
+      );
+
+      widget.atualizar?.call();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _excluindoPublicacao = false;
+        });
+      }
+    }
   }
 
   Future<void> _alternarCurtida() async {
-    if (_carregandoCurtida) {
-      return;
-    }
+    if (_carregandoCurtida) return;
 
     setState(() {
       _carregandoCurtida = true;
@@ -58,9 +126,7 @@ class _PublicacaoCardState
 
     try {
       if (_curtida) {
-        await _service.descurtir(
-          widget.publicacao.id,
-        );
+        await _service.descurtir(widget.publicacao.id);
 
         if (!mounted) return;
 
@@ -72,9 +138,7 @@ class _PublicacaoCardState
           }
         });
       } else {
-        await _service.curtir(
-          widget.publicacao.id,
-        );
+        await _service.curtir(widget.publicacao.id);
 
         if (!mounted) return;
 
@@ -89,10 +153,7 @@ class _PublicacaoCardState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.toString().replaceFirst(
-              'Exception: ',
-              '',
-            ),
+            e.toString().replaceFirst('Exception: ', ''),
           ),
         ),
       );
@@ -131,32 +192,26 @@ class _PublicacaoCardState
   }
 
   String _nomeAutor() {
-    return widget.publicacao.autor?['nome'] ??
-        'Usuário';
+    return widget.publicacao.autor?['nome'] ?? 'Usuário';
   }
 
   String _tipoAutor() {
-    final tipo =
-        widget.publicacao.autor?['tipo'];
+    final tipo = widget.publicacao.autor?['tipo'];
 
     switch (tipo) {
       case 'ADMINISTRADOR':
         return 'Administrador';
-
       case 'VERIFICADO':
         return 'Verificado';
-
       default:
         return 'Aluno';
     }
   }
 
   String? _fotoAutor() {
-    final foto =
-        widget.publicacao.autor?['fotoPerfil'];
+    final foto = widget.publicacao.autor?['fotoPerfil'];
 
-    if (foto == null ||
-        foto.toString().isEmpty) {
+    if (foto == null || foto.toString().isEmpty) {
       return null;
     }
 
@@ -170,16 +225,11 @@ class _PublicacaoCardState
   }
 
   String _urlMidia(dynamic midia) {
-    if (midia is! Map) {
-      return '';
-    }
+    if (midia is! Map) return '';
 
-    final path =
-        midia['path']?.toString() ?? '';
+    final path = midia['path']?.toString() ?? '';
 
-    if (path.isEmpty) {
-      return '';
-    }
+    if (path.isEmpty) return '';
 
     if (path.startsWith('http')) {
       return path;
@@ -189,21 +239,16 @@ class _PublicacaoCardState
   }
 
   bool _ehVideo(dynamic midia) {
-    if (midia is! Map) {
-      return false;
-    }
+    if (midia is! Map) return false;
 
-    final mimeType =
-        midia['mimeType']?.toString().toLowerCase();
+    final mimeType = midia['mimeType']?.toString().toLowerCase();
 
-    if (mimeType != null &&
-        mimeType.startsWith('video/')) {
+    if (mimeType != null && mimeType.startsWith('video/')) {
       return true;
     }
 
     final nomeArquivo =
-        midia['nomeArquivo']?.toString().toLowerCase() ??
-            '';
+        midia['nomeArquivo']?.toString().toLowerCase() ?? '';
 
     return nomeArquivo.endsWith('.mp4') ||
         nomeArquivo.endsWith('.webm') ||
@@ -216,8 +261,7 @@ class _PublicacaoCardState
     }
 
     return Column(
-      children: widget.publicacao.midias
-          .map<Widget>((midia) {
+      children: widget.publicacao.midias.map<Widget>((midia) {
         final url = _urlMidia(midia);
 
         if (url.isEmpty) {
@@ -225,20 +269,16 @@ class _PublicacaoCardState
         }
 
         return Padding(
-          padding: const EdgeInsets.only(
-            top: 14,
-          ),
+          padding: const EdgeInsets.only(top: 14),
           child: _ehVideo(midia)
               ? _VideoPublicacao(url: url)
               : ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                   child: Image.network(
                     url,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    loadingBuilder:
-                        (
+                    loadingBuilder: (
                       context,
                       child,
                       loadingProgress,
@@ -250,47 +290,30 @@ class _PublicacaoCardState
                       return const SizedBox(
                         height: 250,
                         child: Center(
-                          child:
-                              CircularProgressIndicator(),
+                          child: CircularProgressIndicator(),
                         ),
                       );
                     },
-                    errorBuilder:
-                        (
-                      context,
-                      error,
-                      stackTrace,
-                    ) {
+                    errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 180,
                         width: double.infinity,
-                        decoration:
-                            BoxDecoration(
-                          color:
-                              const Color(
-                            0xFFF8F5F7,
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(
-                            14,
-                          ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F5F7),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Column(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons
-                                  .broken_image_outlined,
+                              Icons.broken_image_outlined,
                               size: 40,
                               color: Colors.grey,
                             ),
                             SizedBox(height: 8),
                             Text(
                               'Não foi possível carregar a imagem.',
-                              style: TextStyle(
-                                color: Colors.grey,
-                              ),
+                              style: TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -308,9 +331,7 @@ class _PublicacaoCardState
     final foto = _fotoAutor();
 
     return Container(
-      margin: const EdgeInsets.only(
-        bottom: 16,
-      ),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -327,51 +348,39 @@ class _PublicacaoCardState
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               CircleAvatar(
                 radius: 23,
-                backgroundColor:
-                    const Color(0xFFF4D5E2),
-                backgroundImage: foto != null
-                    ? NetworkImage(foto)
-                    : null,
+                backgroundColor: const Color(0xFFF4D5E2),
+                backgroundImage: foto != null ? NetworkImage(foto) : null,
                 child: foto == null
                     ? const Icon(
                         Icons.person,
-                        color:
-                            Color(0xFFC92768),
+                        color: Color(0xFFC92768),
                       )
                     : null,
               ),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       _nomeAutor(),
                       style: const TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
-
                     const SizedBox(height: 2),
-
                     Text(
                       '${_tipoAutor()} · '
                       '${_formatarData(widget.publicacao.dataPublicacao)}',
                       style: const TextStyle(
-                        color: AppColors
-                            .textSecondary,
+                        color: AppColors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -379,19 +388,53 @@ class _PublicacaoCardState
                 ),
               ),
 
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.more_horiz,
-                  color: AppColors
-                      .textSecondary,
+              // O menu de exclusão aparece somente para o dono.
+              if (_ehDonoPublicacao)
+                PopupMenuButton<String>(
+                  tooltip: 'Opções da publicação',
+                  enabled: !_excluindoPublicacao,
+                  onSelected: (opcao) {
+                    if (opcao == 'excluir') {
+                      _excluirPublicacao();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem<String>(
+                      value: 'excluir',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Excluir publicação',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: _excluindoPublicacao
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.more_horiz,
+                            color: AppColors.textSecondary,
+                          ),
+                  ),
                 ),
-              ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           if (widget.publicacao.texto != null &&
               widget.publicacao.texto!.isNotEmpty)
             Text(
@@ -401,151 +444,105 @@ class _PublicacaoCardState
                 height: 1.5,
               ),
             ),
-
-          if (widget.publicacao.hashtags
-              .isNotEmpty) ...[
+          if (widget.publicacao.hashtags.isNotEmpty) ...[
             const SizedBox(height: 12),
-
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: widget
-                  .publicacao.hashtags
-                  .map(
-                    (hashtag) {
-                      if (hashtag is! Map) {
-                        return const SizedBox
-                            .shrink();
-                      }
+              children: widget.publicacao.hashtags.map((hashtag) {
+                if (hashtag is! Map) {
+                  return const SizedBox.shrink();
+                }
 
-                      final nome =
-                          hashtag['nome']
-                                  ?.toString() ??
-                              '';
+                final nome = hashtag['nome']?.toString() ?? '';
 
-                      if (nome.isEmpty) {
-                        return const SizedBox
-                            .shrink();
-                      }
+                if (nome.isEmpty) {
+                  return const SizedBox.shrink();
+                }
 
-                      return Text(
-                        nome,
-                        style:
-                            const TextStyle(
-                          color:
-                              Color(0xFFC92768),
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                      );
-                    },
-                  )
-                  .toList(),
+                return Text(
+                  nome,
+                  style: const TextStyle(
+                    color: Color(0xFFC92768),
+                    fontWeight: FontWeight.w600,
+                  ),
+                );
+              }).toList(),
             ),
           ],
-
           _buildMidias(),
-
           const SizedBox(height: 16),
-
           const Divider(
             height: 1,
             color: Color(0xFFF1E8ED),
           ),
-
           const SizedBox(height: 8),
-
           Row(
             children: [
               InkWell(
                 onTap: _alternarCurtida,
-                borderRadius:
-                    BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(30),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 7,
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        _curtida
-                            ? Icons.favorite
-                            : Icons.favorite_border,
+                        _curtida ? Icons.favorite : Icons.favorite_border,
                         size: 21,
                         color: _curtida
-                            ? const Color(
-                                0xFFE83272,
-                              )
-                            : AppColors
-                                .textSecondary,
+                            ? const Color(0xFFE83272)
+                            : AppColors.textSecondary,
                       ),
-
                       const SizedBox(width: 6),
-
                       Text(
                         '$_quantidadeCurtidas',
                         style: TextStyle(
                           color: _curtida
-                              ? const Color(
-                                  0xFFE83272,
-                                )
-                              : AppColors
-                                  .textSecondary,
-                          fontWeight:
-                              FontWeight.w500,
+                              ? const Color(0xFFE83272)
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-
               const SizedBox(width: 8),
-
               InkWell(
                 onTap: () async {
                   await showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
-                    backgroundColor:
-                        Colors.transparent,
-                    builder: (_) =>
-                        ComentariosModal(
-                      publicacao:
-                          widget.publicacao,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => ComentariosModal(
+                      publicacao: widget.publicacao,
                     ),
                   );
 
+                  if (!mounted) return;
                   widget.atualizar?.call();
                 },
-                borderRadius:
-                    BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(30),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 7,
                   ),
                   child: Row(
                     children: [
                       const Icon(
-                        Icons
-                            .chat_bubble_outline,
+                        Icons.chat_bubble_outline,
                         size: 20,
-                        color: AppColors
-                            .textSecondary,
+                        color: AppColors.textSecondary,
                       ),
-
                       const SizedBox(width: 6),
-
                       Text(
                         '${widget.publicacao.quantidadeComentarios}',
-                        style:
-                            const TextStyle(
-                          color: AppColors
-                              .textSecondary,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -560,8 +557,7 @@ class _PublicacaoCardState
   }
 }
 
-class _VideoPublicacao
-    extends StatefulWidget {
+class _VideoPublicacao extends StatefulWidget {
   final String url;
 
   const _VideoPublicacao({
@@ -569,21 +565,17 @@ class _VideoPublicacao
   });
 
   @override
-  State<_VideoPublicacao> createState() =>
-      _VideoPublicacaoState();
+  State<_VideoPublicacao> createState() => _VideoPublicacaoState();
 }
 
-class _VideoPublicacaoState
-    extends State<_VideoPublicacao> {
-  late final VideoPlayerController
-      _controller;
+class _VideoPublicacaoState extends State<_VideoPublicacao> {
+  late final VideoPlayerController _controller;
 
   @override
   void initState() {
     super.initState();
 
-    _controller =
-        VideoPlayerController.networkUrl(
+    _controller = VideoPlayerController.networkUrl(
       Uri.parse(widget.url),
     );
 
@@ -618,8 +610,7 @@ class _VideoPublicacaoState
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.black12,
-          borderRadius:
-              BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: const Center(
           child: CircularProgressIndicator(),
@@ -630,13 +621,11 @@ class _VideoPublicacaoState
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: AspectRatio(
-        aspectRatio:
-            _controller.value.aspectRatio,
+        aspectRatio: _controller.value.aspectRatio,
         child: Stack(
           alignment: Alignment.center,
           children: [
             VideoPlayer(_controller),
-
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -651,19 +640,12 @@ class _VideoPublicacaoState
                 color: Colors.transparent,
                 child: Center(
                   child: AnimatedOpacity(
-                    opacity:
-                        _controller.value.isPlaying
-                            ? 0
-                            : 1,
-                    duration:
-                        const Duration(
-                      milliseconds: 200,
-                    ),
+                    opacity: _controller.value.isPlaying ? 0 : 1,
+                    duration: const Duration(milliseconds: 200),
                     child: Container(
                       width: 58,
                       height: 58,
-                      decoration:
-                          const BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Color(0xFFC92768),
                         shape: BoxShape.circle,
                       ),
@@ -677,7 +659,6 @@ class _VideoPublicacaoState
                 ),
               ),
             ),
-
             Positioned(
               left: 8,
               right: 8,
@@ -685,10 +666,7 @@ class _VideoPublicacaoState
               child: VideoProgressIndicator(
                 _controller,
                 allowScrubbing: true,
-                padding:
-                    const EdgeInsets.symmetric(
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 8),
               ),
             ),
           ],
