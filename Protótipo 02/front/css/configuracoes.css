@@ -14,7 +14,7 @@ body {
         radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.10) 0 170px, transparent 171px),
         radial-gradient(circle at 12% 85%, rgba(255, 255, 255, 0.08) 0 110px, transparent 111px),
         radial-gradient(circle at 92% 80%, rgba(255, 255, 255, 0.10) 0 160px, transparent 161px),
-        linear-gradient(180deg, var(--primary), var(--secondary));
+        linear-gradient(180deg, var(--primary-dark), var(--primary));
 }
 
 .bolinhas {
@@ -64,7 +64,7 @@ main {
 
 .topo-card {
     height: 160px;
-    background: linear-gradient(135deg, #ffadc9, var(--secondary));
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -167,7 +167,7 @@ main {
 }
 
 .sair {
-    background: #ffebee;
+    background: var(--background);
 }
 
 .sair .esquerda i {

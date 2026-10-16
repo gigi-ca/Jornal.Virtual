@@ -1,4 +1,5 @@
 body {
+    margin: 0;
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
     overflow-x: hidden;
@@ -7,7 +8,7 @@ body {
         radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0 170px, transparent 171px),
         radial-gradient(circle at 12% 85%, rgba(255,255,255,.08) 0 110px, transparent 111px),
         radial-gradient(circle at 92% 80%, rgba(255,255,255,.10) 0 160px, transparent 161px),
-        linear-gradient(180deg, var(--primary), var(--secondary));
+        linear-gradient(180deg, var(--primary-dark), var(--primary));
 }
 
 .bolinhas {
@@ -16,7 +17,7 @@ body {
     height: 180px;
     pointer-events: none;
     opacity: .35;
-    background-image: radial-gradient(var(--surface) 2px, transparent 2px);
+    background-image: radial-gradient(white 2px, transparent 2px);
     background-size: 18px 18px;
 }
 
@@ -38,11 +39,13 @@ body {
 .perfil {
     width: 550px;
     margin: 45px auto;
-    background: rgba(253, 253, 253, 0.758);
+    background: rgba(253, 253, 253, .758);
     border-radius: 25px;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0,0,0,.18), 0 10px 20px rgba(0,0,0,.08);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, .18),
+        0 10px 20px rgba(0, 0, 0, .08);
 }
 
 .topo {
@@ -65,7 +68,7 @@ body {
     top: 115px;
     left: 50%;
     transform: translateX(-50%);
-    box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
 }
 
 .conteudo {
@@ -83,7 +86,7 @@ body {
     display: inline-block;
     margin: 5px 0;
     padding: 8px 22px;
-    background: var(--secondary);
+    background: var(--primary);
     color: var(--surface);
     border-radius: 40px;
     font-size: 15px;
@@ -93,7 +96,7 @@ body {
 .info {
     margin-top: 8px;
     font-size: 18px;
-    color: #555;
+    color: var(--textLight);
 }
 
 .info strong {
@@ -101,7 +104,7 @@ body {
 }
 
 .info span {
-    color: var(--secondary);
+    color: var(--primary);
     font-weight: 600;
 }
 
@@ -110,11 +113,11 @@ body {
     margin: 18px auto 30px;
     font-size: 16px;
     line-height: 28px;
-    color: #666;
+    color: var(--textLight);
 }
 
-.conteudo button {
-    background: var(--secondary);
+.conteudo > button {
+    background: var(--primary);
     color: var(--surface);
     border: none;
     padding: 14px 35px;
@@ -125,8 +128,8 @@ body {
     transition: .3s;
 }
 
-.conteudo button:hover {
-    background: #ff2f72;
+.conteudo > button:hover {
+    background: var(--primaryDark);
     transform: translateY(-2px);
 }
 
@@ -141,25 +144,25 @@ body {
 .card {
     width: 150px;
     height: 100px;
-    background: #ffeeeef5;
+    background: var(--secondaryLight);
     border-radius: 18px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
     transition: .3s;
     cursor: pointer;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(0,0,0,.12);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
 }
 
 .card i {
     font-size: 24px;
-    color: var(--secondary);
+    color: var(--primary);
     margin-bottom: 8px;
 }
 
@@ -171,14 +174,14 @@ body {
 
 .card span {
     font-size: 15px;
-    color: #666;
+    color: var(--textLight);
 }
 
 .modal-fundo {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(10,15,35,.65);
+    background: rgba(10, 15, 35, .65);
     backdrop-filter: blur(5px);
     justify-content: center;
     align-items: center;
@@ -193,7 +196,7 @@ body {
     border-radius: 25px;
     padding: 35px 45px;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -211,7 +214,7 @@ body {
     top: 18px;
     right: 22px;
     background: transparent !important;
-    color: #2c2b2b !important;
+    color: var(--text) !important;
     border: none !important;
     font-size: 32px !important;
     font-weight: 300 !important;
@@ -221,7 +224,7 @@ body {
 }
 
 .fechar-modal:hover {
-    color: #c31750;
+    color: var(--primary) !important;
     transform: none;
 }
 
@@ -250,7 +253,7 @@ body {
     border-radius: 50%;
     overflow: hidden;
     margin: 0 auto 15px auto;
-    border: 4px solid #fbdcec;
+    border: 4px solid var(--border);
 }
 
 .preview-foto img {
@@ -265,7 +268,7 @@ body {
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 15px;
-    border: 4px solid #fbdcec;
+    border: 4px solid var(--border);
 }
 
 .preview-banner img {
@@ -278,10 +281,10 @@ body {
     display: block;
     width: 100%;
     padding: 11px 15px;
-    border: 2px solid #fabadb;
+    border: 2px solid var(--border);
     border-radius: 10px;
     text-align: center;
-    color: #fd8bc6;
+    color: var(--primary);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -290,8 +293,8 @@ body {
 }
 
 .botao-imagem:hover {
-    background: #f8e1ec;
-    border-color: #f04fa2;
+    background: var(--background);
+    border-color: var(--primary);
 }
 
 .botao-imagem input {
@@ -314,20 +317,21 @@ body {
 .campo-modal textarea {
     width: 100%;
     padding: 14px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     border-radius: 10px;
     outline: none;
     font-family: 'Poppins', sans-serif;
     font-size: 15px;
-    color: #333;
+    color: var(--text);
+    background: var(--surface);
     box-sizing: border-box;
     transition: .3s;
 }
 
 .campo-modal input:focus,
 .campo-modal textarea:focus {
-    border-color: #dd70a8;
-    box-shadow: 0 0 0 3px rgba(138,103,232,.10);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .campo-modal textarea {
@@ -353,27 +357,34 @@ body {
 }
 
 .botao-salvar {
-    background: #d65497 !important;
+    background: var(--primary) !important;
     color: var(--surface) !important;
+    border: none !important;
 }
 
 .botao-salvar:hover {
-    background: #8c084f !important;
+    background: var(--primaryDark) !important;
     transform: translateY(-2px);
 }
 
 .botao-cancelar {
     background: var(--surface) !important;
     color: var(--text) !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid var(--border) !important;
 }
 
 .botao-cancelar:hover {
-    background: #f7f7f7 !important;
+    background: var(--background) !important;
     transform: translateY(-2px);
 }
 
 @media (max-width: 650px) {
+
+    .perfil {
+        width: calc(100% - 30px);
+        margin: 30px auto;
+    }
+
     .modal {
         padding: 30px 25px;
     }

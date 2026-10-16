@@ -1,493 +1,1289 @@
-// ==============================
-// ELEMENTOS E ESTADO
-// ==============================
+const token = localStorage.getItem("token");
+
 const btnPublicar = document.getElementById("publicar");
 const texto = document.getElementById("texto");
+const inputArquivo = document.getElementById("anexo");
+const previewAnexo = document.getElementById("preview-anexo");
 const listaPublicacoes = document.getElementById("listaPublicacoes");
+const pesquisa = document.getElementById("pesquisaPublicacoes");
+const btnFiltros = document.getElementById("btnFiltros");
+const filtrosPesquisa = document.getElementById("filtrosPesquisa");
+const modalHashtags = document.getElementById("modalHashtags");
+const listaHashtags = document.getElementById("listaHashtags");
+const btnVerTudo = document.getElementById("btnVerTudo");
+const fecharModalHashtags = document.getElementById("fecharModalHashtags");
+const modalDenuncia = document.getElementById("modalDenuncia");
+const fecharModalDenuncia = document.getElementById("fecharModalDenuncia");
+const cancelarDenuncia = document.getElementById("cancelarDenuncia");
+const confirmarDenuncia = document.getElementById("confirmarDenuncia");
+const tipoDenuncia = document.getElementById("tipoDenuncia");
+const idDenuncia = document.getElementById("idDenuncia");
+const motivoDenuncia = document.getElementById("motivoDenuncia");
 
-// Regex universal para hashtags com suporte a caracteres acentuados
-const hashtagRegex = /#[a-zA-Z0-9_áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+/g;
+let publicacoes = [];
+let filtroAtual = "recentes";
+let termoPesquisa = "";
 
-// Carrega as publicações salvas
-let publicacoes = JSON.parse(localStorage.getItem("publicacoes")) || [];
+const hashtagRegex = /#[a-zA-ZÀ-ÿ0-9_]+/g;
 
-document.addEventListener("DOMContentLoaded", function() {
-    if (btnPublicar && texto && listaPublicacoes) {
-        btnPublicar.addEventListener("click", criarPublicacao);
-        renderizarFeed();
-        atualizarNuvem();
+async function api(url, options = {}) {
+
+    const headers = {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`
+    };
+
+    const resposta = await fetch(`${API_URL}${url}`, {
+        ...options,
+        headers
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+        throw new Error(
+            dados.mensagem || "Erro ao realizar operação."
+        );
     }
-});
 
-// ==============================
-// UTILITÁRIO DE SANITIZAÇÃO (XSS)
-// ==============================
-function escaparHtml(str) {
-    if (!str) return "";
-    return str
+    return dados;
+}
+
+function obterUsuarioToken() {
+    if (!token) return null;
+
+    try {
+        const partes = token.split(".");
+        if (partes.length !== 3) return null;
+
+        const payload = partes[1].replace(/-/g, "+").replace(/\_/g, "/");
+        const json = decodeURIComponent(
+            atob(payload)
+                .split("")
+                .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+        );
+
+        return JSON.parse(json);
+    } catch (erro) {
+        console.warn("Não foi possível ler o token.", erro);
+        return null;
+    }
+}
+
+const usuarioAtual = obterUsuarioToken();
+
+function getIdUsuarioAtual() {
+    if (!usuarioAtual) return null;
+
+    return Number(
+        usuarioAtual.id ||
+        usuarioAtual.usuarioId ||
+        usuarioAtual.userId
+    );
+}
+
+function getTipoUsuarioAtual() {
+    if (!usuarioAtual) return null;
+
+    return (
+        usuarioAtual.tipo ||
+        usuarioAtual.tipoUsuario ||
+        usuarioAtual.role
+    );
+}
+
+function ehAdministrador() {
+    return getTipoUsuarioAtual() === "ADMINISTRADOR";
+}
+
+function podeExcluirPublicacao(publicacao) {
+    const usuarioId = getIdUsuarioAtual();
+
+    return (
+        ehAdministrador() ||
+        Number(publicacao.usuarioId) === usuarioId
+    );
+}
+
+function podeExcluirComentario(comentario, publicacao) {
+    const usuarioId = getIdUsuarioAtual();
+
+    return (
+        ehAdministrador() ||
+        Number(comentario.usuarioId) === usuarioId ||
+        Number(publicacao.usuarioId) === usuarioId
+    );
+}
+
+function escaparHtml(valor) {
+    if (valor === null || valor === undefined) return "";
+
+    return String(valor)
         .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
+        .replace(/\</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
 
-// ==============================
-// CRIAR PUBLICAÇÃO
-// ==============================
-function criarPublicacao() {
-    const conteudo = texto.value.trim();
+function formatarData(data) {
+    if (!data) return "";
 
-    if (!conteudo) {
-        alert("Digite algo para publicar.");
+    const dataObj = new Date(data);
+
+    if (Number.isNaN(dataObj.getTime())) return data;
+
+    return dataObj.toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short"
+    });
+}
+
+function formatarTexto(texto) {
+    if (!texto) return "";
+
+    const seguro = escaparHtml(texto);
+
+    return seguro.replace(
+        hashtagRegex,
+        match => `<span class="hashtag">${match}</span>`
+    );
+}
+
+async function carregarPublicacoes() {
+    listaPublicacoes.innerHTML = `
+        <div class="estado-feed">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Carregando publicações...</span>
+        </div>
+    `;
+
+    try {
+        const resposta = await api("/publicacoes/listar");
+
+        publicacoes = Array.isArray(resposta)
+            ? resposta
+            : resposta.publicacoes || [];
+
+        renderizarFeed();
+    } catch (erro) {
+        console.error(erro);
+
+        listaPublicacoes.innerHTML = `
+            <div class="estado-feed erro">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>${escaparHtml(erro.message)}</span>
+            </div>
+        `;
+    }
+}
+
+function obterPublicacoesFiltradas() {
+    let lista = [...publicacoes];
+
+    if (termoPesquisa.trim()) {
+        const termo = termoPesquisa.toLowerCase().trim();
+
+        lista = lista.filter(publicacao => {
+            const texto = publicacao.texto || "";
+            const nome = publicacao.autor?.nome || "";
+            const hashtags = (publicacao.hashtags || [])
+                .map(tag => tag.nome)
+                .join(" ");
+
+            return (
+                texto.toLowerCase().includes(termo) ||
+                nome.toLowerCase().includes(termo) ||
+                hashtags.toLowerCase().includes(termo)
+            );
+        });
+    }
+
+    if (filtroAtual === "curtidas") {
+        lista.sort(
+            (a, b) =>
+                (b.curtidas?.length || 0) -
+                (a.curtidas?.length || 0)
+        );
+    } else if (filtroAtual === "comentarios") {
+        lista.sort(
+            (a, b) =>
+                (b.comentarios?.length || 0) -
+                (a.comentarios?.length || 0)
+        );
+    } else {
+        lista.sort(
+            (a, b) =>
+                new Date(b.dataPublicacao) -
+                new Date(a.dataPublicacao)
+        );
+    }
+
+    return lista;
+}
+
+function renderizarFeed() {
+    const lista = obterPublicacoesFiltradas();
+
+    if (!lista.length) {
+        listaPublicacoes.innerHTML = `
+            <div class="estado-feed">
+                <i class="fa-regular fa-newspaper"></i>
+                <span>Nenhuma publicação encontrada.</span>
+            </div>
+        `;
+
         return;
     }
 
-    publicacoes.unshift({
-        id: Date.now(),
-        texto: conteudo,
-        data: new Date().toLocaleString("pt-BR"),
-        curtidas: 0,
-        curtido: false,
-        denunciado: false,
-        comentarios: []
-    });
-
-    salvar();
-    texto.value = "";
-    renderizarFeed();
-    atualizarNuvem();
+    listaPublicacoes.innerHTML = lista
+        .map(publicacao => criarCardPublicacao(publicacao))
+        .join("");
 }
 
-// ==============================
-// SALVAR NO LOCALSTORAGE
-// ==============================
-function salvar() {
-    localStorage.setItem("publicacoes", JSON.stringify(publicacoes));
+function criarCardPublicacao(publicacao) {
+    const autor = publicacao.autor || {};
+    const nomeAutor = autor.nome || "Usuário";
+    const fotoAutor = autor.fotoPerfil || "/img/avatar-padrao.png";
+    const quantidadeCurtidas = publicacao.curtidas?.length || 0;
+    const quantidadeComentarios = publicacao.comentarios?.length || 0;
+    const usuarioId = getIdUsuarioAtual();
+
+    const curtiu = (publicacao.curtidas || []).some(
+        curtida => Number(curtida.usuarioId) === usuarioId
+    );
+
+    const podeExcluir = podeExcluirPublicacao(publicacao);
+
+    const menuExcluir = podeExcluir
+        ? `
+            <button type="button" class="btn-deletar" data-acao="excluir-publicacao" data-id="${publicacao.id}">
+                <i class="fa-solid fa-trash"></i>
+                Excluir
+            </button>
+        `
+        : "";
+
+    return `
+        <article class="post" data-post-id="${publicacao.id}">
+            <div class="cabecalho-post">
+                <div class="autor-post">
+                    <img class="avatar-post" src="${escaparHtml(fotoAutor)}" alt="Foto de ${escaparHtml(nomeAutor)}" onerror="this.src='/img/avatar-padrao.png'">
+
+                    <div class="dados-autor">
+                        <span class="nome-autor">${escaparHtml(nomeAutor)}</span>
+                        <span class="usuario-autor">
+                            ${autor.tipo === "ADMINISTRADOR"
+            ? "Administrador"
+            : autor.tipo === "VERIFICADO"
+                ? "Verificado"
+                : "Usuário"}
+                        </span>
+                        <span class="data">${formatarData(publicacao.dataPublicacao)}</span>
+                    </div>
+                </div>
+
+                <div class="menu-post">
+                    <button type="button" class="btn-menu" data-acao="menu" aria-label="Mais opções">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+
+                    <div class="dropdown-menu">
+                        <button type="button" data-acao="denunciar-publicacao" data-id="${publicacao.id}">
+                            <i class="fa-solid fa-flag"></i>
+                            Denunciar
+                        </button>
+                        ${menuExcluir}
+                    </div>
+                </div>
+            </div>
+
+            <div class="conteudo">
+                ${formatarTexto(publicacao.texto)}
+            </div>
+
+            ${renderizarMidias(publicacao)}
+
+            <div class="acoes">
+                <button type="button" class="btn-curtir ${curtiu ? "curtido" : ""}" data-acao="curtir" data-id="${publicacao.id}">
+                    <i class="${curtiu ? "fa-solid" : "fa-regular"} fa-heart"></i>
+                    <span>${quantidadeCurtidas}</span>
+                </button>
+
+                <button type="button" class="btn-comentarios" data-acao="comentarios" data-id="${publicacao.id}">
+                    <i class="fa-regular fa-comment"></i>
+                    <span>${quantidadeComentarios}</span>
+                </button>
+
+                <button type="button" class="btn-responder" data-acao="responder" data-id="${publicacao.id}">
+                    <i class="fa-solid fa-reply"></i>
+                    Responder
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios-${publicacao.id}">
+                ${renderizarComentarios(publicacao)}
+            </div>
+
+            <div class="responder-container" id="responder-${publicacao.id}">
+                <input type="text" class="input-resposta" id="input-resposta-${publicacao.id}" placeholder="Escreva uma resposta..." maxlength="1000">
+
+                <button type="button" class="btn-enviar-resposta" data-acao="enviar-resposta" data-id="${publicacao.id}">
+                    Enviar
+                </button>
+            </div>
+        </article>
+    `;
 }
 
-// ==============================
-// RENDERIZAR FEED
-// ==============================
-function renderizarFeed() {
-    if (!listaPublicacoes) return;
-    listaPublicacoes.innerHTML = "";
+function renderizarMidias(publicacao) {
+    if (!publicacao.midias?.length) return "";
 
-    publicacoes.forEach(function(pub) {
-        // Se a publicação foi denunciada, exibe um aviso em vez do conteúdo completo
-        if (pub.denunciado) {
-            const divDenunciada = document.createElement("div");
-            divDenunciada.className = "post post-denunciado";
-            divDenunciada.innerHTML = `
-                <p style="color: #777; font-size: 13px; font-style: italic;">
-                    ⚠️ Esta publicação foi denunciada e está sob análise da moderação.
-                </p>
+    return publicacao.midias
+        .map(midia => {
+            const url =
+                midia.url ||
+                midia.caminho ||
+                midia.arquivo ||
+                midia.nomeArquivo;
+
+            if (!url) return "";
+
+            const tipo =
+                midia.tipo ||
+                midia.mimeType ||
+                "";
+
+            if (tipo.startsWith("image/")) {
+                return `
+                    <img class="post-midia" src="${escaparHtml(url)}" alt="Imagem da publicação">
+                `;
+            }
+
+            if (tipo.startsWith("video/")) {
+                return `
+                    <video class="post-video" controls>
+                        <source src="${escaparHtml(url)}" type="${escaparHtml(tipo)}">
+                    </video>
+                `;
+            }
+
+            return `
+                <a class="midia-download" href="${escaparHtml(url)}" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-file"></i>
+                    Abrir arquivo
+                </a>
             `;
-            listaPublicacoes.appendChild(divDenunciada);
+        })
+        .join("");
+}
+
+function renderizarComentarios(publicacao) {
+    const comentarios = publicacao.comentarios || [];
+
+    if (!comentarios.length) {
+        return `
+            <div class="comentario-vazio">
+                Nenhum comentário ainda.
+            </div>
+        `;
+    }
+
+    return comentarios
+        .map(comentario => criarComentario(comentario, publicacao))
+        .join("");
+}
+
+function criarComentario(comentario, publicacao) {
+    const autor = comentario.autor || {};
+    const nomeAutor = autor.nome || "Usuário";
+    const fotoAutor = autor.fotoPerfil || "/img/avatar-padrao.png";
+    const podeExcluir = podeExcluirComentario(comentario, publicacao);
+    const respostas = comentario.respostas || [];
+
+    return `
+        <div class="item-comentario" data-comentario-id="${comentario.id}">
+            <div class="header-comentario">
+                <img class="avatar-comentario" src="${escaparHtml(fotoAutor)}" alt="Foto de ${escaparHtml(nomeAutor)}" onerror="this.src='/img/avatar-padrao.png'">
+
+                <div class="conteudo-comentario">
+                    <div>
+                        <span class="nome-comentario">${escaparHtml(nomeAutor)}</span>
+                        <span class="data-comentario">${formatarData(comentario.dataPublicacao)}</span>
+                    </div>
+
+                    <div class="responde-para">
+                        Respondendo à <strong>publicação</strong>
+                    </div>
+
+                    <div class="texto-comentario">
+                        ${formatarTexto(comentario.texto)}
+                    </div>
+
+                    <div class="acoes-comentario">
+                        <button type="button" data-acao="responder-comentario" data-id="${comentario.id}" data-publicacao="${publicacao.id}">
+                            Responder
+                        </button>
+
+                        <button type="button" data-acao="denunciar-comentario" data-id="${comentario.id}">
+                            Denunciar
+                        </button>
+
+                        ${podeExcluir
+            ? `
+                                <button type="button" class="btn-deletar-comentario" data-acao="excluir-comentario" data-id="${comentario.id}">
+                                    Excluir
+                                </button>
+                            `
+            : ""}
+                    </div>
+
+                    <div class="responder-container" id="responder-comentario-${comentario.id}">
+                        <input type="text" class="input-resposta" id="input-comentario-${comentario.id}" placeholder="Responder a ${escaparHtml(nomeAutor)}..." maxlength="1000">
+
+                        <button type="button" class="btn-enviar-resposta" data-acao="enviar-resposta-comentario" data-id="${comentario.id}" data-publicacao="${publicacao.id}">
+                            Enviar
+                        </button>
+                    </div>
+
+                    ${respostas.length
+            ? `
+                            <div class="respostas">
+                                ${respostas
+                .map(resposta => criarResposta(resposta, comentario, publicacao))
+                .join("")}
+                            </div>
+                        `
+            : ""}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function criarResposta(resposta, comentario, publicacao) {
+    const autor = resposta.autor || {};
+    const nomeAutor = autor.nome || "Usuário";
+    const fotoAutor = autor.fotoPerfil || "/img/avatar-padrao.png";
+    const podeExcluir = podeExcluirComentario(resposta, publicacao);
+
+    return `
+        <div class="resposta" data-comentario-id="${resposta.id}">
+            <div class="header-comentario">
+                <img class="avatar-comentario" src="${escaparHtml(fotoAutor)}" alt="Foto de ${escaparHtml(nomeAutor)}" onerror="this.src='/img/avatar-padrao.png'">
+
+                <div class="conteudo-comentario">
+                    <div>
+                        <span class="nome-comentario">${escaparHtml(nomeAutor)}</span>
+                        <span class="data-comentario">${formatarData(resposta.dataPublicacao)}</span>
+                    </div>
+
+                    <div class="responde-para">
+                        Respondendo a
+                        <strong>${escaparHtml(comentario.autor?.nome || "Usuário")}</strong>
+                    </div>
+
+                    <div class="texto-comentario">
+                        ${formatarTexto(resposta.texto)}
+                    </div>
+
+                    <div class="acoes-comentario">
+                        <button type="button" data-acao="denunciar-comentario" data-id="${resposta.id}">
+                            Denunciar
+                        </button>
+
+                        ${podeExcluir
+            ? `
+                                <button type="button" class="btn-deletar-comentario" data-acao="excluir-comentario" data-id="${resposta.id}">
+                                    Excluir
+                                </button>
+                            `
+            : ""}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function criarPublicacao() {
+    const textoValor = texto.value.trim();
+
+    if (!textoValor) {
+        alert("Digite algo antes de publicar.");
+        return;
+    }
+
+    btnPublicar.disabled = true;
+    btnPublicar.textContent = "Publicando...";
+
+    try {
+        const resposta = await api("/publicacoes/cadastrar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                texto: textoValor
+            })
+        });
+
+        const novaPublicacao = resposta.publicacao;
+        const possuiHashtag = textoValor.match(hashtagRegex);
+
+        texto.value = "";
+
+        if (inputArquivo) {
+            inputArquivo.value = "";
+        }
+
+        if (previewAnexo) {
+            previewAnexo.innerHTML = "";
+        }
+
+        alert("Publicação criada com sucesso!");
+
+        await carregarPublicacoes();
+
+        if (possuiHashtag) {
+            atualizarNuvem();
+        }
+
+        void novaPublicacao;
+    } catch (erro) {
+        console.error(erro);
+        alert(erro.message || "Não foi possível publicar.");
+    } finally {
+        btnPublicar.disabled = false;
+        btnPublicar.textContent = "Publicar";
+    }
+}
+
+async function alternarCurtida(publicacaoId) {
+    const publicacao = publicacoes.find(
+        item => Number(item.id) === Number(publicacaoId)
+    );
+
+    if (!publicacao) return;
+
+    const usuarioId = getIdUsuarioAtual();
+
+    const jaCurtiu = (publicacao.curtidas || []).some(
+        curtida => Number(curtida.usuarioId) === usuarioId
+    );
+
+    try {
+        if (jaCurtiu) {
+            await api("/curtidas/descurtir", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    publicacaoId
+                })
+            });
+        } else {
+            await api("/curtidas/curtir", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    publicacaoId
+                })
+            });
+        }
+
+        await carregarPublicacoes();
+    } catch (erro) {
+        alert(erro.message);
+    }
+}
+
+async function carregarComentarios(publicacaoId) {
+    try {
+        const comentarios = await api(
+            `/comentarios/publicacao/${publicacaoId}`
+        );
+
+        const publicacao = publicacoes.find(
+            item => Number(item.id) === Number(publicacaoId)
+        );
+
+        if (publicacao) {
+            publicacao.comentarios = comentarios;
+        }
+
+        const container = document.getElementById(
+            `comentarios-${publicacaoId}`
+        );
+
+        if (container) {
+            container.innerHTML = renderizarComentarios(publicacao);
+        }
+    } catch (erro) {
+        console.error(erro);
+
+        const container = document.getElementById(
+            `comentarios-${publicacaoId}`
+        );
+
+        if (container) {
+            container.innerHTML = `
+                <div class="comentario-vazio">
+                    Não foi possível carregar os comentários.
+                </div>
+            `;
+        }
+    }
+}
+
+async function adicionarComentario(
+    publicacaoId,
+    textoComentario,
+    comentarioPaiId = null
+) {
+    const textoLimpo = textoComentario.trim();
+
+    if (!textoLimpo) return;
+
+    try {
+        await api("/comentarios/cadastrar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                publicacaoId,
+                texto: textoLimpo,
+                comentarioPaiId
+            })
+        });
+
+        await carregarComentarios(publicacaoId);
+        renderizarFeed();
+        await atualizarNuvem();
+
+        const comentarios = document.getElementById(
+            `comentarios-${publicacaoId}`
+        );
+
+        if (comentarios) {
+            comentarios.classList.add("aberto");
+        }
+    } catch (erro) {
+        alert(erro.message);
+    }
+}
+async function excluirComentario(comentarioId, publicacaoId) {
+    const confirmar = confirm(
+        "Deseja realmente excluir este comentário?"
+    );
+
+    if (!confirmar) return;
+
+    try {
+        await api(`/comentarios/${comentarioId}`, {
+            method: "DELETE"
+        });
+
+        await carregarComentarios(publicacaoId);
+        renderizarFeed();
+
+        const comentarios = document.getElementById(
+            `comentarios-${publicacaoId}`
+        );
+
+        if (comentarios) {
+            comentarios.classList.add("aberto");
+        }
+    } catch (erro) {
+        alert(erro.message);
+    }
+}
+
+async function excluirPublicacao(publicacaoId) {
+    const confirmar = confirm(
+        "Deseja realmente excluir esta publicação?"
+    );
+
+    if (!confirmar) return;
+
+    try {
+        await api(`/publicacoes/excluir/${publicacaoId}`, {
+            method: "DELETE"
+        });
+
+        publicacoes = publicacoes.filter(
+            publicacao =>
+                Number(publicacao.id) !== Number(publicacaoId)
+        );
+
+        renderizarFeed();
+    } catch (erro) {
+        alert(erro.message);
+    }
+}
+
+function abrirModalDenuncia(tipo, id) {
+    tipoDenuncia.value = tipo;
+    idDenuncia.value = id;
+    motivoDenuncia.value = "";
+
+    modalDenuncia.classList.add("aberto");
+
+    setTimeout(() => motivoDenuncia.focus(), 50);
+}
+
+function fecharModalDenunciaFunc() {
+    modalDenuncia.classList.remove("aberto");
+    tipoDenuncia.value = "";
+    idDenuncia.value = "";
+    motivoDenuncia.value = "";
+}
+
+async function enviarDenuncia() {
+    const tipo = tipoDenuncia.value;
+    const id = Number(idDenuncia.value);
+    const motivo = motivoDenuncia.value.trim();
+
+    if (!motivo) {
+        alert("Informe o motivo da denúncia.");
+        return;
+    }
+
+    confirmarDenuncia.disabled = true;
+
+    try {
+        if (tipo === "publicacao") {
+            await api("/denuncias-publicacao/cadastrar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    publicacaoId: id,
+                    motivo
+                })
+            });
+        } else {
+            await api("/denuncias-comentario/cadastrar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    comentarioId: id,
+                    motivo
+                })
+            });
+        }
+
+        alert("Denúncia enviada com sucesso.");
+        fecharModalDenunciaFunc();
+    } catch (erro) {
+        alert(erro.message);
+    } finally {
+        confirmarDenuncia.disabled = false;
+    }
+}
+
+function fecharMenus() {
+    document
+        .querySelectorAll(".dropdown-menu.aberto")
+        .forEach(menu => menu.classList.remove("aberto"));
+}
+
+function abrirRespostaPublicacao(publicacaoId) {
+    const container = document.getElementById(
+        `responder-${publicacaoId}`
+    );
+
+    if (!container) return;
+
+    container.classList.toggle("aberto");
+
+    if (container.classList.contains("aberto")) {
+        const input = document.getElementById(
+            `input-resposta-${publicacaoId}`
+        );
+
+        if (input) input.focus();
+    }
+}
+
+function abrirRespostaComentario(comentarioId) {
+    const container = document.getElementById(
+        `responder-comentario-${comentarioId}`
+    );
+
+    if (!container) return;
+
+    container.classList.toggle("aberto");
+
+    if (container.classList.contains("aberto")) {
+        const input = document.getElementById(
+            `input-comentario-${comentarioId}`
+        );
+
+        if (input) input.focus();
+    }
+}
+
+async function atualizarNuvem() {
+    const canvas = document.getElementById("nuvem");
+
+    if (!canvas) return;
+
+    try {
+        await Promise.all(
+            publicacoes.map(async publicacao => {
+                if (!Array.isArray(publicacao.comentarios)) {
+                    try {
+                        publicacao.comentarios = await api(
+                            `/comentarios/publicacao/${publicacao.id}`
+                        );
+                    } catch (erro) {
+                        console.warn(
+                            `Não foi possível carregar os comentários da publicação ${publicacao.id}.`,
+                            erro
+                        );
+
+                        publicacao.comentarios = [];
+                    }
+                }
+            })
+        );
+
+        const contexto = canvas.getContext("2d");
+        const contagem = {};
+
+        function contarHashtags(texto) {
+            if (!texto) return;
+
+            const tags = texto.match(hashtagRegex);
+
+            if (!tags) return;
+
+            tags.forEach(tag => {
+                const normalizada = tag.toLowerCase();
+
+                contagem[normalizada] =
+                    (contagem[normalizada] || 0) + 1;
+            });
+        }
+
+        function contarComentarios(comentarios) {
+            if (!Array.isArray(comentarios)) return;
+
+            comentarios.forEach(comentario => {
+                contarHashtags(comentario.texto);
+
+                if (Array.isArray(comentario.respostas)) {
+                    contarComentarios(comentario.respostas);
+                }
+            });
+        }
+
+        publicacoes.forEach(publicacao => {
+            contarHashtags(publicacao.texto);
+            contarComentarios(publicacao.comentarios);
+        });
+
+        const hashtags = Object.entries(contagem);
+
+        contexto.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        if (!hashtags.length) {
+            contexto.font = "14px Montserrat, sans-serif";
+            contexto.fillStyle = "#888";
+            contexto.textAlign = "center";
+
+            contexto.fillText(
+                "Nenhuma hashtag utilizada ainda.",
+                canvas.width / 2,
+                canvas.height / 2
+            );
+
+            renderizarListaHashtags([]);
             return;
         }
 
-        const div = document.createElement("div");
-        div.className = "post";
-        div.setAttribute("data-id", pub.id);
-
-        const textoSeguro = escaparHtml(pub.texto);
-        const textoFormatado = textoSeguro.replace(
-            hashtagRegex,
-            '<span class="hashtag">$&</span>'
+        const maior = Math.max(
+            ...hashtags.map(item => item[1])
         );
 
-        pub.comentarios = pub.comentarios || [];
+        const menor = Math.min(
+            ...hashtags.map(item => item[1])
+        );
 
-        div.innerHTML = `
-            <div class="cabecalho-post">
-                <div class="info-post">
-                    <div class="data">${pub.data}</div>
-                </div>
-                <div class="menu-post">
-                    <button class="btn-menu" aria-label="Menu">⋯</button>
-                    <div class="dropdown-menu" id="menu-${pub.id}" style="display:none;">
-                        <button class="btn-denunciar-post">🚩 Denunciar Post</button>
-                        <button class="btn-deletar">Excluir Post</button>
-                    </div>
-                </div>
-            </div>
+        const palavras = hashtags.map(([tag, quantidade]) => {
+            const tamanho =
+                maior === menor
+                    ? 20
+                    : 14 +
+                    ((quantidade - menor) /
+                        (maior - menor)) *
+                    20;
 
-            <div class="conteudo">${textoFormatado}</div>
-
-            <div class="acoes">
-                <button class="btn-curtir" data-curtido="${pub.curtido}">
-                    <span class="icon-curtida">${pub.curtido ? "❤️" : "🤍"}</span>
-                    <span class="texto-curtida">
-                        ${pub.curtidas} ${pub.curtidas === 1 ? "curtida" : "curtidas"}
-                    </span>
-                </button>
-                <button class="btn-comentar-toggle">
-                    💬 <span class="qtd-comentarios">${pub.comentarios.length}</span>
-                </button>
-            </div>
-
-            <!-- SEÇÃO DE COMENTÁRIOS -->
-            <div class="secao-comentarios" style="display: none;">
-                <div class="novo-comentario-box">
-                    <input type="text" class="input-comentario" placeholder="Escreva um comentário...">
-                    <button class="btn-enviar-comentario">Comentar</button>
-                </div>
-                <div class="lista-comentarios">
-                    ${renderizarListaComentarios(pub.comentarios, pub.id)}
-                </div>
-            </div>
-        `;
-
-        // Eventos do Post
-        div.querySelector(".btn-menu").addEventListener("click", (e) => {
-            e.stopPropagation();
-            toggleMenu(pub.id);
+            return {
+                tag,
+                quantidade,
+                tamanho
+            };
         });
 
-        div.querySelector(".btn-denunciar-post").addEventListener("click", () => denunciarPost(pub.id));
-        div.querySelector(".btn-deletar").addEventListener("click", () => deletarPost(pub.id));
-        div.querySelector(".btn-curtir").addEventListener("click", () => curtirPost(pub.id));
+        palavras.sort(() => Math.random() - 0.5);
 
-        // Toggle da caixa de comentários
-        const secaoComentarios = div.querySelector(".secao-comentarios");
-        div.querySelector(".btn-comentar-toggle").addEventListener("click", () => {
-            const visivel = secaoComentarios.style.display === "block";
-            secaoComentarios.style.display = visivel ? "none" : "block";
-        });
+        const usadas = [];
 
-        // Evento de adicionar comentário
-        div.querySelector(".btn-enviar-comentario").addEventListener("click", () => {
-            const input = div.querySelector(".input-comentario");
-            adicionarComentario(pub.id, input.value.trim());
-        });
+        palavras.forEach(palavra => {
+            let tentativas = 0;
+            let x;
+            let y;
 
-        listaPublicacoes.appendChild(div);
-    });
+            contexto.font =
+                `600 ${palavra.tamanho}px Montserrat, sans-serif`;
 
-    vincularEventosComentarios();
-}
+            const largura =
+                contexto.measureText(palavra.tag).width +
+                palavra.tamanho;
 
-// ==============================
-// RENDERIZAR COMENTÁRIOS E RESPOSTAS
-// ==============================
-function renderizarListaComentarios(comentarios, postId) {
-    if (!comentarios || comentarios.length === 0) {
-        return '<p class="sem-comentarios">Nenhum comentário ainda.</p>';
-    }
+            while (tentativas < 100) {
+                x =
+                    15 +
+                    Math.random() *
+                    (canvas.width - largura - 30);
 
-    return comentarios.map(c => {
-        if (c.denunciado) {
-            return `
-                <div class="item-comentario" style="opacity: 0.6;">
-                    <p style="font-size: 12px; color: #888; margin: 0;">⚠️ Comentário denunciado sob análise.</p>
-                </div>
-            `;
-        }
+                y =
+                    palavra.tamanho +
+                    Math.random() *
+                    (canvas.height -
+                        palavra.tamanho -
+                        25);
 
-        return `
-            <div class="item-comentario" data-comentario-id="${c.id}">
-                <div class="header-comentario">
-                    <span class="data-comentario">${c.data}</span>
-                    <div class="acoes-comentario">
-                        <button class="btn-denunciar-comentario" data-post-id="${postId}" data-comentario-id="${c.id}" title="Denunciar comentário">🚩</button>
-                        <button class="btn-deletar-comentario" data-post-id="${postId}" data-comentario-id="${c.id}" title="Excluir comentário">✕</button>
-                    </div>
-                </div>
-                <div class="texto-comentario">${escaparHtml(c.texto)}</div>
-                
-                <button class="btn-responder" data-comentario-id="${c.id}">Responder</button>
-                
-                <div class="box-resposta" id="box-resposta-${c.id}" style="display: none;">
-                    <input type="text" class="input-resposta" placeholder="Escreva uma resposta...">
-                    <button class="btn-enviar-resposta" data-post-id="${postId}" data-comentario-id="${c.id}">Enviar</button>
-                </div>
+                const colisao = usadas.some(
+                    item =>
+                        Math.abs(item.x - x) < 80 &&
+                        Math.abs(item.y - y) < 35
+                );
 
-                <div class="lista-respostas">
-                    ${(c.respostas || []).map(r => {
-                        if (r.denunciado) {
-                            return `<div class="item-resposta" style="opacity: 0.6; font-size: 11px; color: #888;">⚠️ Resposta denunciada.</div>`;
-                        }
-                        return `
-                            <div class="item-resposta">
-                                <div class="header-comentario">
-                                    <span class="data-comentario">${r.data}</span>
-                                    <button class="btn-denunciar-resposta" data-post-id="${postId}" data-comentario-id="${c.id}" data-resposta-id="${r.id}" title="Denunciar resposta">🚩</button>
-                                </div>
-                                <div class="texto-comentario">${escaparHtml(r.texto)}</div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+                if (!colisao) break;
 
-// ==============================
-// VINCULAR EVENTOS DOS COMENTÁRIOS
-// ==============================
-function vincularEventosComentarios() {
-    // Exibir/ocultar box de resposta
-    document.querySelectorAll(".btn-responder").forEach(btn => {
-        btn.addEventListener("click", function() {
-            const id = this.getAttribute("data-comentario-id");
-            const box = document.getElementById(`box-resposta-${id}`);
-            if (box) {
-                box.style.display = box.style.display === "none" ? "flex" : "none";
+                tentativas++;
             }
-        });
-    });
 
-    // Enviar resposta
-    document.querySelectorAll(".btn-enviar-resposta").forEach(btn => {
-        btn.addEventListener("click", function() {
-            const postId = Number(this.getAttribute("data-post-id"));
-            const comentarioId = Number(this.getAttribute("data-comentario-id"));
-            const input = this.previousElementSibling;
-            adicionarResposta(postId, comentarioId, input.value.trim());
-        });
-    });
+            contexto.fillStyle = "var(--primary)";
+            contexto.fillText(
+                palavra.tag,
+                x,
+                y
+            );
 
-    // Deletar comentário
-    document.querySelectorAll(".btn-deletar-comentario").forEach(btn => {
-        btn.addEventListener("click", function() {
-            const postId = Number(this.getAttribute("data-post-id"));
-            const comentarioId = Number(this.getAttribute("data-comentario-id"));
-            deletarComentario(postId, comentarioId);
-        });
-    });
-
-    // Denunciar comentário
-    document.querySelectorAll(".btn-denunciar-comentario").forEach(btn => {
-        btn.addEventListener("click", function() {
-            const postId = Number(this.getAttribute("data-post-id"));
-            const comentarioId = Number(this.getAttribute("data-comentario-id"));
-            denunciarComentario(postId, comentarioId);
-        });
-    });
-
-    // Denunciar resposta
-    document.querySelectorAll(".btn-denunciar-resposta").forEach(btn => {
-        btn.addEventListener("click", function() {
-            const postId = Number(this.getAttribute("data-post-id"));
-            const comentarioId = Number(this.getAttribute("data-comentario-id"));
-            const respostaId = Number(this.getAttribute("data-resposta-id"));
-            denunciarResposta(postId, comentarioId, respostaId);
-        });
-    });
-}
-
-// ==============================
-// AÇÕES DE DENÚNCIA
-// ==============================
-function denunciarPost(pubId) {
-    const motivo = prompt("Por qual motivo você está denunciando este post?\n(ex: Conteúdo inadequado, Spam, Discurso de ódio)");
-    
-    if (motivo === null) return; // Cancelou
-
-    const pub = publicacoes.find(p => p.id === pubId);
-    if (pub) {
-        pub.denunciado = true;
-        pub.motivoDenuncia = motivo.trim() || "Não informado";
-        salvar();
-        renderizarFeed();
-        alert("Obrigado. Sua denúncia foi enviada à moderação.");
-    }
-}
-
-function denunciarComentario(postId, comentarioId) {
-    if (!confirm("Deseja denunciar este comentário para a moderação?")) return;
-
-    const pub = publicacoes.find(p => p.id === postId);
-    if (!pub) return;
-
-    const comentario = pub.comentarios.find(c => c.id === comentarioId);
-    if (comentario) {
-        comentario.denunciado = true;
-        salvar();
-        renderizarFeed();
-        alert("Comentário denunciado com sucesso.");
-    }
-}
-
-function denunciarResposta(postId, comentarioId, respostaId) {
-    if (!confirm("Deseja denunciar esta resposta?")) return;
-
-    const pub = publicacoes.find(p => p.id === postId);
-    if (!pub) return;
-
-    const comentario = pub.comentarios.find(c => c.id === comentarioId);
-    if (!comentario) return;
-
-    const resposta = comentario.respostas.find(r => r.id === respostaId);
-    if (resposta) {
-        resposta.denunciado = true;
-        salvar();
-        renderizarFeed();
-        alert("Resposta denunciada com sucesso.");
-    }
-}
-
-// ==============================
-// DEMAIS FUNÇÕES DO FEED
-// ==============================
-function adicionarComentario(postId, texto) {
-    if (!texto) return;
-
-    const pub = publicacoes.find(p => p.id === postId);
-    if (!pub) return;
-
-    pub.comentarios = pub.comentarios || [];
-    pub.comentarios.push({
-        id: Date.now(),
-        texto: texto,
-        data: new Date().toLocaleString("pt-BR"),
-        denunciado: false,
-        respostas: []
-    });
-
-    salvar();
-    renderizarFeed();
-    atualizarNuvem();
-}
-
-function adicionarResposta(postId, comentarioId, texto) {
-    if (!texto) return;
-
-    const pub = publicacoes.find(p => p.id === postId);
-    if (!pub) return;
-
-    const comentario = pub.comentarios.find(c => c.id === comentarioId);
-    if (!comentario) return;
-
-    comentario.respostas = comentario.respostas || [];
-    comentario.respostas.push({
-        id: Date.now(),
-        texto: texto,
-        denunciado: false,
-        data: new Date().toLocaleString("pt-BR")
-    });
-
-    salvar();
-    renderizarFeed();
-    atualizarNuvem();
-}
-
-function deletarComentario(postId, comentarioId) {
-    const pub = publicacoes.find(p => p.id === postId);
-    if (!pub) return;
-
-    pub.comentarios = pub.comentarios.filter(c => c.id !== comentarioId);
-    salvar();
-    renderizarFeed();
-    atualizarNuvem();
-}
-
-function atualizarNuvem() {
-    const contagem = {};
-
-    publicacoes.forEach(function(pub) {
-        if (pub.denunciado) return; // Ignora posts denunciados da nuvem
-
-        let textoCompleto = pub.texto || "";
-
-        (pub.comentarios || []).forEach(c => {
-            if (!c.denunciado) {
-                textoCompleto += " " + c.texto;
-                (c.respostas || []).forEach(r => {
-                    if (!r.denunciado) textoCompleto += " " + r.texto;
-                });
-            }
-        });
-
-        const tags = textoCompleto.match(hashtagRegex);
-        if (!tags) return;
-
-        tags.forEach(function(tag) {
-            const tagMinusc = tag.toLowerCase();
-            contagem[tagMinusc] = (contagem[tagMinusc] || 0) + 1;
-        });
-    });
-
-    const hashtagsOrdenadas = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
-
-    const listaHashtags = document.getElementById("listaHashtags");
-    if (listaHashtags) {
-        listaHashtags.innerHTML = "";
-
-        if (hashtagsOrdenadas.length === 0) {
-            listaHashtags.innerHTML = "<li>Nenhuma hashtag utilizada ainda.</li>";
-        } else {
-            hashtagsOrdenadas.forEach(function(item, index) {
-                const tag = item[0];
-                const quantidade = item[1];
-                const li = document.createElement("li");
-
-                li.innerHTML = `<strong>${index + 1}º</strong> ${escaparHtml(tag)} - ${quantidade} ${quantidade === 1 ? "uso" : "usos"}`;
-                listaHashtags.appendChild(li);
+            usadas.push({
+                x,
+                y
             });
-        }
+        });
+
+        renderizarListaHashtags(hashtags);
+    } catch (erro) {
+        console.error(
+            "Erro ao atualizar nuvem de hashtags:",
+            erro
+        );
+    }
+}
+
+function renderizarListaHashtags(hashtags) {
+    if (!listaHashtags) return;
+
+    if (!hashtags.length) {
+        listaHashtags.innerHTML =
+            "<li>Nenhuma hashtag utilizada ainda.</li>";
+        return;
     }
 
-    const nuvem = document.getElementById("nuvem");
-    if (!nuvem || typeof WordCloud === "undefined") return;
+    hashtags.sort((a, b) => b[1] - a[1]);
 
-    const listaNuvem = hashtagsOrdenadas.map(([tag, qtd]) => [tag, 15 + qtd * 12]);
+    listaHashtags.innerHTML = hashtags
+        .map(
+            ([tag, quantidade], index) => `
+                <li>
+                    <strong>${index + 1}º</strong>
+                    ${escaparHtml(tag)} -
+                    ${quantidade}
+                    ${quantidade === 1 ? "uso" : "usos"}
+                </li>
+            `
+        )
+        .join("");
+}
 
-    WordCloud(nuvem, {
-        list: listaNuvem,
-        gridSize: 10,
-        weightFactor: 1,
-        rotateRatio: 0.3,
-        rotationSteps: 2,
-        backgroundColor: "#ffffff",
-        color: function() {
-            const cores = ["#ff2d55", "#ff4d6d", "#e91e63", "#d81b60", "#9c27b0"];
-            return cores[Math.floor(Math.random() * cores.length)];
+btnPublicar.addEventListener(
+    "click",
+    criarPublicacao
+);
+
+texto.addEventListener(
+    "keydown",
+    evento => {
+        if (
+            (evento.ctrlKey || evento.metaKey) &&
+            evento.key === "Enter"
+        ) {
+            criarPublicacao();
         }
+    }
+);
+
+inputArquivo?.addEventListener(
+    "change",
+    () => {
+        const arquivo = inputArquivo.files?.[0];
+
+        if (!arquivo) {
+            previewAnexo.innerHTML = "";
+            return;
+        }
+
+        previewAnexo.innerHTML = `
+            <i class="fa-solid fa-paperclip"></i>
+            ${escaparHtml(arquivo.name)}
+        `;
+    }
+);
+
+btnFiltros.addEventListener(
+    "click",
+    () => {
+        filtrosPesquisa.classList.toggle("aberto");
+    }
+);
+
+pesquisa.addEventListener(
+    "input",
+    () => {
+        termoPesquisa = pesquisa.value;
+        renderizarFeed();
+    }
+);
+
+filtrosPesquisa
+    .querySelectorAll("button")
+    .forEach(botao => {
+        botao.addEventListener(
+            "click",
+            () => {
+                filtrosPesquisa
+                    .querySelectorAll("button")
+                    .forEach(item =>
+                        item.classList.remove("filtro-ativo")
+                    );
+
+                botao.classList.add("filtro-ativo");
+                filtroAtual = botao.dataset.filtro;
+                renderizarFeed();
+            }
+        );
     });
-}
 
-function toggleMenu(pubId) {
-    const menu = document.getElementById(`menu-${pubId}`);
-    if (!menu) return;
-
-    const isVisible = menu.style.display === "block";
-    document.querySelectorAll(".dropdown-menu").forEach(m => m.style.display = "none");
-
-    if (!isVisible) {
-        menu.style.display = "block";
+btnVerTudo?.addEventListener(
+    "click",
+    () => {
+        modalHashtags.classList.add("aberto");
     }
-}
+);
 
-function deletarPost(pubId) {
-    if (!confirm("Tem certeza que deseja excluir este post?")) return;
-
-    publicacoes = publicacoes.filter(pub => pub.id !== pubId);
-    salvar();
-    renderizarFeed();
-    atualizarNuvem();
-}
-
-function curtirPost(pubId) {
-    const pub = publicacoes.find(p => p.id === pubId);
-    if (!pub) return;
-
-    if (!pub.curtido) {
-        pub.curtido = true;
-        pub.curtidas++;
-    } else {
-        pub.curtido = false;
-        if (pub.curtidas > 0) pub.curtidas--;
+fecharModalHashtags?.addEventListener(
+    "click",
+    () => {
+        modalHashtags.classList.remove("aberto");
     }
+);
 
-    salvar();
-    renderizarFeed();
-}
+fecharModalDenuncia?.addEventListener(
+    "click",
+    fecharModalDenunciaFunc
+);
 
-document.addEventListener("click", function(event) {
-    if (!event.target.closest(".menu-post")) {
-        document.querySelectorAll(".dropdown-menu").forEach(menu => menu.style.display = "none");
+cancelarDenuncia?.addEventListener(
+    "click",
+    fecharModalDenunciaFunc
+);
+
+confirmarDenuncia?.addEventListener(
+    "click",
+    enviarDenuncia
+);
+
+listaPublicacoes.addEventListener(
+    "click",
+    async evento => {
+        const botao = evento.target.closest("[data-acao]");
+
+        if (!botao) return;
+
+        const acao = botao.dataset.acao;
+        const id = Number(botao.dataset.id);
+
+        if (acao === "menu") {
+            const menu = botao.parentElement.querySelector(
+                ".dropdown-menu"
+            );
+
+            fecharMenus();
+            menu?.classList.toggle("aberto");
+            return;
+        }
+
+        if (acao === "curtir") {
+            await alternarCurtida(id);
+            return;
+        }
+
+        if (acao === "comentarios") {
+            const container = document.getElementById(
+                `comentarios-${id}`
+            );
+
+            if (!container) return;
+
+            const aberto = container.classList.toggle("aberto");
+
+            if (aberto) {
+                await carregarComentarios(id);
+            }
+
+            return;
+        }
+
+        if (acao === "responder") {
+            abrirRespostaPublicacao(id);
+            return;
+        }
+
+        if (acao === "enviar-resposta") {
+            const input = document.getElementById(
+                `input-resposta-${id}`
+            );
+
+            if (!input) return;
+
+            await adicionarComentario(
+                id,
+                input.value,
+                null
+            );
+
+            input.value = "";
+            return;
+        }
+
+        if (acao === "responder-comentario") {
+            abrirRespostaComentario(id);
+            return;
+        }
+
+        if (acao === "enviar-resposta-comentario") {
+            const publicacaoId = Number(
+                botao.dataset.publicacao
+            );
+
+            const input = document.getElementById(
+                `input-comentario-${id}`
+            );
+
+            if (!input) return;
+
+            await adicionarComentario(
+                publicacaoId,
+                input.value,
+                id
+            );
+
+            input.value = "";
+            return;
+        }
+
+        if (acao === "excluir-publicacao") {
+            await excluirPublicacao(id);
+            return;
+        }
+
+        if (acao === "excluir-comentario") {
+            const post = botao.closest(".post");
+
+            const publicacaoId = Number(
+                post?.dataset.postId
+            );
+
+            await excluirComentario(
+                id,
+                publicacaoId
+            );
+
+            return;
+        }
+
+        if (acao === "denunciar-publicacao") {
+            abrirModalDenuncia(
+                "publicacao",
+                id
+            );
+
+            fecharMenus();
+            return;
+        }
+
+        if (acao === "denunciar-comentario") {
+            abrirModalDenuncia(
+                "comentario",
+                id
+            );
+        }
     }
-});
+);
+
+document.addEventListener(
+    "click",
+    evento => {
+        if (!evento.target.closest(".menu-post")) {
+            fecharMenus();
+        }
+
+        if (evento.target === modalHashtags) {
+            modalHashtags.classList.remove("aberto");
+        }
+
+        if (evento.target === modalDenuncia) {
+            fecharModalDenunciaFunc();
+        }
+    }
+);
+
+document.addEventListener(
+    "keydown",
+    evento => {
+        if (evento.key !== "Escape") return;
+
+        modalHashtags?.classList.remove("aberto");
+        fecharModalDenunciaFunc();
+        fecharMenus();
+    }
+);
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+        await carregarPublicacoes();
+        atualizarNuvem();
+    }
+);
