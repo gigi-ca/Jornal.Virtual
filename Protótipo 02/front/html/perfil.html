@@ -1,24 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Usuário</title>
+
     <link rel="stylesheet" href="../css/perfil.css">
     <link rel="stylesheet" href="../css/global/global.css">
     <link rel="stylesheet" href="../css/global/root.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 
 <body>
+
     <div class="bolinhas bolinhas1"></div>
     <div class="bolinhas bolinhas2"></div>
     <div class="bolinhas bolinhas3"></div>
+
     <header class="header-global">
 
         <div class="logo">
@@ -35,74 +39,171 @@
 
     </header>
 
-    <div class="perfil">
+    <main class="perfil">
+
         <div class="topo">
-            <img src="../img/banner.jpg" alt="Banner">
+            <img id="banner" src="/img/template-padrao.png" alt="Banner do perfil">
         </div>
-        <img id="foto" class="foto" src="../img/perfil.jpg" alt="Foto do usuário">
+
+        <img
+            id="foto"
+            class="foto"
+            src="/img/avatar-padrao.png"
+            alt="Foto de perfil"
+        >
+
         <div class="conteudo">
-            <h1 class="nome" id="nome">Luiza Corazin</h1>
+
+            <h1 class="nome" id="nome">Carregando...</h1>
+
             <p class="info">
                 <strong>REDE:</strong>
-                <span id="rede">SESI 356</span>
+                <span id="rede">Carregando...</span>
             </p>
-            <p class="descricao" id="descricao">Estudante criativa e apaixonadapor tecnologia, design e jornal virtual
-                escolar.</p>
-            <div class="categoria" id="categoria">Administradora</div>
+
+            <p class="descricao" id="descricao">
+                Carregando descrição...
+            </p>
+
+            <div class="categoria" id="categoria">
+                Usuário
+            </div>
+
             <div class="estatisticas">
+
                 <div class="card">
-                    <h2>15</h2>
-                    <span>Artigos</span>
+                    <h2 id="totalPublicacoes">0</h2>
+                    <span>Publicações</span>
                 </div>
+
                 <div class="card">
-                    <h2>42</h2>
-                    <span>Notícias</span>
+                    <h2 id="totalComentarios">0</h2>
+                    <span>Comentários</span>
                 </div>
+
                 <div class="card">
-                    <h2>08</h2>
-                    <span>Projetos</span>
+                    <h2 id="totalCurtidas">0</h2>
+                    <span>Curtidas</span>
                 </div>
+
             </div>
+
             <br>
-            <button onclick="abrirModal()">Editar Perfil</button>
-            <div class="modal-fundo" id="modalFundo">
-                <div class="modal">
-                    <button class="fechar-modal" onclick="fecharModal()">×</button>
-                    <h2>Editar Perfil</h2>
-                    <div class="imagens-modal">
-                        <div class="imagem-modal">
-                            <label>Foto de Perfil</label>
-                            <div class="preview-foto">
-                                <img id="previewFoto" src="" alt="Foto de perfil">
-                            </div>
-                            <label class="botao-imagem">Escolher imagem
-                                <input type="file" id="inputFoto" accept="image/*">
-                            </label>
-                        </div>
-                        <div class="imagem-modal banner-modal">
-                            <label>Foto de Banner</label>
-                            <div class="preview-banner">
-                                <img id="previewBanner" src="" alt="Banner">
-                            </div>
-                            <label class="botao-imagem">Escolher imagem
-                                <input type="file" id="inputBanner" accept="image/*">
-                            </label>
-                        </div>
-                    </div>
-                    <div class="campo-modal">
-                        <label>Descrição</label>
-                        <textarea id="inputDescricao" placeholder="Fale um pouco sobre você..."></textarea>
-                    </div>
-                    <div class="botoes-modal">
-                        <button class="botao-salvar" onclick="salvarPerfil()">Salvar Alterações</button>
-                        <button class="botao-cancelar" onclick="fecharModal()">Cancelar</button>
-                    </div>
-                </div>
-            </div>
+
+            <button onclick="abrirModal()">
+                Editar Perfil
+            </button>
+
         </div>
+
+    </main>
+
+    <div class="modal-fundo" id="modalFundo">
+
+        <div class="modal">
+
+            <button
+                class="fechar-modal"
+                onclick="fecharModal()"
+                type="button"
+            >
+                ×
+            </button>
+
+            <h2>Editar Perfil</h2>
+
+            <div class="imagens-modal">
+
+                <div class="imagem-modal">
+
+                    <label>Foto de Perfil</label>
+
+                    <div class="preview-foto">
+                        <img
+                            id="previewFoto"
+                            src="../img/perfil.jpg"
+                            alt="Pré-visualização da foto de perfil"
+                        >
+                    </div>
+
+                    <label class="botao-imagem">
+                        Escolher imagem
+
+                        <input
+                            type="file"
+                            id="inputFoto"
+                            accept="image/*"
+                        >
+                    </label>
+
+                </div>
+
+                <div class="imagem-modal banner-modal">
+
+                    <label>Foto de Banner</label>
+
+                    <div class="preview-banner">
+                        <img
+                            id="previewBanner"
+                            src="../img/template-padrao.png"
+                            alt="Pré-visualização do banner"
+                        >
+                    </div>
+
+                    <label class="botao-imagem">
+                        Escolher imagem
+
+                        <input
+                            type="file"
+                            id="inputBanner"
+                            accept="image/*"
+                        >
+                    </label>
+
+                </div>
+
+            </div>
+
+            <div class="campo-modal">
+
+                <label for="inputDescricao">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="inputDescricao"
+                    placeholder="Fale um pouco sobre você..."
+                ></textarea>
+
+            </div>
+
+            <div class="botoes-modal">
+
+                <button
+                    class="botao-salvar"
+                    onclick="salvarPerfil()"
+                    type="button"
+                >
+                    Salvar Alterações
+                </button>
+
+                <button
+                    class="botao-cancelar"
+                    onclick="fecharModal()"
+                    type="button"
+                >
+                    Cancelar
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
+
+    <script src="../js/global/tema.js"></script>
     <script src="/js/perfil.js"></script>
-    <script src="/js/global/tema.js"></script>
+
 </body>
 
 </html>

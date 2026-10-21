@@ -1,7 +1,7 @@
+const API_URL = "http://localhost:3000";
 const root = document.documentElement;
 
 const temas = {
-
     Rosa: {
         primary: "#d81b60",
         primaryDark: "#ad1457",
@@ -14,7 +14,6 @@ const temas = {
         border: "#f3b6ca",
         danger: "#d32f2f"
     },
-
     AzulEscuro: {
         primary: "#1e3a8a",
         primaryDark: "#172554",
@@ -27,7 +26,6 @@ const temas = {
         border: "#bfdbfe",
         danger: "#dc2626"
     },
-
     Verde: {
         primary: "#2e7d32",
         primaryDark: "#1b5e20",
@@ -40,7 +38,6 @@ const temas = {
         border: "#c8e6c9",
         danger: "#d32f2f"
     },
-
     Marrom: {
         primary: "#6f4e37",
         primaryDark: "#4a2f21",
@@ -53,7 +50,6 @@ const temas = {
         border: "#dfc8b0",
         danger: "#b3261e"
     },
-
     Cinza: {
         primary: "#616161",
         primaryDark: "#424242",
@@ -66,7 +62,6 @@ const temas = {
         border: "#d6d6d6",
         danger: "#d32f2f"
     },
-
     Laranja: {
         primary: "#ef6c00",
         primaryDark: "#e65100",
@@ -79,7 +74,6 @@ const temas = {
         border: "#ffcc80",
         danger: "#d84315"
     },
-
     RosaClaro: {
         primary: "#ec407a",
         primaryDark: "#d81b60",
@@ -92,7 +86,6 @@ const temas = {
         border: "#f8bbd0",
         danger: "#d32f2f"
     },
-
     Amarelo: {
         primary: "#f9a825",
         primaryDark: "#f57f17",
@@ -105,7 +98,6 @@ const temas = {
         border: "#ffe082",
         danger: "#c62828"
     },
-
     Roxo: {
         primary: "#7b1fa2",
         primaryDark: "#4a148c",
@@ -118,7 +110,6 @@ const temas = {
         border: "#e1bee7",
         danger: "#c62828"
     },
-
     Vinho: {
         primary: "#8e2430",
         primaryDark: "#5d1020",
@@ -131,7 +122,6 @@ const temas = {
         border: "#e8b8bf",
         danger: "#b71c1c"
     },
-
     Azul: {
         primary: "#1565c0",
         primaryDark: "#0d47a1",
@@ -144,7 +134,6 @@ const temas = {
         border: "#bbdefb",
         danger: "#d32f2f"
     },
-
     VerdeAgua: {
         primary: "#009688",
         primaryDark: "#00695c",
@@ -157,119 +146,110 @@ const temas = {
         border: "#b2dfdb",
         danger: "#d32f2f"
     }
-
 };
 
 function aplicarCores(cores) {
+    if (!cores) return;
 
-    if (!cores) {
-        console.error("Nenhuma cor foi informada.");
-        return;
-    }
+    Object.entries(cores).forEach(([propriedade, valor]) => {
+        if (!valor) return;
 
-    const propriedades = [
-        "primary",
-        "primaryDark",
-        "secondary",
-        "secondaryLight",
-        "background",
-        "surface",
-        "text",
-        "textLight",
-        "border",
-        "danger"
-    ];
+        const nomeVariavel = propriedade.replace(
+            /[A-Z]/g,
+            letra => `-${letra.toLowerCase()}`
+        );
 
-    propriedades.forEach(propriedade => {
-
-        if (cores[propriedade]) {
-
-            root.style.setProperty(
-                `--${propriedade}`,
-                cores[propriedade]
-            );
-
-        }
-
+        root.style.setProperty(
+            `--${nomeVariavel}`,
+            valor
+        );
     });
 }
 
 function aplicarTema(nomeTema) {
-
     const tema = temas[nomeTema];
 
     if (!tema) {
-
-        console.error(
-            "Tema não encontrado:",
-            nomeTema
-        );
-
+        console.error("Tema não encontrado:", nomeTema);
         return false;
     }
 
     aplicarCores(tema);
 
+    localStorage.setItem(
+        "temaAtual",
+        JSON.stringify(tema)
+    );
+
     return true;
+}
+function obterUsuarioToken() {
+    const token = localStorage.getItem("token");
+
+    if (!token) return null;
+
+    try {
+        const partes = token.split(".");
+
+        if (partes.length !== 3) return null;
+
+        const payload = partes[1]
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+
+        return JSON.parse(
+            decodeURIComponent(
+                atob(payload)
+                    .split("")
+                    .map(c =>
+                        "%" +
+                        ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+                    )
+                    .join("")
+            )
+        );
+    } catch (erro) {
+        console.error("Erro ao ler token:", erro);
+        return null;
+    }
 }
 
 async function carregarTema(empresaId) {
+    const token = localStorage.getItem("token");
+
+    if (!empresaId || !token) {
+        aplicarTema("Rosa");
+        return;
+    }
 
     try {
-
-        if (!empresaId) {
-
-            console.error(
-                "empresaId não informado."
-            );
-
-            aplicarTema("rosa");
-
-            return;
-        }
-
         const resposta = await fetch(
-            `/tema/buscar/${empresaId}`,
+            `${API_URL}/tema/buscar/${empresaId}`,
             {
                 method: "GET",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 }
             }
         );
 
         if (!resposta.ok) {
-
-            throw new Error(
-                "Tema não encontrado."
-            );
-
+            throw new Error("Tema não encontrado.");
         }
 
         const dados = await resposta.json();
 
-        /*
-        O controller retorna:
-
-        {
-            id,
-            primary,
-            primaryDark,
-            ...
-            empresa: {...}
-        }
-        */
-
         aplicarCores(dados);
 
-    } catch (erro) {
-
-        console.error(
-            "Erro ao carregar tema:",
-            erro
+        localStorage.setItem(
+            "temaAtual",
+            JSON.stringify(dados)
         );
 
-        aplicarTema("rosa");
+    } catch (erro) {
+        console.error("Erro ao carregar tema:", erro);
+        aplicarTema("Rosa");
     }
 }
 
@@ -277,3 +257,25 @@ window.temas = temas;
 window.aplicarTema = aplicarTema;
 window.aplicarCores = aplicarCores;
 window.carregarTema = carregarTema;
+
+function iniciarTema() {
+    const temaSalvo = localStorage.getItem("temaAtual");
+
+    if (temaSalvo) {
+        try {
+            const tema = JSON.parse(temaSalvo);
+            aplicarCores(tema);
+        } catch (erro) {
+            console.error("Erro ao aplicar tema salvo:", erro);
+            localStorage.removeItem("temaAtual");
+        }
+    }
+
+    const usuario = obterUsuarioToken();
+
+    if (usuario?.empresaId) {
+        carregarTema(usuario.empresaId);
+    }
+}
+
+iniciarTema();
