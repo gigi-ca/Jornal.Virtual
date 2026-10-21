@@ -1,9 +1,15 @@
+
 import 'package:flutter/material.dart';
 
 import '../services/publicacao_service.dart';
 
 class HashtagsEmAlta extends StatefulWidget {
-  const HashtagsEmAlta({super.key});
+  final ValueChanged<String>? onHashtagSelecionada;
+
+  const HashtagsEmAlta({
+    super.key,
+    this.onHashtagSelecionada,
+  });
 
   @override
   State<HashtagsEmAlta> createState() => _HashtagsEmAltaState();
@@ -14,11 +20,10 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
 
   late Future<List<dynamic>> _hashtagsFuture;
 
-  
   static const List<Color> _coresVibrantes = [
     Color(0xFF8E24AA),
-    Color(0xFFD52B6D), 
-    Color(0xFF00ACC1), 
+    Color(0xFFD52B6D),
+    Color(0xFF00ACC1),
   ];
 
   @override
@@ -30,7 +35,6 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
   Future<List<dynamic>> _carregarHashtags() {
     return _service.listarRankingHashtags();
   }
-
 
   void atualizarRanking() {
     setState(() {
@@ -64,7 +68,7 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
 
   Widget _carregando() {
     return Container(
-      height: 180,
+      height: 120,
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: _decoracao(),
@@ -132,25 +136,23 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
   Widget _conteudoRanking(List<dynamic> hashtags) {
     final lista = hashtags
         .whereType<Map>()
-        .map(
-          (item) {
-            final nome = item['nome']?.toString().trim() ?? '';
+        .map((item) {
+          final nome = item['nome']?.toString().trim() ?? '';
 
-            final quantidade = int.tryParse(
-                  item['quantidadePublicacoes']?.toString() ?? '0',
-                ) ??
-                0;
+          final quantidade = int.tryParse(
+                item['quantidadePublicacoes']?.toString() ?? '0',
+              ) ??
+              0;
 
-            return _HashtagItem(
-              nome: nome.isEmpty
-                  ? '#sem_nome'
-                  : nome.startsWith('#')
-                      ? nome
-                      : '#$nome',
-              quantidade: quantidade,
-            );
-          },
-        )
+          return _HashtagItem(
+            nome: nome.isEmpty
+                ? '#sem_nome'
+                : nome.startsWith('#')
+                    ? nome
+                    : '#$nome',
+            quantidade: quantidade,
+          );
+        })
         .where((item) => item.nome.isNotEmpty)
         .toList();
 
@@ -158,7 +160,6 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
       return _vazio();
     }
 
-    
     lista.sort((a, b) => b.quantidade.compareTo(a.quantidade));
 
     final ranking = lista.take(3).toList();
@@ -173,34 +174,13 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Assuntos do Momento',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF18213D),
-                ),
-              ),
-              // TextButton(
-              //   onPressed: () {},
-              //   style: TextButton.styleFrom(
-              //     padding: EdgeInsets.zero,
-              //     minimumSize: Size.zero,
-              //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              //   ),
-              //   child: const Text(
-              //     'Ver lista',
-              //     style: TextStyle(
-              //       fontSize: 13,
-              //       fontWeight: FontWeight.w600,
-              //       color: Color(0xFFD52B6D),
-              //     ),
-              //   ),
-              // ),
-            ],
+          const Text(
+            'Assuntos do Momento',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF18213D),
+            ),
           ),
           const SizedBox(height: 16),
           ListView.separated(
@@ -214,7 +194,8 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
             itemBuilder: (context, index) {
               final item = ranking[index];
               final posicao = index + 1;
-              final corDaHashtag = _coresVibrantes[index % _coresVibrantes.length];
+              final corDaHashtag =
+                  _coresVibrantes[index % _coresVibrantes.length];
 
               final proporcao = quantidadeMaior == quantidadeMenor
                   ? 0.5
@@ -224,13 +205,17 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
               final tamanhoFonte = 14.0 + (proporcao * 3.0);
 
               return InkWell(
-                onTap: () {},
+                onTap: () {
+                  widget.onHashtagSelecionada?.call(item.nome);
+                },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 2,
+                  ),
                   child: Row(
                     children: [
-                      // Posição no ranking (1º, 2º ou 3º)
                       SizedBox(
                         width: 28,
                         child: Text(
@@ -243,8 +228,6 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
                         ),
                       ),
                       const SizedBox(width: 8),
-
-                      // Nome da Hashtag + Número de publicações
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,6 +250,11 @@ class _HashtagsEmAltaState extends State<HashtagsEmAlta> {
                             ),
                           ],
                         ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.grey[400],
+                        size: 20,
                       ),
                     ],
                   ),
