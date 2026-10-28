@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const router = express.Router();
@@ -11,10 +12,10 @@ const {
     excluir,
     pesquisar,
     fotoPerfil,
-    atualizarTemplate
+    atualizarTemplate,
+    esqueciSenha,
+    redefinirSenha
 } = require("../controllers/usuarios.controller");
-
-
 
 const { validate } = require("../middlewares/auth");
 const { validaAdministrador } = require("../middlewares/validaCargo");
@@ -22,6 +23,8 @@ const uploadMidia = require("../middlewares/upload.midia");
 const controller = require("../controllers/usuarios.controller");
 
 router.post("/login", Login);
+router.post("/esqueci-senha", esqueciSenha);
+router.post("/redefinir-senha", redefinirSenha);
 router.post("/cadastrar", validate, validaAdministrador, cadastrar);
 router.get("/listar", validate, listar);
 router.put("/atualizar/:id", validate, atualizar);

@@ -1,3 +1,4 @@
+
 const API_URL = "http://localhost:3000";
 const root = document.documentElement;
 
@@ -151,18 +152,19 @@ const temas = {
 function aplicarCores(cores) {
     if (!cores) return;
 
-    Object.entries(cores).forEach(([propriedade, valor]) => {
-        if (!valor) return;
+    const propriedades = Object.keys(temas.Rosa);
+
+    propriedades.forEach(propriedade => {
+        const valor = cores[propriedade];
+
+        if (typeof valor !== "string" || !valor.trim()) return;
 
         const nomeVariavel = propriedade.replace(
             /[A-Z]/g,
             letra => `-${letra.toLowerCase()}`
         );
 
-        root.style.setProperty(
-            `--${nomeVariavel}`,
-            valor
-        );
+        root.style.setProperty(`--${nomeVariavel}`, valor);
     });
 }
 
@@ -175,16 +177,17 @@ function aplicarTema(nomeTema) {
     }
 
     aplicarCores(tema);
-
-    localStorage.setItem(
-        "temaAtual",
-        JSON.stringify(tema)
-    );
+    localStorage.setItem("temaAtual", JSON.stringify(tema));
 
     return true;
 }
+
+function obterToken() {
+    return localStorage.getItem("token") || sessionStorage.getItem("token");
+}
+
 function obterUsuarioToken() {
-    const token = localStorage.getItem("token");
+    const token = obterToken();
 
     if (!token) return null;
 
@@ -197,28 +200,46 @@ function obterUsuarioToken() {
             .replace(/-/g, "+")
             .replace(/_/g, "/");
 
-        return JSON.parse(
+        const payloadCompleto = payload.padEnd(
+            Math.ceil(payload.length / 4) * 4,
+            "="
+        );
+
+        const usuario = JSON.parse(
             decodeURIComponent(
-                atob(payload)
-                    .split("")
-                    .map(c =>
-                        "%" +
-                        ("00" + c.charCodeAt(0).toString(16)).slice(-2)
-                    )
-                    .join("")
+                Array.from(atob(payloadCompleto), c =>
+                    `%${c.charCodeAt(0).toString(16).padStart(2, "0")}`
+                ).join("")
             )
         );
+
+        if (!usuario.id || !usuario.empresaId) {
+            return null;
+        }
+
+        if (
+            typeof usuario.exp !== "number" ||
+            usuario.exp * 1000 <= Date.now()
+        ) {
+            return null;
+        }
+
+        return usuario;
     } catch (erro) {
         console.error("Erro ao ler token:", erro);
         return null;
     }
 }
 
+function aplicarTemaPadrao() {
+    aplicarTema("Rosa");
+}
+
 async function carregarTema(empresaId) {
-    const token = localStorage.getItem("token");
+    const token = obterToken();
 
     if (!empresaId || !token) {
-        aplicarTema("Rosa");
+        aplicarTemaPadrao();
         return;
     }
 
@@ -229,53 +250,120 @@ async function carregarTema(empresaId) {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 }
             }
         );
 
         if (!resposta.ok) {
-            throw new Error("Tema não encontrado.");
+            throw new Error("Não foi possível carregar o tema da empresa.");
         }
 
         const dados = await resposta.json();
+        const cores = dados.tema || dados;
 
-        aplicarCores(dados);
+        if (
+            !cores ||
+            typeof cores !== "object" ||
+            !cores.primary
+        ) {
+            throw new Error("O tema retornado é inválido.");
+        }
 
-        localStorage.setItem(
-            "temaAtual",
-            JSON.stringify(dados)
-        );
+        const usuarioAtual = obterUsuarioToken();
 
+        if (
+            !usuarioAtual ||
+            Number(usuarioAtual.empresaId) !== Number(empresaId)
+        ) {
+            aplicarTemaPadrao();
+            return;
+        }
+
+        aplicarCores(cores);
+        localStorage.setItem("temaAtual", JSON.stringify(cores));
     } catch (erro) {
         console.error("Erro ao carregar tema:", erro);
-        aplicarTema("Rosa");
+        aplicarTemaPadrao();
     }
+}
+
+function iniciarTema() {
+    aplicarTemaPadrao();
+
+    const usuario = obterUsuarioToken();
+
+    if (!usuario) {
+        return;
+    }
+
+    carregarTema(usuario.empresaId);
 }
 
 window.temas = temas;
 window.aplicarTema = aplicarTema;
 window.aplicarCores = aplicarCores;
 window.carregarTema = carregarTema;
+window.obterUsuarioToken = obterUsuarioToken;
 
-function iniciarTema() {
-    const temaSalvo = localStorage.getItem("temaAtual");
+iniciarTema();
 
-    if (temaSalvo) {
-        try {
-            const tema = JSON.parse(temaSalvo);
-            aplicarCores(tema);
-        } catch (erro) {
-            console.error("Erro ao aplicar tema salvo:", erro);
-            localStorage.removeItem("temaAtual");
+document.addEventListener("DOMContentLoaded", () => {
+    const botao = document.querySelector(".header-global .menu-toggle");
+    const menu = document.querySelector(".header-global .nav-principal");
+
+    if (!botao || !menu) return;
+
+    const icone = botao.querySelector("i");
+
+    function fecharMenu() {
+        menu.classList.remove("aberto");
+        botao.setAttribute("aria-expanded", "false");
+        botao.setAttribute("aria-label", "Abrir menu");
+
+        if (icone) {
+            icone.className = "fa-solid fa-bars";
         }
     }
 
-    const usuario = obterUsuarioToken();
+    botao.addEventListener("click", () => {
+        const aberto = menu.classList.toggle("aberto");
 
-    if (usuario?.empresaId) {
-        carregarTema(usuario.empresaId);
-    }
-}
+        botao.setAttribute("aria-expanded", String(aberto));
+        botao.setAttribute(
+            "aria-label",
+            aberto ? "Fechar menu" : "Abrir menu"
+        );
 
-iniciarTema();
+        if (icone) {
+            icone.className = aberto
+                ? "fa-solid fa-xmark"
+                : "fa-solid fa-bars";
+        }
+    });
+
+    document.addEventListener("click", evento => {
+        if (
+            !menu.contains(evento.target) &&
+            !botao.contains(evento.target)
+        ) {
+            fecharMenu();
+        }
+    });
+
+    menu.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", fecharMenu);
+    });
+
+    document.addEventListener("keydown", evento => {
+        if (evento.key === "Escape") {
+            fecharMenu();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 768) {
+            fecharMenu();
+        }
+    });
+});

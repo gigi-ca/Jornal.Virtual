@@ -1,5 +1,5 @@
 function obterUsuarioToken() {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
     if (!token) return null;
 
@@ -39,7 +39,7 @@ if (!usuarioLogado || usuarioLogado.tipo !== "ADMINISTRADOR") {
 }
 
 async function api(url, options = {}) {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
     const resposta = await fetch(`${API_URL}${url}`, {
         ...options,

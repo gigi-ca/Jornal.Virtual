@@ -1,79 +1,75 @@
+const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+const raizApi = (typeof API_URL !== "undefined" ? API_URL : "http://localhost:3000").replace(/\/$/, "");
 
-function obterUsuarioToken() {
-    const token = localStorage.getItem("token");
+const nomeUsuario = document.getElementById("nomeUsuario");
+const emailUsuario = document.getElementById("emailUsuario");
 
+function lerToken() {
     if (!token) return null;
 
     try {
-        const partes = token.split(".");
+        const parte = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        const bytes = atob(parte.padEnd(Math.ceil(parte.length / 4) * 4, "="));
 
-        if (partes.length !== 3) return null;
-
-        const payload = partes[1]
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-
-        return JSON.parse(
-            decodeURIComponent(
-                atob(payload)
-                    .split("")
-                    .map(c =>
-                        "%" +
-                        ("00" + c.charCodeAt(0).toString(16)).slice(-2)
-                    )
-                    .join("")
-            )
-        );
-    } catch (erro) {
-        console.error("Erro ao ler token:", erro);
+        return JSON.parse(decodeURIComponent(
+            Array.from(bytes, c =>
+                `%${c.charCodeAt(0).toString(16).padStart(2, "0")}`
+            ).join("")
+        ));
+    } catch {
         return null;
     }
 }
 
-async function carregarDadosPessoais() {
-    const token = localStorage.getItem("token");
-    const usuarioToken = obterUsuarioToken();
+function mostrarDados(nome, email) {
+    nomeUsuario.textContent = nome;
+    emailUsuario.textContent = email;
+}
 
-    if (!token || !usuarioToken?.id) {
-        window.location.href = "../login.html";
+async function carregarDadosPessoais() {
+    const usuarioLogado = lerToken();
+
+    if (!usuarioLogado?.id) {
+        mostrarDados("Usuário não autenticado", "Faça login para visualizar seus dados.");
         return;
     }
 
     try {
         const resposta = await fetch(
-            `${API_URL}/usuarios/buscar/${usuarioToken.id}`,
+            `${raizApi}/usuarios/buscar/${usuarioLogado.id}`,
             {
                 method: "GET",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 }
             }
         );
 
-        const dados = await resposta.json();
+        const dados = await resposta.json().catch(() => ({}));
 
         if (!resposta.ok) {
             throw new Error(
-                dados.mensagem || "Erro ao carregar seus dados."
+                dados.mensagem ||
+                dados.erro ||
+                dados.error ||
+                "Não foi possível carregar os dados pessoais."
             );
         }
 
-        document.getElementById("nomeUsuario").textContent =
-            dados.nome || "Não informado";
+        const usuario = dados.usuario || dados;
 
-        document.getElementById("emailUsuario").textContent =
-            dados.email || "Não informado";
-
+        mostrarDados(
+            usuario.nome || usuarioLogado.nome || "Não informado",
+            usuario.email || "Não informado"
+        );
     } catch (erro) {
-        console.error("Erro:", erro);
+        console.error("Erro ao carregar dados pessoais:", erro);
 
-        document.getElementById("nomeUsuario").textContent =
-            "Não foi possível carregar";
-
-        document.getElementById("emailUsuario").textContent =
-            "Não foi possível carregar";
+        mostrarDados(
+            usuarioLogado.nome || "Não foi possível carregar",
+            "Não foi possível carregar o e-mail"
+        );
     }
 }
 
-document.addEventListener("DOMContentLoaded", carregarDadosPessoais);
+carregarDadosPessoais();

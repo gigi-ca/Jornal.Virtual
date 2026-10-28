@@ -12,7 +12,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
@@ -23,21 +24,26 @@
     <div class="bolinhas bolinhas2"></div>
     <div class="bolinhas bolinhas3"></div>
 
-    <header class="header-global">
 
+    <header class="header-global">
         <div class="logo">
             <i class="fa-solid fa-newspaper"></i>
             <h2>Jornal<span>Online</span></h2>
         </div>
 
-        <nav class="nav-principal">
+        <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"
+            aria-controls="navPrincipal">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <nav class="nav-principal" id="navPrincipal">
             <a href="/html/inicio.html">Início</a>
             <a href="/html/feed.html">Feed</a>
-            <a href="/html/perfil.html" class="ativo">Minha Conta</a>
+            <a href="/html/perfil.html"  class="ativo">Minha Conta</a>
             <a href="/html/configuracoes.html">Configurações</a>
         </nav>
-
     </header>
+
 
     <main class="perfil">
 
@@ -45,12 +51,7 @@
             <img id="banner" src="/img/template-padrao.png" alt="Banner do perfil">
         </div>
 
-        <img
-            id="foto"
-            class="foto"
-            src="/img/avatar-padrao.png"
-            alt="Foto de perfil"
-        >
+        <img id="foto" class="foto" src="/img/avatar-padrao.png" alt="Foto de perfil">
 
         <div class="conteudo">
 
@@ -102,11 +103,7 @@
 
         <div class="modal">
 
-            <button
-                class="fechar-modal"
-                onclick="fecharModal()"
-                type="button"
-            >
+            <button class="fechar-modal" onclick="fecharModal()" type="button">
                 ×
             </button>
 
@@ -119,21 +116,13 @@
                     <label>Foto de Perfil</label>
 
                     <div class="preview-foto">
-                        <img
-                            id="previewFoto"
-                            src="../img/perfil.jpg"
-                            alt="Pré-visualização da foto de perfil"
-                        >
+                        <img id="previewFoto" src="../img/perfil.jpg" alt="Pré-visualização da foto de perfil">
                     </div>
 
                     <label class="botao-imagem">
                         Escolher imagem
 
-                        <input
-                            type="file"
-                            id="inputFoto"
-                            accept="image/*"
-                        >
+                        <input type="file" id="inputFoto" accept="image/*">
                     </label>
 
                 </div>
@@ -143,21 +132,13 @@
                     <label>Foto de Banner</label>
 
                     <div class="preview-banner">
-                        <img
-                            id="previewBanner"
-                            src="../img/template-padrao.png"
-                            alt="Pré-visualização do banner"
-                        >
+                        <img id="previewBanner" src="../img/template-padrao.png" alt="Pré-visualização do banner">
                     </div>
 
                     <label class="botao-imagem">
                         Escolher imagem
 
-                        <input
-                            type="file"
-                            id="inputBanner"
-                            accept="image/*"
-                        >
+                        <input type="file" id="inputBanner" accept="image/*">
                     </label>
 
                 </div>
@@ -170,28 +151,17 @@
                     Descrição
                 </label>
 
-                <textarea
-                    id="inputDescricao"
-                    placeholder="Fale um pouco sobre você..."
-                ></textarea>
+                <textarea id="inputDescricao" placeholder="Fale um pouco sobre você..."></textarea>
 
             </div>
 
             <div class="botoes-modal">
 
-                <button
-                    class="botao-salvar"
-                    onclick="salvarPerfil()"
-                    type="button"
-                >
+                <button class="botao-salvar" onclick="salvarPerfil()" type="button">
                     Salvar Alterações
                 </button>
 
-                <button
-                    class="botao-cancelar"
-                    onclick="fecharModal()"
-                    type="button"
-                >
+                <button class="botao-cancelar" onclick="fecharModal()" type="button">
                     Cancelar
                 </button>
 

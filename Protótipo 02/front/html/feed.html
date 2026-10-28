@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.0.6/wordcloud2.min.js"></script>
 </head>
@@ -25,7 +27,12 @@
             <h2>Jornal<span>Online</span></h2>
         </div>
 
-        <nav class="nav-principal">
+        <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"
+            aria-controls="navPrincipal">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <nav class="nav-principal" id="navPrincipal">
             <a href="/html/inicio.html">Início</a>
             <a href="/html/feed.html" class="ativo">Feed</a>
             <a href="/html/perfil.html">Minha Conta</a>
@@ -35,249 +42,201 @@
 
     <main class="feed-page">
 
-    <div class="container">
+        <div class="container">
+            <aside class="esquerda">
+                <div class="card card-publicacao">
 
-        <aside class="esquerda">
+                    <h2>Nova publicação</h2>
 
-            <div class="card card-publicacao">
+                    <textarea id="texto" placeholder="O que está acontecendo? Use hashtags..."></textarea>
 
-                <h2>Nova publicação</h2>
+                    <div class="anexo-area">
 
-                <textarea
-                    id="texto"
-                    placeholder="O que está acontecendo? Use hashtags..."
-                ></textarea>
+                        <label for="anexo" class="btn-anexo">
+                            <i class="fa-solid fa-paperclip"></i>
+                            Adicionar anexo
+                        </label>
 
-                <div class="anexo-area">
+                        <input type="file" id="anexo" accept="image/*,video/*,.pdf,.doc,.docx">
 
-                    <label for="anexo" class="btn-anexo">
-                        <i class="fa-solid fa-paperclip"></i>
-                        Adicionar anexo
-                    </label>
+                        <div id="preview-anexo"></div>
 
-                    <input
-                        type="file"
-                        id="anexo"
-                        accept="image/*,video/*,.pdf,.doc,.docx"
-                    >
+                    </div>
 
-                    <div id="preview-anexo"></div>
-
-                </div>
-
-                <button
-                    type="button"
-                    id="publicar"
-                >
-                    Publicar
-                </button>
-
-            </div>
-
-
-            <div class="card card-hashtags">
-
-                <div class="titulo-card">
-
-                    <h2>Hashtags em alta</h2>
-
-                    <button
-                        type="button"
-                        id="btnVerTudo"
-                        class="btn-ver-tudo"
-                    >
-                        Ver tudo
+                    <button type="button" id="publicar">
+                        Publicar
                     </button>
 
                 </div>
 
-                <div class="nuvem-container">
-                    <canvas
-                        id="nuvem"
-                        width="500"
-                        height="350"
-                    ></canvas>
+
+                <div class="card card-hashtags">
+
+                    <div class="titulo-card">
+
+                        <h2>Hashtags em alta</h2>
+
+                        <button type="button" id="btnVerTudo" class="btn-ver-tudo">
+                            Ver tudo
+                        </button>
+
+                    </div>
+
+                    <div class="nuvem-container">
+                        <canvas id="nuvem" width="500" height="350"></canvas>
+                    </div>
+
                 </div>
 
-            </div>
-
-        </aside>
+            </aside>
 
 
-        <section class="feed">
+            <section class="feed">
 
-            <div class="feed-topo">
 
-                <div>
-                    <h1>Feed</h1>
+                <div class="feed-topo">
+                    <div>
+                        <h1>Feed</h1>
+                        <p>Acompanhe as publicações da comunidade.</p>
+                    </div>
 
-                    <p>
-                        Acompanhe as publicações da comunidade.
-                    </p>
+                    <button type="button" id="btnAtualizarFeed" class="btn-atualizar-feed"
+                        title="Atualizar publicações">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Atualizar feed</span>
+                    </button>
                 </div>
 
-            </div>
 
 
-            <div class="pesquisa-container">
+                <div class="pesquisa-container">
 
-                <i class="fa-solid fa-magnifying-glass"></i>
+                    <i class="fa-solid fa-magnifying-glass"></i>
 
-                <input
-                    type="text"
-                    id="pesquisaPublicacoes"
-                    placeholder="Pesquisar publicações, usuários ou hashtags..."
-                    autocomplete="off"
-                >
+                    <input type="text" id="pesquisaPublicacoes"
+                        placeholder="Pesquisar publicações, usuários ou hashtags..." autocomplete="off">
 
-                <button
-                    type="button"
-                    id="btnFiltros"
-                    class="btn-filtros"
-                    title="Filtros"
-                >
-                    <i class="fa-solid fa-sliders"></i>
-                </button>
+                    <button type="button" id="btnFiltros" class="btn-filtros" title="Filtros">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
 
-            </div>
-
-
-            <div
-                id="filtrosPesquisa"
-                class="filtros-pesquisa"
-            >
-
-                <button
-                    type="button"
-                    class="filtro-ativo"
-                    data-filtro="recentes"
-                >
-                    Mais recentes
-                </button>
-
-                <button
-                    type="button"
-                    data-filtro="curtidas"
-                >
-                    Mais curtidas
-                </button>
-
-                <button
-                    type="button"
-                    data-filtro="comentarios"
-                >
-                    Mais comentadas
-                </button>
-
-            </div>
-
-
-            <div id="listaPublicacoes">
-
-                <div class="estado-feed">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Carregando publicações...</span>
                 </div>
 
+
+                <div id="filtrosPesquisa" class="filtros-pesquisa">
+
+                    <button type="button" class="filtro-ativo" data-filtro="recentes">
+                        Mais recentes
+                    </button>
+
+                    <button type="button" data-filtro="curtidas">
+                        Mais curtidas
+                    </button>
+
+                    <button type="button" data-filtro="comentarios">
+                        Mais comentadas
+                    </button>
+
+                </div>
+
+                <div id="filtroHashtagAtivo" class="filtro-hashtag-ativo" hidden>
+                        <div class="filtro-hashtag-info">
+                            <i class="fa-solid fa-hashtag"></i>
+                            <div>
+                                <span>FILTRANDO PUBLICAÇÕES</span>
+                                <strong id="nomeHashtagAtiva"></strong>
+                            </div>
+                        </div>
+                        <button type="button" id="limparFiltroHashtag">
+                            <i class="fa-solid fa-xmark"></i>
+                            Limpar filtro
+                        </button>
+                    </div>
+
+                <div id="listaPublicacoes">
+
+                    <div class="estado-feed">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Carregando publicações...</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <div id="modalHashtags" class="modal">
+
+
+
+        <div class="modal-content modal-hashtags-content">
+            <button type="button" id="fecharModalHashtags" class="close-modal" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="hashtags-modal-topo">
+                <div class="hashtags-modal-icone">
+                    <i class="fa-solid fa-hashtag"></i>
+                </div>
+                <span class="hashtags-modal-label">EXPLORE A COMUNIDADE</span>
+                <h2>Hashtags em alta</h2>
+                <p class="modal-descricao">
+                    Descubra os assuntos mais comentados e selecione uma hashtag para explorar as publicações.
+                </p>
             </div>
 
-        </section>
+            <div class="hashtags-lista-topo">
+                <span>Tendências</span>
+                <span>Usos</span>
+            </div>
+
+            <ul id="listaHashtags"></ul>
+        </div>
 
     </div>
 
-</main>
 
+    <div id="modalDenuncia" class="modal">
 
-<div
-    id="modalHashtags"
-    class="modal"
->
+        <div class="modal-content modal-denuncia-content">
 
-    <div class="modal-content modal-hashtags-content">
-
-        <button
-            type="button"
-            id="fecharModalHashtags"
-            class="close-modal"
-            aria-label="Fechar"
-        >
-            ×
-        </button>
-
-        <h2>Hashtags em alta</h2>
-
-        <p class="modal-descricao">
-            Confira as hashtags mais utilizadas nas publicações.
-        </p>
-
-        <ul id="listaHashtags"></ul>
-
-    </div>
-
-</div>
-
-
-<div
-    id="modalDenuncia"
-    class="modal"
->
-
-    <div class="modal-content modal-denuncia-content">
-
-        <button
-            type="button"
-            id="fecharModalDenuncia"
-            class="close-modal"
-            aria-label="Fechar"
-        >
-            ×
-        </button>
-
-        <h2>Denunciar conteúdo</h2>
-
-        <p class="modal-descricao">
-            Informe o motivo da denúncia.
-        </p>
-
-        <input
-            type="hidden"
-            id="tipoDenuncia"
-        >
-
-        <input
-            type="hidden"
-            id="idDenuncia"
-        >
-
-        <textarea
-            id="motivoDenuncia"
-            placeholder="Digite o motivo da denúncia..."
-        ></textarea>
-
-        <div class="modal-acoes">
-
-            <button
-                type="button"
-                id="cancelarDenuncia"
-                class="btn-cancelar"
-            >
-                Cancelar
+            <button type="button" id="fecharModalDenuncia" class="close-modal" aria-label="Fechar">
+                ×
             </button>
 
-            <button
-                type="button"
-                id="confirmarDenuncia"
-                class="btn-confirmar"
-            >
-                Denunciar
-            </button>
+            <h2>Denunciar conteúdo</h2>
+
+            <p class="modal-descricao">
+                Informe o motivo da denúncia.
+            </p>
+
+            <input type="hidden" id="tipoDenuncia">
+
+            <input type="hidden" id="idDenuncia">
+
+            <textarea id="motivoDenuncia" placeholder="Digite o motivo da denúncia..."></textarea>
+
+            <div class="modal-acoes">
+
+                <button type="button" id="cancelarDenuncia" class="btn-cancelar">
+                    Cancelar
+                </button>
+
+                <button type="button" id="confirmarDenuncia" class="btn-confirmar">
+                    Denunciar
+                </button>
+
+            </div>
 
         </div>
 
     </div>
 
-</div>
+    <script src="/js/global/tema.js"></script>
+    <script src="/js/feed.js"></script>
 
-<script src="/js/global/tema.js"></script>
-<script src="/js/feed.js"></script>
 </html>

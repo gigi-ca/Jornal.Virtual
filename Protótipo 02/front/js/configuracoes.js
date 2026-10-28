@@ -1,5 +1,5 @@
 const itemAdministracao = document.getElementById("itemAdministracao");
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
 function verificarAdministrador() {
     if (!itemAdministracao || !token) {
@@ -20,3 +20,11 @@ function verificarAdministrador() {
 }
 
 document.addEventListener("DOMContentLoaded", verificarAdministrador);
+document.getElementById("sairConta").addEventListener("click", function (event) {
+    event.preventDefault();
+
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+
+    window.location.href = "/html/login.html";
+});

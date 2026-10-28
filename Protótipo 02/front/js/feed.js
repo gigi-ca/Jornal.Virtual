@@ -1,4 +1,4 @@
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
 const btnPublicar = document.getElementById("publicar");
 const texto = document.getElementById("texto");
@@ -24,14 +24,25 @@ let publicacoes = [];
 let filtroAtual = "recentes";
 let termoPesquisa = "";
 
+
+let hashtagSelecionada = null;
+
+const filtroHashtagAtivo = document.getElementById("filtroHashtagAtivo");
+const nomeHashtagAtiva = document.getElementById("nomeHashtagAtiva");
+const limparFiltroHashtag = document.getElementById("limparFiltroHashtag");
+
+
 const hashtagRegex = /#[a-zA-ZÀ-ÿ0-9_]+/g;
 
 async function api(url, options = {}) {
-
     const headers = {
         ...(options.headers || {}),
         Authorization: `Bearer ${token}`
     };
+
+    if (options.body instanceof FormData) {
+        delete headers["Content-Type"];
+    }
 
     const resposta = await fetch(`${API_URL}${url}`, {
         ...options,
@@ -42,7 +53,9 @@ async function api(url, options = {}) {
 
     if (!resposta.ok) {
         throw new Error(
-            dados.mensagem || "Erro ao realizar operação."
+            dados.mensagem ||
+            dados.erro ||
+            "Erro ao realizar operação."
         );
     }
 
@@ -70,6 +83,7 @@ function obterUsuarioToken() {
         return null;
     }
 }
+
 
 const usuarioAtual = obterUsuarioToken();
 
@@ -126,6 +140,31 @@ function escaparHtml(valor) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+function linkPerfil(usuario, nome) {
+    const id = Number(usuario?.id ?? usuario?.usuarioId);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        return `<span>${escaparHtml(nome)}</span>`;
+    }
+
+    return `<a href="/html/perfil.html?id=${id}" class="link-perfil">${escaparHtml(nome)}</a>`;
+}
+
+function obterFotoPerfil(caminho) {
+    const fotoPadrao = "/img/avatar-padrao.png";
+
+    if (!caminho) return fotoPadrao;
+
+    if (
+        caminho.startsWith("http://") ||
+        caminho.startsWith("https://") ||
+        caminho.startsWith("data:")
+    ) {
+        return caminho;
+    }
+
+    return `${API_URL}/${caminho.replace(/^\/+/, "")}`;
+}
 
 function formatarData(data) {
     if (!data) return "";
@@ -150,6 +189,70 @@ function formatarTexto(texto) {
         match => `<span class="hashtag">${match}</span>`
     );
 }
+
+
+function normalizarHashtag(hashtag) {
+    const nome = String(hashtag || "").trim().toLowerCase();
+    if (!nome) return "";
+    return nome.startsWith("#") ? nome : `#${nome}`;
+}
+
+function obterHashtagsPublicacao(publicacao) {
+    const encontradas = (publicacao.texto || "").match(hashtagRegex) || [];
+
+    const vinculadas = Array.isArray(publicacao.hashtags)
+        ? publicacao.hashtags.map(item => typeof item === "string" ? item : item.nome)
+        : [];
+
+    return [...new Set(
+        [...encontradas, ...vinculadas]
+            .map(normalizarHashtag)
+            .filter(Boolean)
+    )];
+}
+
+
+function atualizarIndicadorHashtag() {
+    const indicador = document.getElementById("filtroHashtagAtivo");
+    const nome = document.getElementById("nomeHashtagAtiva");
+
+    if (!indicador || !nome) return;
+
+    if (hashtagSelecionada) {
+        nome.textContent = hashtagSelecionada;
+        indicador.hidden = false;
+    } else {
+        nome.textContent = "";
+        indicador.hidden = true;
+    }
+}
+
+function selecionarHashtag(hashtag) {
+    hashtagSelecionada = normalizarHashtag(hashtag);
+
+    if (!hashtagSelecionada) return;
+
+    termoPesquisa = "";
+    pesquisa.value = "";
+
+    atualizarIndicadorHashtag();
+    renderizarFeed();
+
+    modalHashtags.classList.remove("aberto");
+
+    document.querySelector(".feed-topo")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+function removerFiltroHashtag() {
+    hashtagSelecionada = null;
+    atualizarIndicadorHashtag();
+    renderizarFeed();
+}
+
+
 
 async function carregarPublicacoes() {
     listaPublicacoes.innerHTML = `
@@ -182,46 +285,45 @@ async function carregarPublicacoes() {
 function obterPublicacoesFiltradas() {
     let lista = [...publicacoes];
 
+    if (hashtagSelecionada) {
+        lista = lista.filter(publicacao =>
+            obterHashtagsPublicacao(publicacao).includes(hashtagSelecionada)
+        );
+    }
+
     if (termoPesquisa.trim()) {
         const termo = termoPesquisa.toLowerCase().trim();
 
         lista = lista.filter(publicacao => {
             const texto = publicacao.texto || "";
             const nome = publicacao.autor?.nome || "";
-            const hashtags = (publicacao.hashtags || [])
-                .map(tag => tag.nome)
-                .join(" ");
+            const hashtags = obterHashtagsPublicacao(publicacao).join(" ");
 
             return (
                 texto.toLowerCase().includes(termo) ||
                 nome.toLowerCase().includes(termo) ||
-                hashtags.toLowerCase().includes(termo)
+                hashtags.includes(termo)
             );
         });
     }
 
     if (filtroAtual === "curtidas") {
-        lista.sort(
-            (a, b) =>
-                (b.curtidas?.length || 0) -
-                (a.curtidas?.length || 0)
+        lista.sort((a, b) =>
+            (b.curtidas?.length || 0) - (a.curtidas?.length || 0)
         );
     } else if (filtroAtual === "comentarios") {
-        lista.sort(
-            (a, b) =>
-                (b.comentarios?.length || 0) -
-                (a.comentarios?.length || 0)
+        lista.sort((a, b) =>
+            (b.comentarios?.length || 0) - (a.comentarios?.length || 0)
         );
     } else {
-        lista.sort(
-            (a, b) =>
-                new Date(b.dataPublicacao) -
-                new Date(a.dataPublicacao)
+        lista.sort((a, b) =>
+            new Date(b.dataPublicacao) - new Date(a.dataPublicacao)
         );
     }
 
     return lista;
 }
+
 
 function renderizarFeed() {
     const lista = obterPublicacoesFiltradas();
@@ -245,7 +347,7 @@ function renderizarFeed() {
 function criarCardPublicacao(publicacao) {
     const autor = publicacao.autor || {};
     const nomeAutor = autor.nome || "Usuário";
-    const fotoAutor = autor.fotoPerfil || "/img/avatar-padrao.png";
+    const fotoAutor = obterFotoPerfil(autor.fotoPerfil);
     const quantidadeCurtidas = publicacao.curtidas?.length || 0;
     const quantidadeComentarios = publicacao.comentarios?.length || 0;
     const usuarioId = getIdUsuarioAtual();
@@ -272,7 +374,7 @@ function criarCardPublicacao(publicacao) {
                     <img class="avatar-post" src="${escaparHtml(fotoAutor)}" alt="Foto de ${escaparHtml(nomeAutor)}" onerror="this.src='/img/avatar-padrao.png'">
 
                     <div class="dados-autor">
-                        <span class="nome-autor">${escaparHtml(nomeAutor)}</span>
+                        <span class="nome-autor">${linkPerfil(autor, nomeAutor)}</span>
                         <span class="usuario-autor">
                             ${autor.tipo === "ADMINISTRADOR"
             ? "Administrador"
@@ -340,43 +442,56 @@ function criarCardPublicacao(publicacao) {
 function renderizarMidias(publicacao) {
     if (!publicacao.midias?.length) return "";
 
-    return publicacao.midias
-        .map(midia => {
-            const url =
-                midia.url ||
-                midia.caminho ||
-                midia.arquivo ||
-                midia.nomeArquivo;
+    return publicacao.midias.map(midia => {
+        const caminho =
+            midia.url ||
+            midia.path ||
+            midia.caminho ||
+            midia.arquivo ||
+            midia.nomeArquivo;
 
-            if (!url) return "";
+        if (!caminho) return "";
 
-            const tipo =
-                midia.tipo ||
-                midia.mimeType ||
-                "";
+        const url = caminho.startsWith("http://") ||
+            caminho.startsWith("https://")
+            ? caminho
+            : `${API_URL}/${caminho.replace(/^\/+/, "")}`;
 
-            if (tipo.startsWith("image/")) {
-                return `
-                    <img class="post-midia" src="${escaparHtml(url)}" alt="Imagem da publicação">
-                `;
-            }
+        const tipo = midia.mimeType || midia.tipo || "";
 
-            if (tipo.startsWith("video/")) {
-                return `
-                    <video class="post-video" controls>
-                        <source src="${escaparHtml(url)}" type="${escaparHtml(tipo)}">
-                    </video>
-                `;
-            }
-
+        if (tipo.startsWith("image/")) {
             return `
-                <a class="midia-download" href="${escaparHtml(url)}" target="_blank" rel="noopener noreferrer">
-                    <i class="fa-solid fa-file"></i>
-                    Abrir arquivo
-                </a>
+                <img
+                    class="post-midia"
+                    src="${escaparHtml(url)}"
+                    alt="Imagem da publicação"
+                    loading="lazy"
+                >
             `;
-        })
-        .join("");
+        }
+
+        if (tipo.startsWith("video/")) {
+            return `
+                <video class="post-video" controls>
+                    <source
+                        src="${escaparHtml(url)}"
+                        type="${escaparHtml(tipo)}"
+                    >
+                </video>
+            `;
+        }
+
+        return `
+            <a
+                class="midia-download"
+                href="${escaparHtml(url)}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Abrir arquivo
+            </a>
+        `;
+    }).join("");
 }
 
 function renderizarComentarios(publicacao) {
@@ -398,7 +513,7 @@ function renderizarComentarios(publicacao) {
 function criarComentario(comentario, publicacao) {
     const autor = comentario.autor || {};
     const nomeAutor = autor.nome || "Usuário";
-    const fotoAutor = autor.fotoPerfil || "/img/avatar-padrao.png";
+    const fotoAutor = obterFotoPerfil(autor.fotoPerfil);
     const podeExcluir = podeExcluirComentario(comentario, publicacao);
     const respostas = comentario.respostas || [];
 
@@ -409,7 +524,7 @@ function criarComentario(comentario, publicacao) {
 
                 <div class="conteudo-comentario">
                     <div>
-                        <span class="nome-comentario">${escaparHtml(nomeAutor)}</span>
+                       <span class="nome-comentario">${linkPerfil(autor, nomeAutor)}</span>
                         <span class="data-comentario">${formatarData(comentario.dataPublicacao)}</span>
                     </div>
 
@@ -465,7 +580,7 @@ function criarComentario(comentario, publicacao) {
 function criarResposta(resposta, comentario, publicacao) {
     const autor = resposta.autor || {};
     const nomeAutor = autor.nome || "Usuário";
-    const fotoAutor = autor.fotoPerfil || "/img/avatar-padrao.png";
+    const fotoAutor = obterFotoPerfil(autor.fotoPerfil);
     const podeExcluir = podeExcluirComentario(resposta, publicacao);
 
     return `
@@ -509,9 +624,10 @@ function criarResposta(resposta, comentario, publicacao) {
 
 async function criarPublicacao() {
     const textoValor = texto.value.trim();
+    const arquivo = inputArquivo?.files?.[0];
 
-    if (!textoValor) {
-        alert("Digite algo antes de publicar.");
+    if (!textoValor && !arquivo) {
+        alert("Digite algo ou selecione uma imagem antes de publicar.");
         return;
     }
 
@@ -529,8 +645,26 @@ async function criarPublicacao() {
             })
         });
 
-        const novaPublicacao = resposta.publicacao;
-        const possuiHashtag = textoValor.match(hashtagRegex);
+        const publicacaoId =
+            resposta.publicacao?.id ??
+            resposta.id;
+
+        if (!publicacaoId) {
+            throw new Error("Não foi possível identificar a publicação criada.");
+        }
+
+        if (arquivo) {
+            const formData = new FormData();
+            formData.append("arquivo", arquivo);
+
+            await api(
+                `/midias-publicacoes/cadastrar/${publicacaoId}`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+        }
 
         texto.value = "";
 
@@ -545,15 +679,11 @@ async function criarPublicacao() {
         alert("Publicação criada com sucesso!");
 
         await carregarPublicacoes();
+        await atualizarNuvem();
 
-        if (possuiHashtag) {
-            atualizarNuvem();
-        }
-
-        void novaPublicacao;
     } catch (erro) {
-        console.error(erro);
-        alert(erro.message || "Não foi possível publicar.");
+        console.error("Erro ao publicar:", erro);
+        alert(erro.message);
     } finally {
         btnPublicar.disabled = false;
         btnPublicar.textContent = "Publicar";
@@ -832,199 +962,280 @@ function abrirRespostaComentario(comentarioId) {
     }
 }
 
+let ultimaNuvem = "";
+
 async function atualizarNuvem() {
     const canvas = document.getElementById("nuvem");
-
     if (!canvas) return;
 
-    try {
-        await Promise.all(
-            publicacoes.map(async publicacao => {
-                if (!Array.isArray(publicacao.comentarios)) {
-                    try {
-                        publicacao.comentarios = await api(
-                            `/comentarios/publicacao/${publicacao.id}`
-                        );
-                    } catch (erro) {
-                        console.warn(
-                            `Não foi possível carregar os comentários da publicação ${publicacao.id}.`,
-                            erro
-                        );
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-                        publicacao.comentarios = [];
-                    }
+    await Promise.all(
+        publicacoes.map(async publicacao => {
+            if (!Array.isArray(publicacao.comentarios)) {
+                try {
+                    const resposta = await api(
+                        `/comentarios/publicacao/${publicacao.id}`
+                    );
+
+                    publicacao.comentarios = Array.isArray(resposta)
+                        ? resposta
+                        : resposta.comentarios || [];
+                } catch (erro) {
+                    console.error(erro);
+                    publicacao.comentarios = [];
                 }
-            })
-        );
+            }
+        })
+    );
 
-        const contexto = canvas.getContext("2d");
-        const contagem = {};
+    const contagem = {};
 
-        function contarHashtags(texto) {
-            if (!texto) return;
+    function contarHashtags(texto) {
+        const tags = (texto || "").match(hashtagRegex) || [];
 
-            const tags = texto.match(hashtagRegex);
-
-            if (!tags) return;
-
-            tags.forEach(tag => {
-                const normalizada = tag.toLowerCase();
-
-                contagem[normalizada] =
-                    (contagem[normalizada] || 0) + 1;
-            });
-        }
-
-        function contarComentarios(comentarios) {
-            if (!Array.isArray(comentarios)) return;
-
-            comentarios.forEach(comentario => {
-                contarHashtags(comentario.texto);
-
-                if (Array.isArray(comentario.respostas)) {
-                    contarComentarios(comentario.respostas);
-                }
-            });
-        }
-
-        publicacoes.forEach(publicacao => {
-            contarHashtags(publicacao.texto);
-            contarComentarios(publicacao.comentarios);
+        tags.forEach(tag => {
+            const nome = tag.toLowerCase();
+            contagem[nome] = (contagem[nome] || 0) + 1;
         });
+    }
 
-        const hashtags = Object.entries(contagem);
+    function contarComentarios(comentarios) {
+        if (!Array.isArray(comentarios)) return;
 
-        contexto.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
+        comentarios.forEach(comentario => {
+            contarHashtags(comentario.texto);
+            contarComentarios(comentario.respostas);
+        });
+    }
+
+    publicacoes.forEach(publicacao => {
+        contarHashtags(publicacao.texto);
+        contarComentarios(publicacao.comentarios);
+    });
+
+    const hashtags = Object.entries(contagem)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+    renderizarListaHashtags([...hashtags]);
+
+    const cores = [
+        "--primary-dark",
+        "--primary",
+        "--secondary",
+        "--text"
+    ].map(variavel =>
+        getComputedStyle(document.documentElement)
+            .getPropertyValue(variavel)
+            .trim()
+    ).filter(Boolean);
+
+    const assinatura = JSON.stringify({
+        hashtags,
+        cores
+    });
+    if (assinatura === ultimaNuvem) return;
+
+    const largura = canvas.width;
+    const altura = canvas.height;
+
+    if (!largura || !altura) return;
+
+    await document.fonts?.ready;
+
+    const maior = hashtags[0]?.[1] || 1;
+    const menor = hashtags[hashtags.length - 1]?.[1] || 1;
+
+    const centroX = largura / 2;
+    const centroY = altura / 2;
+    const margem = 8;
+    const espacamento = 5;
+    const ocupadas = [];
+
+    const estilos = getComputedStyle(document.documentElement);
+
+
+    const hashTexto = texto => {
+        let hash = 0;
+
+        for (let i = 0; i < texto.length; i++) {
+            hash = ((hash << 5) - hash + texto.charCodeAt(i)) | 0;
+        }
+
+        return Math.abs(hash);
+    };
+
+    function criarRetangulo(x, y, larguraTexto, tamanho, vertical) {
+        const larguraFinal = vertical ? tamanho : larguraTexto;
+        const alturaFinal = vertical ? larguraTexto : tamanho;
+
+        return {
+            esquerda: x - larguraFinal / 2 - espacamento,
+            direita: x + larguraFinal / 2 + espacamento,
+            topo: y - alturaFinal / 2 - espacamento,
+            baixo: y + alturaFinal / 2 + espacamento
+        };
+    }
+
+    function cabeNoCanvas(retangulo) {
+        return (
+            retangulo.esquerda >= margem &&
+            retangulo.direita <= largura - margem &&
+            retangulo.topo >= margem &&
+            retangulo.baixo <= altura - margem
+        );
+    }
+
+    function temColisao(retangulo) {
+        return ocupadas.some(item =>
+            retangulo.esquerda < item.direita &&
+            retangulo.direita > item.esquerda &&
+            retangulo.topo < item.baixo &&
+            retangulo.baixo > item.topo
+        );
+    }
+
+    const palavras = [];
+
+    hashtags.slice(0, 25).forEach(([tag, quantidade], indice) => {
+        const proporcao = maior === menor
+            ? 0.5
+            : (quantidade - menor) / (maior - menor);
+
+        let tamanho = 13 + proporcao * 17;
+
+        const tamanhoMaximo = Math.max(
+            12,
+            Math.min(30, largura * 0.085)
         );
 
-        if (!hashtags.length) {
-            contexto.font = "14px Montserrat, sans-serif";
-            contexto.fillStyle = "#888";
-            contexto.textAlign = "center";
+        tamanho = Math.min(tamanho, tamanhoMaximo);
 
-            contexto.fillText(
-                "Nenhuma hashtag utilizada ainda.",
-                canvas.width / 2,
-                canvas.height / 2
-            );
+        ctx.font = `700 ${tamanho}px Montserrat, sans-serif`;
 
-            renderizarListaHashtags([]);
+        const larguraTexto = ctx.measureText(tag).width;
+
+        const vertical = indice > 1 && hashTexto(tag) % 4 === 0;
+
+        const dimensaoMaior = vertical ? larguraTexto : tamanho;
+        const dimensaoHorizontal = vertical ? tamanho : larguraTexto;
+
+        if (
+            dimensaoHorizontal + margem * 2 > largura ||
+            dimensaoMaior + margem * 2 > altura
+        ) {
             return;
         }
 
-        const maior = Math.max(
-            ...hashtags.map(item => item[1])
-        );
+        const semente = hashTexto(tag);
+        const anguloInicial = (semente % 360) * Math.PI / 180;
 
-        const menor = Math.min(
-            ...hashtags.map(item => item[1])
-        );
+        let posicao = null;
 
-        const palavras = hashtags.map(([tag, quantidade]) => {
-            const tamanho =
-                maior === menor
-                    ? 20
-                    : 14 +
-                    ((quantidade - menor) /
-                        (maior - menor)) *
-                    20;
+        for (let tentativa = 0; tentativa < 1000; tentativa++) {
+            const angulo = anguloInicial + tentativa * 0.22;
+            const raio = tentativa * 0.45;
 
-            return {
-                tag,
-                quantidade,
-                tamanho
-            };
-        });
+            const x = centroX + Math.cos(angulo) * raio;
+            const y = centroY + Math.sin(angulo) * raio * 0.75;
 
-        palavras.sort(() => Math.random() - 0.5);
-
-        const usadas = [];
-
-        palavras.forEach(palavra => {
-            let tentativas = 0;
-            let x;
-            let y;
-
-            contexto.font =
-                `600 ${palavra.tamanho}px Montserrat, sans-serif`;
-
-            const largura =
-                contexto.measureText(palavra.tag).width +
-                palavra.tamanho;
-
-            while (tentativas < 100) {
-                x =
-                    15 +
-                    Math.random() *
-                    (canvas.width - largura - 30);
-
-                y =
-                    palavra.tamanho +
-                    Math.random() *
-                    (canvas.height -
-                        palavra.tamanho -
-                        25);
-
-                const colisao = usadas.some(
-                    item =>
-                        Math.abs(item.x - x) < 80 &&
-                        Math.abs(item.y - y) < 35
-                );
-
-                if (!colisao) break;
-
-                tentativas++;
-            }
-
-            contexto.fillStyle = "var(--primary)";
-            contexto.fillText(
-                palavra.tag,
+            const retangulo = criarRetangulo(
                 x,
-                y
+                y,
+                larguraTexto,
+                tamanho,
+                vertical
             );
 
-            usadas.push({
-                x,
-                y
-            });
-        });
+            if (cabeNoCanvas(retangulo) && !temColisao(retangulo)) {
+                posicao = { x, y, retangulo };
+                break;
+            }
+        }
 
-        renderizarListaHashtags(hashtags);
-    } catch (erro) {
-        console.error(
-            "Erro ao atualizar nuvem de hashtags:",
-            erro
-        );
-    }
+        if (!posicao) return;
+
+        ocupadas.push(posicao.retangulo);
+
+        palavras.push({
+            tag,
+            quantidade,
+            tamanho,
+            vertical,
+            x: posicao.x,
+            y: posicao.y,
+            cor: cores[semente % cores.length] || "#888"
+        });
+    });
+
+    ctx.clearRect(0, 0, largura, altura);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    palavras.forEach(palavra => {
+        ctx.save();
+
+        ctx.translate(palavra.x, palavra.y);
+
+        if (palavra.vertical) {
+            ctx.rotate(Math.PI / 2);
+        }
+
+        ctx.font = `700 ${palavra.tamanho}px Montserrat, sans-serif`;
+        ctx.fillStyle = palavra.cor;
+
+        ctx.fillText(palavra.tag, 0, 0);
+
+        ctx.restore();
+    });
+
+    ultimaNuvem = assinatura;
 }
+
 
 function renderizarListaHashtags(hashtags) {
     if (!listaHashtags) return;
 
     if (!hashtags.length) {
-        listaHashtags.innerHTML =
-            "<li>Nenhuma hashtag utilizada ainda.</li>";
+        listaHashtags.innerHTML = `
+            <li class="hashtags-vazio">
+                <i class="fa-solid fa-hashtag"></i>
+                <span>Nenhuma hashtag utilizada ainda.</span>
+            </li>
+        `;
         return;
     }
 
-    hashtags.sort((a, b) => b[1] - a[1]);
+    hashtags.sort((a, b) =>
+        b[1] - a[1] || a[0].localeCompare(b[0])
+    );
 
-    listaHashtags.innerHTML = hashtags
-        .map(
-            ([tag, quantidade], index) => `
-                <li>
-                    <strong>${index + 1}º</strong>
-                    ${escaparHtml(tag)} -
-                    ${quantidade}
-                    ${quantidade === 1 ? "uso" : "usos"}
-                </li>
-            `
-        )
-        .join("");
+    listaHashtags.innerHTML = hashtags.map(([tag, quantidade], index) => `
+        <li class="hashtag-item">
+            <button
+                type="button"
+                class="hashtag-opcao"
+                data-hashtag="${escaparHtml(tag)}"
+            >
+                <span class="hashtag-posicao">
+                    ${String(index + 1).padStart(2, "0")}
+                </span>
+
+                <span class="hashtag-dados">
+                    <strong>${escaparHtml(tag)}</strong>
+                    <small>Ver publicações relacionadas</small>
+                </span>
+
+                <span class="hashtag-quantidade">
+                    <strong>${quantidade}</strong>
+                    <small>${quantidade === 1 ? "uso" : "usos"}</small>
+                </span>
+
+                <i class="fa-solid fa-arrow-up-right-from-square hashtag-seta"></i>
+            </button>
+        </li>
+    `).join("");
 }
 
 btnPublicar.addEventListener(
@@ -1044,22 +1255,41 @@ texto.addEventListener(
     }
 );
 
-inputArquivo?.addEventListener(
-    "change",
-    () => {
-        const arquivo = inputArquivo.files?.[0];
+inputArquivo?.addEventListener("change", () => {
+    const arquivo = inputArquivo.files?.[0];
 
-        if (!arquivo) {
-            previewAnexo.innerHTML = "";
-            return;
-        }
-
-        previewAnexo.innerHTML = `
-            <i class="fa-solid fa-paperclip"></i>
-            ${escaparHtml(arquivo.name)}
-        `;
+    if (!arquivo) {
+        previewAnexo.innerHTML = "";
+        return;
     }
-);
+
+    if (!arquivo.type.startsWith("image/")) {
+        alert("Selecione uma imagem válida.");
+        inputArquivo.value = "";
+        previewAnexo.innerHTML = "";
+        return;
+    }
+
+    const url = URL.createObjectURL(arquivo);
+
+    previewAnexo.innerHTML = `
+        <div class="preview-imagem">
+            <img src="${url}" alt="Prévia da imagem">
+            <button type="button" id="removerImagem">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    `;
+
+    previewAnexo.querySelector("img").onload = () => {
+        URL.revokeObjectURL(url);
+    };
+
+    document.getElementById("removerImagem").addEventListener("click", () => {
+        inputArquivo.value = "";
+        previewAnexo.innerHTML = "";
+    });
+});
 
 btnFiltros.addEventListener(
     "click",
@@ -1287,3 +1517,52 @@ document.addEventListener(
         atualizarNuvem();
     }
 );
+
+
+listaHashtags?.addEventListener("click", evento => {
+    const botao = evento.target.closest("[data-hashtag]");
+    if (!botao) return;
+
+    selecionarHashtag(botao.dataset.hashtag);
+});
+
+limparFiltroHashtag?.addEventListener("click", removerFiltroHashtag);
+
+
+const btnAtualizarFeed = document.getElementById("btnAtualizarFeed");
+
+btnAtualizarFeed?.addEventListener("click", async () => {
+    btnAtualizarFeed.disabled = true;
+    btnAtualizarFeed.classList.add("atualizando");
+
+    try {
+        hashtagSelecionada = null;
+        termoPesquisa = "";
+        filtroAtual = "recentes";
+
+        pesquisa.value = "";
+
+        document.querySelectorAll(".filtros-pesquisa button").forEach(botao => {
+            botao.classList.toggle("filtro-ativo", botao.dataset.filtro === "recentes");
+        });
+
+        atualizarIndicadorHashtag();
+
+        await carregarPublicacoes();
+        await atualizarNuvem();
+    } catch (erro) {
+        console.error("Erro ao atualizar feed:", erro);
+    } finally {
+        btnAtualizarFeed.disabled = false;
+        btnAtualizarFeed.classList.remove("atualizando");
+    }
+});
+
+document.getElementById("listaHashtags")?.addEventListener("click", evento => {
+    const botao = evento.target.closest("[data-hashtag]");
+    if (!botao) return;
+
+    selecionarHashtag(botao.dataset.hashtag);
+});
+
+document.getElementById("limparFiltroHashtag")?.addEventListener("click", removerFiltroHashtag);

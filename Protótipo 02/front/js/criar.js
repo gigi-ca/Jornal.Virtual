@@ -15,128 +15,324 @@ const previewFoto = document.getElementById("previewFoto");
 const previewImagem = document.getElementById("previewImagem");
 const mensagem = document.getElementById("mensagem");
 
-titulo.addEventListener("input", function () {
-    contadorTitulo.textContent = this.value.length;
-    previewTitulo.textContent = this.value || "Título da notícia";
-});
+const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+const apiUrl = (typeof API_URL !== "undefined" ? API_URL : "http://localhost:3000").replace(/\/$/, "");
+const noticiaId = new URLSearchParams(window.location.search).get("id");
 
-resumo.addEventListener("input", function () {
-    contadorResumo.textContent = this.value.length;
-    previewResumo.textContent = this.value || "O resumo da notícia aparecerá aqui.";
-});
+let usuario = null;
+let noticiaOriginal = null;
+let urlImagemTemporaria = null;
+let salvando = false;
 
-categoria.addEventListener("change", function () {
-    previewCategoria.textContent = this.value || "Categoria";
-});
+function obterUsuarioToken() {
+    if (!token) return null;
 
-autor.addEventListener("input", function () {
-    previewAutor.textContent = this.value || "Autor";
-});
+    try {
+        const parte = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        const base64 = parte.padEnd(Math.ceil(parte.length / 4) * 4, "=");
+        const texto = decodeURIComponent(
+            Array.from(atob(base64), caractere =>
+                `%${caractere.charCodeAt(0).toString(16).padStart(2, "0")}`
+            ).join("")
+        );
 
-imagem.addEventListener("change", function () {
-    const arquivo = this.files[0];
-
-    if (!arquivo) {
-        return;
+        return JSON.parse(texto);
+    } catch {
+        return null;
     }
-
-    if (!arquivo.type.startsWith("image/")) {
-        alert("Selecione uma imagem válida.");
-        this.value = "";
-        return;
-    }
-
-    const leitor = new FileReader();
-
-    leitor.onload = function (event) {
-        const imagemBase64 = event.target.result;
-
-        previewImagem.innerHTML = `
-            <img src="${imagemBase64}" alt="Imagem da notícia">
-        `;
-
-        previewImagem.style.display = "block";
-
-        previewFoto.innerHTML = `
-            <img src="${imagemBase64}" alt="Imagem da notícia">
-        `;
-    };
-
-    leitor.readAsDataURL(arquivo);
-});
-
-form.addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    if (
-        !titulo.value.trim() ||
-        !categoria.value ||
-        !autor.value.trim() ||
-        !resumo.value.trim() ||
-        !conteudo.value.trim()
-    ) {
-        alert("Preencha todos os campos obrigatórios.");
-        return;
-    }
-
-    const arquivo = imagem.files[0];
-
-    if (arquivo) {
-        const leitor = new FileReader();
-
-        leitor.onload = function (event) {
-            salvarNoticia(event.target.result);
-        };
-
-        leitor.readAsDataURL(arquivo);
-    } else {
-        salvarNoticia("");
-    }
-});
-
-function salvarNoticia(imagemBase64) {
-    let noticias = JSON.parse(localStorage.getItem("noticias")) || [];
-
-    const novaNoticia = {
-        id: Date.now(),
-        titulo: titulo.value.trim(),
-        categoria: categoria.value,
-        autor: autor.value.trim(),
-        resumo: resumo.value.trim(),
-        conteudo: conteudo.value.trim(),
-        imagem: imagemBase64,
-        data: new Date().toLocaleDateString("pt-BR")
-    };
-
-    noticias.push(novaNoticia);
-
-    localStorage.setItem("noticias", JSON.stringify(noticias));
-
-    mostrarMensagem();
-
-    form.reset();
-
-    contadorTitulo.textContent = "0";
-    contadorResumo.textContent = "0";
-
-    previewTitulo.textContent = "Título da notícia";
-    previewCategoria.textContent = "Categoria";
-    previewAutor.textContent = "Autor";
-    previewResumo.textContent = "O resumo da notícia aparecerá aqui.";
-
-    previewImagem.style.display = "none";
-    previewImagem.innerHTML = "";
-
-    previewFoto.innerHTML = `
-        <i class="fa-solid fa-image"></i>
-        <span>Sua imagem aparecerá aqui</span>
-    `;
 }
 
-function mostrarMensagem() {
-    mensagem.classList.add("mostrar");
+usuario = obterUsuarioToken();
 
-    setTimeout(function () {
-        mensagem.classList.remove("mostrar");
-    }, 3000);
+const administrador = usuario?.tipo === "ADMINISTRADOR";
+const verificado = usuario?.tipo === "VERIFICADO";
+const podePublicar = administrador || verificado;
+
+async function requisicao(caminho, opcoes = {}) {
+    const resposta = await fetch(`${apiUrl}${caminho}`, {
+        ...opcoes,
+        headers: {
+            Authorization: `Bearer ${token}`,
+            ...(opcoes.headers || {})
+        }
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+        throw new Error(
+            dados.mensagem ||
+            dados.erro ||
+            dados.error ||
+            "Não foi possível concluir a operação."
+        );
+    }
+
+    return dados;
 }
+
+function mostrarMensagem(texto, erro = false) {
+    if (!mensagem) {
+        if (erro) alert(texto);
+        return;
+    }
+
+    mensagem.textContent = texto;
+    mensagem.style.color = erro ? "var(--danger)" : "var(--primary)";
+    mensagem.style.display = "block";
+}
+
+function atualizarPrevia() {
+    if (contadorTitulo) contadorTitulo.textContent = titulo.value.length;
+    if (contadorResumo) contadorResumo.textContent = resumo.value.length;
+
+    if (previewTitulo) {
+        previewTitulo.textContent = titulo.value.trim() || "Título da notícia";
+    }
+
+    if (previewResumo) {
+        previewResumo.textContent = resumo.value.trim() || "Resumo da notícia";
+    }
+
+    if (previewCategoria) {
+        previewCategoria.textContent = categoria?.value || "NOTÍCIA";
+    }
+
+    if (previewAutor) {
+        previewAutor.textContent = usuario?.nome || "Autor";
+    }
+}
+
+function mostrarImagem(url) {
+    if (!url) return;
+
+    if (previewFoto) {
+        if (previewFoto.tagName === "IMG") {
+            previewFoto.src = url;
+        } else {
+            const foto = document.createElement("img");
+            foto.src = url;
+            foto.alt = "Prévia da notícia";
+            foto.style.width = "100%";
+            foto.style.height = "100%";
+            foto.style.objectFit = "cover";
+            previewFoto.replaceChildren(foto);
+        }
+    }
+
+    if (previewImagem) {
+        if (previewImagem.tagName === "IMG") {
+            previewImagem.src = url;
+        } else {
+            const miniatura = document.createElement("img");
+            miniatura.src = url;
+            miniatura.alt = "Imagem selecionada";
+            miniatura.style.maxWidth = "100%";
+            miniatura.style.maxHeight = "150px";
+            miniatura.style.objectFit = "contain";
+            previewImagem.replaceChildren(miniatura);
+        }
+    }
+}
+
+function obterImagemNoticia(noticia) {
+    const midia = noticia.midias?.find(item =>
+        item.mimeType?.startsWith("image/")
+    );
+
+    if (!midia?.path) return null;
+
+    const caminho = midia.path.replace(/\\/g, "/");
+
+    if (/^https?:\/\//i.test(caminho)) return caminho;
+
+    return `${apiUrl}/${caminho.replace(/^\/+/, "")}`;
+}
+
+function podeEditar(noticia) {
+    return administrador || (
+        verificado &&
+        Number(noticia.usuarioId) === Number(usuario?.id)
+    );
+}
+
+async function carregarNoticia() {
+    if (!noticiaId) return;
+
+    try {
+        const dados = await requisicao(`/noticias/buscar/${noticiaId}`);
+        const noticia = dados.noticia || dados;
+
+        if (!podeEditar(noticia)) {
+            throw new Error("Você não tem permissão para editar esta notícia.");
+        }
+
+        noticiaOriginal = noticia;
+
+        titulo.value = noticia.titulo || "";
+        resumo.value = noticia.subtitulo || "";
+        conteudo.value = noticia.texto || "";
+
+        if (autor) {
+            autor.value = noticia.autor?.nome || usuario?.nome || "";
+        }
+
+        const imagemExistente = obterImagemNoticia(noticia);
+
+        if (imagemExistente) {
+            mostrarImagem(imagemExistente);
+        }
+
+        atualizarPrevia();
+
+        const botao = form.querySelector('[type="submit"]');
+
+        if (botao) {
+            botao.textContent = "Salvar alterações";
+        }
+
+        document.title = "Editar notícia | Jornal Online";
+    } catch (erro) {
+        mostrarMensagem(erro.message, true);
+        form.querySelectorAll("input, textarea, select, button").forEach(campo => {
+            campo.disabled = true;
+        });
+    }
+}
+
+async function enviarImagem(id, arquivo) {
+    const dadosImagem = new FormData();
+    dadosImagem.append("arquivo", arquivo);
+
+    return requisicao(`/midias-noticias/cadastrar/${id}`, {
+        method: "POST",
+        body: dadosImagem
+    });
+}
+
+async function salvarNoticia(evento) {
+    evento.preventDefault();
+
+    if (salvando || !podePublicar) return;
+
+    const tituloValor = titulo.value.trim();
+    const resumoValor = resumo.value.trim();
+    const conteudoValor = conteudo.value.trim();
+
+    if (!tituloValor || !conteudoValor) {
+        mostrarMensagem("Preencha o título e o conteúdo da notícia.", true);
+        return;
+    }
+
+    const arquivo = imagem?.files?.[0];
+
+    if (arquivo && !arquivo.type.startsWith("image/")) {
+        mostrarMensagem("Selecione um arquivo de imagem válido.", true);
+        return;
+    }
+
+    const botao = form.querySelector('[type="submit"]');
+    const textoOriginal = botao?.textContent;
+
+    salvando = true;
+
+    if (botao) {
+        botao.disabled = true;
+        botao.textContent = "Salvando...";
+    }
+
+    try {
+        const dados = await requisicao(
+            noticiaId
+                ? `/noticias/atualizar/${noticiaId}`
+                : "/noticias/cadastrar",
+            {
+                method: noticiaId ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    titulo: tituloValor,
+                    subtitulo: resumoValor,
+                    texto: conteudoValor
+                })
+            }
+        );
+
+        const id = noticiaId || dados.noticia?.id || dados.id;
+
+        if (arquivo) {
+            if (!id) {
+                throw new Error("Notícia salva, mas o servidor não retornou o ID necessário para enviar a imagem.");
+            }
+
+            try {
+                await enviarImagem(id, arquivo);
+            } catch (erro) {
+                throw new Error(
+                    `A notícia foi salva, mas houve um erro ao enviar a imagem: ${erro.message}`
+                );
+            }
+        }
+
+        mostrarMensagem(
+            noticiaId
+                ? "Notícia atualizada com sucesso!"
+                : "Notícia publicada com sucesso!"
+        );
+
+        window.location.href = "/html/inicio.html";
+    } catch (erro) {
+        mostrarMensagem(erro.message, true);
+    } finally {
+        salvando = false;
+
+        if (botao) {
+            botao.disabled = false;
+            botao.textContent = textoOriginal;
+        }
+    }
+}
+
+if (titulo) titulo.addEventListener("input", atualizarPrevia);
+if (resumo) resumo.addEventListener("input", atualizarPrevia);
+if (categoria) categoria.addEventListener("change", atualizarPrevia);
+
+if (autor) {
+    autor.value = usuario?.nome || "";
+    autor.readOnly = true;
+}
+
+if (imagem) {
+    imagem.addEventListener("change", () => {
+        const arquivo = imagem.files?.[0];
+
+        if (urlImagemTemporaria) {
+            URL.revokeObjectURL(urlImagemTemporaria);
+            urlImagemTemporaria = null;
+        }
+
+        if (!arquivo) return;
+
+        if (!arquivo.type.startsWith("image/")) {
+            imagem.value = "";
+            mostrarMensagem("Selecione uma imagem válida.", true);
+            return;
+        }
+
+        urlImagemTemporaria = URL.createObjectURL(arquivo);
+        mostrarImagem(urlImagemTemporaria);
+    });
+}
+
+if (!podePublicar) {
+    mostrarMensagem("Sua conta não tem permissão para publicar notícias.", true);
+    form.querySelectorAll("input, textarea, select, button").forEach(campo => {
+        campo.disabled = true;
+    });
+} else {
+    form.addEventListener("submit", salvarNoticia);
+    carregarNoticia();
+}
+
+atualizarPrevia();

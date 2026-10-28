@@ -1,32 +1,30 @@
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    overflow-y: scroll;
+}
+
 body {
     font-family: "Montserrat", sans-serif;
 }
 
-
 .header-global {
     width: 100%;
     height: 82px;
-    background: linear-gradient(
-        90deg,
-        var(--primary),
-        var(--secondary)
-    );
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 7%;
-
     color: var(--surface);
-
     box-shadow: 0 4px 15px var(--primary-dark);
     position: relative;
-    z-index: 10;
+    z-index: 100;
 }
 
 .header-global .logo {
@@ -54,7 +52,6 @@ body {
     display: flex;
     align-items: center;
     gap: 35px;
-
 }
 
 .header-global .nav-principal a {
@@ -89,47 +86,113 @@ body {
     width: 100%;
 }
 
-@media (max-width: 768px) {
+.header-global .menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    color: var(--surface);
+    font-size: 23px;
+    cursor: pointer;
+}
 
+@media (max-width: 768px) {
     .header-global {
-        height: auto;
-        min-height: 85px;
-        padding: 12px 20px;
-        gap: 15px;
+        height: 75px;
+        padding: 0 5%;
+        flex-wrap: nowrap;
     }
 
-    .header-global .logo img {
-        width: 50px;
+    .header-global .logo {
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .header-global .logo i {
+        font-size: 25px;
+    }
+
+    .header-global .logo h2 {
+        font-size: 20px;
+        white-space: nowrap;
+    }
+
+    .header-global .menu-toggle {
+        display: flex;
+        flex-shrink: 0;
     }
 
     .header-global .nav-principal {
-        gap: 20px;
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        padding: 12px 5% 20px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+        box-shadow: 0 10px 20px color-mix(in srgb, var(--primary-dark) 25%, transparent);
+        z-index: 100;
+    }
+
+    .header-global .nav-principal.aberto {
+        display: flex;
     }
 
     .header-global .nav-principal a {
-        font-size: 13px;
+        width: 100%;
+        padding: 13px 15px;
+        font-size: 14px;
+        text-align: left;
+        border-radius: 8px;
+    }
+
+    .header-global .nav-principal a:hover,
+    .header-global .nav-principal a.ativo {
+        background: color-mix(in srgb, var(--surface) 15%, transparent);
+        opacity: 1;
+    }
+
+    .header-global .nav-principal a::after {
+        display: none;
     }
 }
 
 @media (max-width: 480px) {
-
     .header-global {
-        padding: 10px 15px;
+        height: 68px;
+        padding: 0 16px;
     }
 
-    .header-global .logo img {
-        width: 45px;
+    .header-global .logo {
+        gap: 8px;
+    }
+
+    .header-global .logo i {
+        font-size: 22px;
+    }
+
+    .header-global .logo h2 {
+        font-size: 18px;
+    }
+
+    .header-global .menu-toggle {
+        width: 38px;
+        height: 38px;
+        font-size: 21px;
     }
 
     .header-global .nav-principal {
-        gap: 12px;
+        padding: 10px 15px 18px;
     }
 
     .header-global .nav-principal a {
-        font-size: 12px;
+        font-size: 13px;
+        padding: 12px;
     }
-}
-
-html {
-    overflow-y: scroll;
 }

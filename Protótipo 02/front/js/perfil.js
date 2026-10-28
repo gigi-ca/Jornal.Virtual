@@ -23,7 +23,7 @@ const totalComentarios = document.getElementById("totalComentarios");
 const totalCurtidas = document.getElementById("totalCurtidas");
 
 function obterUsuarioToken() {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
     if (!token) return null;
 
@@ -53,6 +53,23 @@ function obterUsuarioToken() {
     }
 }
 
+const parametrosPerfil = new URLSearchParams(window.location.search);
+const idSolicitado = Number(parametrosPerfil.get("id"));
+
+function obterIdPerfil() {
+    const usuario = obterUsuarioToken();
+
+    if (parametrosPerfil.has("id") && Number.isInteger(idSolicitado) && idSolicitado > 0) {
+        return idSolicitado;
+    }
+
+    return usuario?.id;
+}
+
+function perfilProprio() {
+    return Number(obterIdPerfil()) === Number(obterUsuarioToken()?.id);
+}
+
 function obterCaminhoImagem(caminho, padrao) {
     if (!caminho) return padrao;
 
@@ -77,17 +94,17 @@ function formatarTipo(tipo) {
 }
 
 async function carregarPerfil() {
-    const token = localStorage.getItem("token");
-    const usuarioToken = obterUsuarioToken();
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const perfilId = obterIdPerfil();
 
-    if (!token || !usuarioToken?.id) {
-        window.location.href = "../login.html";
+    if (!token || !perfilId) {
+        window.location.href = "/html/login.html";
         return;
     }
 
     try {
         const resposta = await fetch(
-            `${API_URL}/usuarios/buscar/${usuarioToken.id}`,
+            `${API_URL}/usuarios/buscar/${perfilId}`,
             {
                 method: "GET",
                 headers: {
@@ -134,12 +151,13 @@ async function carregarPerfil() {
             banner.src = TEMPLATE_PADRAO;
         };
 
-        prepararModal();
+        if (perfilProprio()) {
+            prepararModal();
+        }
 
-        await carregarEstatisticas(
-            usuarioToken.id,
-            token
-        );
+        await carregarEstatisticas(perfilId, token);
+
+
 
     } catch (erro) {
         console.error("Erro ao carregar perfil:", erro);
@@ -238,7 +256,7 @@ async function carregarEstatisticas(usuarioId, token) {
 function prepararModal() {
     inputDescricao.value =
         descricao.textContent !==
-        "Este usuário ainda não adicionou uma descrição."
+            "Este usuário ainda não adicionou uma descrição."
             ? descricao.textContent
             : "";
 
@@ -247,6 +265,7 @@ function prepararModal() {
 }
 
 function abrirModal() {
+    if (!perfilProprio()) return;
     prepararModal();
     modal.style.display = "flex";
 }
@@ -262,7 +281,7 @@ function fecharModal() {
 
     inputDescricao.value =
         descricao.textContent ===
-        "Este usuário ainda não adicionou uma descrição."
+            "Este usuário ainda não adicionou uma descrição."
             ? ""
             : descricao.textContent;
 }
@@ -274,7 +293,7 @@ function mostrarPreview(input, preview) {
 
     const leitor = new FileReader();
 
-    leitor.onload = function(evento) {
+    leitor.onload = function (evento) {
         preview.src = evento.target.result;
     };
 
@@ -288,14 +307,15 @@ inputFoto.addEventListener("change", () => {
 inputBanner.addEventListener("change", () => {
     mostrarPreview(inputBanner, previewBanner);
 });
-
 async function salvarPerfil() {
-    const token = localStorage.getItem("token");
+    if (!perfilProprio()) return;
+
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     const usuarioToken = obterUsuarioToken();
 
     if (!token || !usuarioToken?.id) {
         alert("Sua sessão expirou. Faça login novamente.");
-        window.location.href = "../login.html";
+        window.location.href = "/html/login.html";
         return;
     }
 
@@ -305,7 +325,7 @@ async function salvarPerfil() {
 
     const descricaoAtual =
         descricao.textContent ===
-        "Este usuário ainda não adicionou uma descrição."
+            "Este usuário ainda não adicionou uma descrição."
             ? ""
             : descricao.textContent;
 
@@ -405,7 +425,7 @@ async function salvarPerfil() {
             }
         }
 
-        alert("Perfil atualizado com sucesso! ✅");
+        alert("Perfil atualizado com sucesso!");
 
         fecharModal();
 
@@ -424,7 +444,7 @@ async function salvarPerfil() {
     }
 }
 
-window.onclick = function(event) {
+window.onclick = function (event) {
     if (event.target === modal) {
         fecharModal();
     }

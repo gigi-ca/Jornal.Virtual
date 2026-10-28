@@ -20,23 +20,22 @@
 <body>
 
   <header class="header-global">
-
     <div class="logo">
       <i class="fa-solid fa-newspaper"></i>
       <h2>Jornal<span>Online</span></h2>
     </div>
 
+    <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"
+      aria-controls="navPrincipal">
+      <i class="fa-solid fa-bars"></i>
+    </button>
 
-    <nav class="nav-principal">
-
+    <nav class="nav-principal" id="navPrincipal">
       <a href="/html/inicio.html">Início</a>
       <a href="/html/feed.html">Feed</a>
       <a href="/html/perfil.html">Minha Conta</a>
-      <a href="/html/configuracoes.html" class="ativo">
-        Configurações
-      </a>
+      <a href="/html/configuracoes.html" class="ativo">Configurações</a>
     </nav>
-
   </header>
 
 
@@ -83,7 +82,7 @@
           <i class="fa-solid fa-chevron-right"></i>
         </a>
 
-        <a href="/html/login.html" class="item sair">
+        <a href="/html/login.html" class="item sair" id="sairConta">
           <div class="esquerda">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span>Sair da Conta</span>
