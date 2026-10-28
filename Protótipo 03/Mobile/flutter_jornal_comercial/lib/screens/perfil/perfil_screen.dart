@@ -9,10 +9,14 @@ import '../../models/usuario.dart';
 import '../../services/noticia_service.dart';
 import '../../services/publicacao_service.dart';
 import '../../services/usuarios_service.dart';
+import 'atividades_perfil_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
+  final int? usuarioId;
+
   const PerfilScreen({
     super.key,
+    this.usuarioId,
   });
 
   @override
@@ -24,6 +28,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   final NewsService _newsService = NewsService();
   final PublicacaoService _publicacaoService = PublicacaoService();
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _bioController = TextEditingController();
 
   Usuario? _usuario;
   Future<_EstatisticasPerfil>? _estatisticasFuture;
@@ -31,11 +36,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
   bool _carregando = true;
   bool _salvando = false;
   bool _uploadandoImagem = false;
+  bool _ehMeuPerfil = true;
 
   String? _erro;
-
-  final TextEditingController _bioController =
-      TextEditingController();
 
   @override
   void initState() {
@@ -58,26 +61,32 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
 
     try {
-      final usuario =
+      final usuarioLogado =
           await _usuarioService.buscarUsuarioLogado();
+
+      final idSolicitado = widget.usuarioId;
+
+      final usuario = idSolicitado == null ||
+              idSolicitado == usuarioLogado.id
+          ? usuarioLogado
+          : await _usuarioService.buscarUsuarioPorId(
+              idSolicitado,
+            );
 
       if (!mounted) return;
 
       setState(() {
         _usuario = usuario;
+        _ehMeuPerfil = usuario.id == usuarioLogado.id;
         _bioController.text = usuario.bio ?? '';
-        _estatisticasFuture =
-            _carregarEstatisticas(usuario);
+        _estatisticasFuture = _carregarEstatisticas(usuario);
         _carregando = false;
       });
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        _erro = e.toString().replaceFirst(
-              'Exception: ',
-              '',
-            );
+        _erro = e.toString().replaceFirst('Exception: ', '');
         _carregando = false;
       });
     }
@@ -86,39 +95,30 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Future<_EstatisticasPerfil> _carregarEstatisticas(
     Usuario usuario,
   ) async {
-    final noticias =
-        await _newsService.listarNoticias();
-
+    final noticias = await _newsService.listarNoticias();
     final publicacoes =
         await _publicacaoService.listarPublicacoes();
 
-    final noticiasDoUsuario = noticias.where((noticia) {
-      return _pertenceAoUsuario(
-        noticia.autor,
-        usuario.id,
-      );
+    final quantidadeNoticias = noticias.where((noticia) {
+      return _pertenceAoUsuario(noticia.autor, usuario.id);
     }).length;
 
-    final publicacoesDoUsuario =
+    final quantidadePublicacoes =
         publicacoes.where((publicacao) {
       return _pertenceAoUsuario(
         publicacao.autor,
         usuario.id,
       );
-    }).toList();
+    }).length;
 
-    final curtidas =
-        publicacoesDoUsuario.fold<int>(
-      0,
-      (total, publicacao) {
-        return total + publicacao.curtidas.length;
-      },
-    );
+    final curtidasFeitas = publicacoes.where((publicacao) {
+      return publicacao.curtidaPorUsuario(usuario.id);
+    }).length;
 
     return _EstatisticasPerfil(
-      noticias: noticiasDoUsuario,
-      publicacoes: publicacoesDoUsuario.length,
-      curtidas: curtidas,
+      noticias: quantidadeNoticias,
+      publicacoes: quantidadePublicacoes,
+      curtidas: curtidasFeitas,
     );
   }
 
@@ -126,19 +126,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
     Map<String, dynamic>? autor,
     int usuarioId,
   ) {
-    if (autor == null) {
-      return false;
-    }
+    if (autor == null) return false;
 
     final id = autor['id'] ?? autor['usuarioId'];
 
     return id?.toString() == usuarioId.toString();
   }
 
-
-
   Future<void> _selecionarFotoPerfil() async {
-    if (_usuario == null || _uploadandoImagem) return;
+    if (!_ehMeuPerfil || _usuario == null || _uploadandoImagem) {
+      return;
+    }
 
     try {
       final arquivo = await _picker.pickImage(
@@ -147,9 +145,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       if (arquivo == null) return;
 
-      setState(() {
-        _uploadandoImagem = true;
-      });
+      setState(() => _uploadandoImagem = true);
 
       await _usuarioService.atualizarFoto(arquivo);
 
@@ -159,49 +155,25 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Foto de perfil atualizada com sucesso!',
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      );
+      _mostrarMensagem('Foto de perfil atualizada com sucesso!');
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceFirst(
-                  'Exception: ',
-                  '',
-                ),
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
+      _mostrarMensagem(
+        e.toString().replaceFirst('Exception: ', ''),
+        erro: true,
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _uploadandoImagem = false;
-        });
+        setState(() => _uploadandoImagem = false);
       }
     }
   }
 
-
-
   Future<void> _selecionarTemplate() async {
-    if (_usuario == null || _uploadandoImagem) return;
+    if (!_ehMeuPerfil || _usuario == null || _uploadandoImagem) {
+      return;
+    }
 
     try {
       final arquivo = await _picker.pickImage(
@@ -210,9 +182,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       if (arquivo == null) return;
 
-      setState(() {
-        _uploadandoImagem = true;
-      });
+      setState(() => _uploadandoImagem = true);
 
       await _usuarioService.atualizarTemplate(
         _usuario!.id,
@@ -225,53 +195,27 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Template atualizado com sucesso!',
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      );
+      _mostrarMensagem('Template atualizado com sucesso!');
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceFirst(
-                  'Exception: ',
-                  '',
-                ),
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
+      _mostrarMensagem(
+        e.toString().replaceFirst('Exception: ', ''),
+        erro: true,
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _uploadandoImagem = false;
-        });
+        setState(() => _uploadandoImagem = false);
       }
     }
   }
 
-
-
   Future<void> _salvarBio() async {
-    if (_usuario == null) return;
+    if (!_ehMeuPerfil || _usuario == null || _salvando) {
+      return;
+    }
 
-    setState(() {
-      _salvando = true;
-    });
+    setState(() => _salvando = true);
 
     try {
       final usuarioAtualizado =
@@ -284,56 +228,45 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       setState(() {
         _usuario = usuarioAtualizado;
-        _bioController.text =
-            usuarioAtualizado.bio ?? '';
+        _bioController.text = usuarioAtualizado.bio ?? '';
         _estatisticasFuture =
             _carregarEstatisticas(usuarioAtualizado);
         _salvando = false;
       });
 
       Navigator.pop(context);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Perfil atualizado com sucesso!',
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      );
+      _mostrarMensagem('Perfil atualizado com sucesso!');
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _salvando = false;
-      });
+      setState(() => _salvando = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceFirst(
-                  'Exception: ',
-                  '',
-                ),
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
+      _mostrarMensagem(
+        e.toString().replaceFirst('Exception: ', ''),
+        erro: true,
       );
     }
   }
 
-
+  void _mostrarMensagem(
+    String mensagem, {
+    bool erro = false,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem),
+        backgroundColor:
+            erro ? AppColors.error : AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+    );
+  }
 
   void _abrirEdicao() {
-    if (_usuario == null) return;
+    if (!_ehMeuPerfil || _usuario == null) return;
 
     _bioController.text = _usuario!.bio ?? '';
 
@@ -342,206 +275,101 @@ class _PerfilScreenState extends State<PerfilScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 12,
-                bottom:
-                    MediaQuery.of(context).viewInsets.bottom +
-                        24,
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(28),
               ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(30),
-                ),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Editar Perfil',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF18213D),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Atualize sua bio',
+                    style: TextStyle(
+                      color: Color(0xFF817980),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  const Text(
+                    'Bio',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF18213D),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _bioController,
+                    maxLines: 4,
+                    maxLength: 300,
+                    decoration: InputDecoration(
+                      hintText: 'Escreva uma descrição sobre você...',
+                      filled: true,
+                      fillColor: const Color(0xFFFFF7FA),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFEF3F7A),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _salvando ? null : _salvarBio,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF3F7A),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: _salvando
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Salvar alterações'),
+                    ),
+                  ),
+                ],
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 42,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE7DDE1),
-                          borderRadius:
-                              BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    Row(
-                      children: [
-                        Container(
-                          width: 45,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFFFFE4EC),
-                            borderRadius:
-                                BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.edit_outlined,
-                            color: Color(0xFFEF3F7A),
-                          ),
-                        ),
-                        const SizedBox(width: 13),
-                        const Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Editar Perfil',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight:
-                                    FontWeight.w800,
-                                color:
-                                    Color(0xFF18213D),
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Atualize sua bio',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color:
-                                    Color(0xFF8B8589),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-                    const Text(
-                      'Bio',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF18213D),
-                      ),
-                    ),
-                    const SizedBox(height: 9),
-                    TextField(
-                      controller: _bioController,
-                      maxLines: 4,
-                      maxLength: 300,
-                      decoration: InputDecoration(
-                        hintText:
-                            'Escreva uma descrição sobre você...',
-                        hintStyle: const TextStyle(
-                          color: Color(0xFFB0A9AD),
-                          fontSize: 14,
-                        ),
-                        filled: true,
-                        fillColor:
-                            const Color(0xFFFFF7FA),
-                        contentPadding:
-                            const EdgeInsets.all(16),
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(17),
-                          borderSide:
-                              const BorderSide(
-                            color:
-                                Color(0xFFF0E4E8),
-                          ),
-                        ),
-                        enabledBorder:
-                            OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(17),
-                          borderSide:
-                              const BorderSide(
-                            color:
-                                Color(0xFFF0E4E8),
-                          ),
-                        ),
-                        focusedBorder:
-                            OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(17),
-                          borderSide:
-                              const BorderSide(
-                            color:
-                                Color(0xFFEF3F7A),
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _salvando
-                            ? null
-                            : () async {
-                                setModalState(() {
-                                  _salvando = true;
-                                });
-
-                                await _salvarBio();
-
-                                if (mounted) {
-                                  setModalState(() {
-                                    _salvando = false;
-                                  });
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xFFEF3F7A),
-                          disabledBackgroundColor:
-                              const Color(0xFFFFB5C8),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape:
-                              RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(17),
-                          ),
-                        ),
-                        child: _salvando
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child:
-                                    CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Salvar alterações',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight:
-                                      FontWeight.w700,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
   }
-
-
 
   String _tipoUsuario(String tipo) {
     switch (tipo) {
@@ -554,12 +382,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
-
-
   String _montarUrlImagem(String? caminho) {
-    if (caminho == null || caminho.isEmpty) {
-      return '';
-    }
+    if (caminho == null || caminho.isEmpty) return '';
 
     if (caminho.startsWith('http://') ||
         caminho.startsWith('https://')) {
@@ -573,73 +397,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     return '${ApiConstants.baseUrl}/$caminho';
   }
 
-
-  Widget _fotoPerfil() {
-    final url = _montarUrlImagem(
-      _usuario?.fotoPerfil,
-    );
-
-    Widget foto;
-
-    if (url.isNotEmpty) {
-      foto = Image.network(
-        url,
-        width: 112,
-        height: 112,
-        fit: BoxFit.cover,
-        errorBuilder: (
-          context,
-          error,
-          stackTrace,
-        ) {
-          return _fotoPadrao();
-        },
-        loadingBuilder: (
-          context,
-          child,
-          progresso,
-        ) {
-          if (progresso == null) {
-            return child;
-          }
-
-          return _fotoPadrao(
-            carregando: true,
-          );
-        },
-      );
-    } else {
-      foto = _fotoPadrao();
-    }
-
-    return ClipOval(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          foto,
-          if (_uploadandoImagem)
-            Container(
-              width: 112,
-              height: 112,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.45),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _fotoPadrao({
-    bool carregando = false,
-  }) {
+  Widget _fotoPadrao({bool carregando = false}) {
     return Container(
       width: 112,
       height: 112,
@@ -669,70 +427,47 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
+  Widget _fotoPerfil() {
+    final url = _montarUrlImagem(_usuario?.fotoPerfil);
 
-  Widget _template() {
-    final url = _montarUrlImagem(
-      _usuario?.template,
-    );
+    Widget foto = url.isEmpty
+        ? _fotoPadrao()
+        : Image.network(
+            url,
+            width: 112,
+            height: 112,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _fotoPadrao();
+            },
+            loadingBuilder: (context, child, progresso) {
+              if (progresso == null) return child;
+              return _fotoPadrao(carregando: true);
+            },
+          );
 
-    Widget template;
-
-    if (url.isNotEmpty) {
-      template = Image.network(
-        url,
-        width: double.infinity,
-        height: 190,
-        fit: BoxFit.cover,
-        errorBuilder: (
-          context,
-          error,
-          stackTrace,
-        ) {
-          return _templatePadrao();
-        },
-      );
-    } else {
-      template = _templatePadrao();
-    }
-
-    return Stack(
-      children: [
-        template,
-        if (_uploadandoImagem)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.35),
+    return ClipOval(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          foto,
+          if (_uploadandoImagem)
+            Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withOpacity(0.45),
+              ),
               child: const Center(
                 child: CircularProgressIndicator(
-                  color: Colors.white,
                   strokeWidth: 2.5,
+                  color: Colors.white,
                 ),
               ),
             ),
-          ),
-        Positioned(
-          right: 14,
-          bottom: 14,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.55),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              onPressed:
-                  _uploadandoImagem
-                      ? null
-                      : _selecionarTemplate,
-              icon: const Icon(
-                Icons.camera_alt_outlined,
-                color: Colors.white,
-                size: 21,
-              ),
-              tooltip: 'Alterar template',
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -761,8 +496,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                    Colors.white.withOpacity(0.12),
+                color: Colors.white.withOpacity(0.12),
               ),
             ),
           ),
@@ -774,8 +508,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                    Colors.white.withOpacity(0.10),
+                color: Colors.white.withOpacity(0.10),
               ),
             ),
           ),
@@ -784,61 +517,139 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
+  Widget _template() {
+    final url = _montarUrlImagem(_usuario?.template);
+
+    final template = url.isEmpty
+        ? _templatePadrao()
+        : Image.network(
+            url,
+            width: double.infinity,
+            height: 190,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _templatePadrao();
+            },
+          );
+
+    return Stack(
+      children: [
+        template,
+        if (_uploadandoImagem)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.35),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ),
+          ),
+        if (_ehMeuPerfil)
+          Positioned(
+            right: 14,
+            bottom: 14,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.55),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: _uploadandoImagem
+                    ? null
+                    : _selecionarTemplate,
+                icon: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: Colors.white,
+                  size: 21,
+                ),
+                tooltip: 'Alterar template',
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   Widget _informacaoCard({
     required String numero,
     required String titulo,
     required IconData icone,
+    required VoidCallback onTap,
   }) {
     return Expanded(
-      child: Container(
-        height: 100,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 12,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(19),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(19),
-          border: Border.all(
-            color: const Color(0xFFF1E7EA),
+          child: Container(
+            height: 100,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(
+                color: const Color(0xFFF1E7EA),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.045),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icone,
+                  color: const Color(0xFFEF3F7A),
+                  size: 21,
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  numero,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF18213D),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  titulo,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    color: Color(0xFF817980),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.045),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
-            ),
-          ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icone,
-              color: const Color(0xFFEF3F7A),
-              size: 21,
-            ),
-            const SizedBox(height: 5),
-            Text(
-              numero,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF18213D),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              titulo,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10.5,
-                color: Color(0xFF817980),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+      ),
+    );
+  }
+
+  void _abrirAtividades(TipoAtividadePerfil tipo) {
+    if (_usuario == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AtividadesPerfilScreen(
+          usuarioId: _usuario!.id,
+          tipo: tipo,
         ),
       ),
     );
@@ -847,9 +658,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Widget _cardsEstatisticas() {
     final future = _estatisticasFuture;
 
-    if (future == null) {
-      return const SizedBox.shrink();
-    }
+    if (future == null) return const SizedBox.shrink();
 
     return FutureBuilder<_EstatisticasPerfil>(
       future: future,
@@ -859,24 +668,30 @@ class _PerfilScreenState extends State<PerfilScreen> {
         return Row(
           children: [
             _informacaoCard(
-              numero:
-                  estatisticas?.noticias.toString() ?? '...',
+              numero: estatisticas?.noticias.toString() ?? '...',
               titulo: 'Notícias',
               icone: Icons.newspaper_outlined,
+              onTap: () {
+                _abrirAtividades(TipoAtividadePerfil.noticias);
+              },
             ),
             const SizedBox(width: 10),
             _informacaoCard(
-              numero:
-                  estatisticas?.publicacoes.toString() ?? '...',
+              numero: estatisticas?.publicacoes.toString() ?? '...',
               titulo: 'Publicações',
               icone: Icons.article_outlined,
+              onTap: () {
+                _abrirAtividades(TipoAtividadePerfil.publicacoes);
+              },
             ),
             const SizedBox(width: 10),
             _informacaoCard(
-              numero:
-                  estatisticas?.curtidas.toString() ?? '...',
-              titulo: 'Curtidas',
+              numero: estatisticas?.curtidas.toString() ?? '...',
+              titulo: 'Curtidas feitas',
               icone: Icons.favorite_border,
+              onTap: () {
+                _abrirAtividades(TipoAtividadePerfil.curtidas);
+              },
             ),
           ],
         );
@@ -899,26 +714,16 @@ class _PerfilScreenState extends State<PerfilScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE6ED),
-                  borderRadius:
-                      BorderRadius.circular(22),
-                ),
-                child: const Icon(
-                  Icons.error_outline,
-                  size: 35,
-                  color: AppColors.error,
-                ),
+              const Icon(
+                Icons.error_outline,
+                size: 45,
+                color: AppColors.error,
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               const Text(
-                'Não foi possível carregar seu perfil',
+                'Não foi possível carregar o perfil',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 17,
@@ -931,34 +736,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 _erro!,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 13,
                   color: Color(0xFF817980),
                 ),
               ),
               const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: _carregarPerfil,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      const Color(0xFFEF3F7A),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 13,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  'Tentar novamente',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: const Text('Tentar novamente'),
               ),
             ],
           ),
@@ -985,7 +769,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
             alignment: Alignment.center,
             children: [
               GestureDetector(
-                onTap: _uploadandoImagem
+                onTap: !_ehMeuPerfil || _uploadandoImagem
                     ? null
                     : _selecionarTemplate,
                 child: _template(),
@@ -993,7 +777,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               Positioned(
                 bottom: -57,
                 child: GestureDetector(
-                  onTap: _uploadandoImagem
+                  onTap: !_ehMeuPerfil || _uploadandoImagem
                       ? null
                       : _selecionarFotoPerfil,
                   child: Container(
@@ -1005,10 +789,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              Colors.black.withOpacity(
-                            0.16,
-                          ),
+                          color: Colors.black.withOpacity(0.16),
                           blurRadius: 16,
                           offset: const Offset(0, 7),
                         ),
@@ -1022,9 +803,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
           ),
           const SizedBox(height: 73),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
                 Text(
@@ -1039,8 +818,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 const SizedBox(height: 7),
                 if (empresa != null)
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
                         Icons.business_outlined,
@@ -1052,8 +830,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         child: Text(
                           empresa['nome']?.toString() ?? '',
                           textAlign: TextAlign.center,
-                          overflow:
-                              TextOverflow.ellipsis,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -1065,43 +842,35 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   ),
                 const SizedBox(height: 16),
                 Container(
-                  constraints: const BoxConstraints(
-                    maxWidth: 340,
-                  ),
-                  child:
-                      ((_usuario!.bio ?? '').isNotEmpty)
-                          ? Text(
-                              _usuario!.bio!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                height: 1.5,
-                                color:
-                                    Color(0xFF817980),
-                              ),
-                            )
-                          : const Text(
-                              'Este usuário ainda não adicionou uma bio.',
-                              textAlign:
-                                  TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color:
-                                    Color(0xFFAAA3A8),
-                              ),
-                            ),
+                  constraints: const BoxConstraints(maxWidth: 340),
+                  child: (_usuario!.bio ?? '').isNotEmpty
+                      ? Text(
+                          _usuario!.bio!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
+                            color: Color(0xFF817980),
+                          ),
+                        )
+                      : const Text(
+                          'Este usuário ainda não adicionou uma bio.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFFAAA3A8),
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFE4EC),
-                    borderRadius:
-                        BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(30),
                   ),
                   child: Text(
                     _tipoUsuario(_usuario!.tipo),
@@ -1115,34 +884,33 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 const SizedBox(height: 24),
                 _cardsEstatisticas(),
                 const SizedBox(height: 22),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: _abrirEdicao,
-                    icon: const Icon(
-                      Icons.edit_outlined,
-                      size: 20,
-                    ),
-                    label: const Text(
-                      'Editar Perfil',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                if (_ehMeuPerfil)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: _abrirEdicao,
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        size: 20,
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFFEF3F7A),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(17),
+                      label: const Text(
+                        'Editar Perfil',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF3F7A),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(17),
+                        ),
                       ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 35),
               ],
             ),
@@ -1152,16 +920,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8FA),
       appBar: AppBar(
-        title: const Text(
-          'Meu Perfil',
-          style: TextStyle(
+        title: Text(
+          _ehMeuPerfil ? 'Meu Perfil' : 'Perfil',
+          style: const TextStyle(
             fontSize: 19,
             fontWeight: FontWeight.w700,
           ),
@@ -1175,8 +941,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 }
-
-
 
 class _EstatisticasPerfil {
   final int noticias;

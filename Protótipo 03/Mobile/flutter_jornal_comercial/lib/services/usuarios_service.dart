@@ -11,64 +11,65 @@ class UsuarioService {
   final ApiService _apiService = ApiService();
 
   Future<int> _obterUsuarioId() async {
-    final prefs = await SharedPreferences.getInstance();
+    final preferencias = await SharedPreferences.getInstance();
 
-    final usuarioId = prefs.getInt('usuarioId');
+    final usuarioIdSalvo = preferencias.getInt('usuarioId');
 
-    if (usuarioId != null) {
-      return usuarioId;
+    if (usuarioIdSalvo != null) {
+      return usuarioIdSalvo;
     }
 
-    final token = prefs.getString('token');
+    final token = preferencias.getString('token');
 
     if (token == null || token.isEmpty) {
-      throw Exception('Usuário não está logado.');
-    }
-
-    final partes = token.split('.');
-
-    if (partes.length != 3) {
-      throw Exception('Token inválido.');
+      throw Exception('Usuário não autenticado.');
     }
 
     try {
-      final payload = partes[1];
+      final partes = token.split('.');
 
-      final normalizado = base64Url.normalize(payload);
+      if (partes.length != 3) {
+        throw Exception('Token inválido.');
+      }
 
-      final dados = jsonDecode(
-        utf8.decode(
-          base64Url.decode(normalizado),
+      final payload = utf8.decode(
+        base64Url.decode(
+          base64Url.normalize(partes[1]),
         ),
       );
 
-      final id = dados['id'];
+      final dados = jsonDecode(payload) as Map<String, dynamic>;
 
-      if (id == null) {
+      final id = dados['id'] ??
+          dados['usuarioId'] ??
+          dados['userId'] ??
+          dados['sub'];
+
+      final usuarioId = int.tryParse(id.toString());
+
+      if (usuarioId == null) {
         throw Exception(
-          'ID do usuário não encontrado no token.',
+          'Não foi possível identificar o usuário.',
         );
       }
 
-      final usuarioId =
-          id is int ? id : int.parse(id.toString());
-
-      await prefs.setInt(
-        'usuarioId',
-        usuarioId,
-      );
-
       return usuarioId;
-    } catch (e) {
+    } catch (_) {
       throw Exception(
-        'Não foi possível identificar o usuário.',
+        'Não foi possível identificar o usuário autenticado.',
       );
     }
   }
 
+  // Busca os dados do usuário que está conectado.
   Future<Usuario> buscarUsuarioLogado() async {
     final usuarioId = await _obterUsuarioId();
 
+    return buscarUsuarioPorId(usuarioId);
+  }
+
+  // Busca os dados de qualquer usuário pelo ID.
+  Future<Usuario> buscarUsuarioPorId(int usuarioId) async {
     final response = await _apiService.get(
       '${ApiConstants.usuarios}/buscar/$usuarioId',
     );
@@ -84,6 +85,7 @@ class UsuarioService {
     );
   }
 
+  // Atualiza os dados do usuário.
   Future<Usuario> atualizarUsuario({
     required int usuarioId,
     String? bio,
@@ -100,31 +102,16 @@ class UsuarioService {
     );
 
     if (response is! Map) {
-      throw Exception(
-        'Formato de resposta da atualização não reconhecido.',
-      );
-    }
-
-    final usuario = response['usuario'];
-
-    if (usuario is! Map) {
-      throw Exception(
-        'Usuário atualizado não encontrado na resposta.',
-      );
+      return buscarUsuarioPorId(usuarioId);
     }
 
     return Usuario.fromJson(
-      Map<String, dynamic>.from(usuario),
+      Map<String, dynamic>.from(response),
     );
   }
 
-  // ============================================================
-  // ATUALIZAR FOTO DE PERFIL
-  // ============================================================
-
-  Future<void> atualizarFoto(
-    XFile arquivo,
-  ) async {
+  // Atualiza a foto de perfil do usuário conectado.
+  Future<void> atualizarFoto(XFile arquivo) async {
     final bytes = await arquivo.readAsBytes();
 
     await _apiService.uploadArquivo(
@@ -134,10 +121,7 @@ class UsuarioService {
     );
   }
 
-  // ============================================================
-  // ATUALIZAR TEMPLATE
-  // ============================================================
-
+  // Atualiza o template do perfil.
   Future<void> atualizarTemplate(
     int usuarioId,
     XFile arquivo,

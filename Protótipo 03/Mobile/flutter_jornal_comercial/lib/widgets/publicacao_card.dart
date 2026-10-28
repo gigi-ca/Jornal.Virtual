@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -5,6 +6,7 @@ import '../core/constants/api_constants.dart';
 import '../core/theme/app_colors.dart';
 import '../models/publicacao.dart';
 import '../services/publicacao_service.dart';
+import '../screens/perfil/perfil_screen.dart';
 import 'comentarios_modal.dart';
 
 class PublicacaoCard extends StatefulWidget {
@@ -32,9 +34,9 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
   bool _carregandoCurtida = false;
   bool _excluindoPublicacao = false;
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
 
     _quantidadeCurtidas = widget.publicacao.quantidadeCurtidas;
 
@@ -42,13 +44,124 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
         widget.publicacao.curtidaPorUsuario(widget.usuarioId!);
   }
 
+  @override
+  void didUpdateWidget(covariant PublicacaoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.publicacao.id != widget.publicacao.id) {
+      _quantidadeCurtidas = widget.publicacao.quantidadeCurtidas;
+
+      _curtida = widget.usuarioId != null &&
+          widget.publicacao.curtidaPorUsuario(widget.usuarioId!);
+    }
+  }
+
+  int? _idAutor() {
+    final autor = widget.publicacao.autor;
+
+    if (autor == null) return null;
+
+    final id = autor['id'] ??
+        autor['usuarioId'] ??
+        autor['usuario_id'];
+
+    if (id is int) return id;
+
+    return int.tryParse(id?.toString() ?? '');
+  }
+
   bool get _ehDonoPublicacao {
-    if (widget.usuarioId == null) return false;
+    final idAutor = _idAutor();
 
-    final idAutor = widget.publicacao.autor?['id'];
+    return widget.usuarioId != null &&
+        idAutor != null &&
+        idAutor == widget.usuarioId;
+  }
 
-    return idAutor != null &&
-        idAutor.toString() == widget.usuarioId.toString();
+  String _nomeAutor() {
+    return widget.publicacao.autor?['nome']?.toString() ?? 'Usuário';
+  }
+
+  void _abrirPerfilAutor() {
+    final id = _idAutor();
+
+    debugPrint('Autor da publicação: ${widget.publicacao.autor}');
+    debugPrint('ID identificado: $id');
+
+    if (id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Não foi possível identificar o autor desta publicação.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PerfilScreen(usuarioId: id),
+      ),
+    );
+  }
+
+  String _tipoAutor() {
+    final tipo = widget.publicacao.autor?['tipo'];
+
+    switch (tipo) {
+      case 'ADMINISTRADOR':
+        return 'Administrador';
+      case 'VERIFICADO':
+        return 'Verificado';
+      default:
+        return 'Aluno';
+    }
+  }
+
+  String? _fotoAutor() {
+    final foto = widget.publicacao.autor?['fotoPerfil'];
+
+    if (foto == null || foto.toString().isEmpty) {
+      return null;
+    }
+
+    final fotoString = foto.toString();
+
+    if (fotoString.startsWith('http://') ||
+        fotoString.startsWith('https://')) {
+      return fotoString;
+    }
+
+    if (fotoString.startsWith('/')) {
+      return '${ApiConstants.baseUrl}$fotoString';
+    }
+
+    return '${ApiConstants.baseUrl}/$fotoString';
+  }
+
+  String _formatarData(DateTime data) {
+    final diferenca = DateTime.now().difference(data);
+
+    if (diferenca.inSeconds < 60) {
+      return 'agora';
+    }
+
+    if (diferenca.inMinutes < 60) {
+      return 'há ${diferenca.inMinutes} min';
+    }
+
+    if (diferenca.inHours < 24) {
+      return 'há ${diferenca.inHours} h';
+    }
+
+    if (diferenca.inDays < 7) {
+      return 'há ${diferenca.inDays} d';
+    }
+
+    return '${data.day.toString().padLeft(2, '0')}/'
+        '${data.month.toString().padLeft(2, '0')}/'
+        '${data.year}';
   }
 
   Future<void> _excluirPublicacao() async {
@@ -147,6 +260,8 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
           _quantidadeCurtidas++;
         });
       }
+
+      widget.atualizar?.call();
     } catch (e) {
       if (!mounted) return;
 
@@ -166,64 +281,6 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
     }
   }
 
-  String _formatarData(DateTime data) {
-    final agora = DateTime.now();
-    final diferenca = agora.difference(data);
-
-    if (diferenca.inSeconds < 60) {
-      return 'agora';
-    }
-
-    if (diferenca.inMinutes < 60) {
-      return 'há ${diferenca.inMinutes} min';
-    }
-
-    if (diferenca.inHours < 24) {
-      return 'há ${diferenca.inHours} h';
-    }
-
-    if (diferenca.inDays < 7) {
-      return 'há ${diferenca.inDays} d';
-    }
-
-    return '${data.day.toString().padLeft(2, '0')}/'
-        '${data.month.toString().padLeft(2, '0')}/'
-        '${data.year}';
-  }
-
-  String _nomeAutor() {
-    return widget.publicacao.autor?['nome'] ?? 'Usuário';
-  }
-
-  String _tipoAutor() {
-    final tipo = widget.publicacao.autor?['tipo'];
-
-    switch (tipo) {
-      case 'ADMINISTRADOR':
-        return 'Administrador';
-      case 'VERIFICADO':
-        return 'Verificado';
-      default:
-        return 'Aluno';
-    }
-  }
-
-  String? _fotoAutor() {
-    final foto = widget.publicacao.autor?['fotoPerfil'];
-
-    if (foto == null || foto.toString().isEmpty) {
-      return null;
-    }
-
-    final fotoString = foto.toString();
-
-    if (fotoString.startsWith('http')) {
-      return fotoString;
-    }
-
-    return '${ApiConstants.baseUrl}/$fotoString';
-  }
-
   String _urlMidia(dynamic midia) {
     if (midia is! Map) return '';
 
@@ -231,8 +288,13 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
 
     if (path.isEmpty) return '';
 
-    if (path.startsWith('http')) {
+    if (path.startsWith('http://') ||
+        path.startsWith('https://')) {
       return path;
+    }
+
+    if (path.startsWith('/')) {
+      return '${ApiConstants.baseUrl}$path';
     }
 
     return '${ApiConstants.baseUrl}/$path';
@@ -341,7 +403,7 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -352,27 +414,37 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 23,
-                backgroundColor: const Color(0xFFF4D5E2),
-                backgroundImage: foto != null ? NetworkImage(foto) : null,
-                child: foto == null
-                    ? const Icon(
-                        Icons.person,
-                        color: Color(0xFFC92768),
-                      )
-                    : null,
+              InkWell(
+                onTap: _abrirPerfilAutor,
+                customBorder: const CircleBorder(),
+                child: CircleAvatar(
+                  radius: 23,
+                  backgroundColor: const Color(0xFFF4D5E2),
+                  backgroundImage: foto != null
+                      ? NetworkImage(foto)
+                      : null,
+                  child: foto == null
+                      ? const Icon(
+                          Icons.person,
+                          color: Color(0xFFC92768),
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _nomeAutor(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                    InkWell(
+                      onTap: _abrirPerfilAutor,
+                      child: Text(
+                        _nomeAutor(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color(0xFF18213D),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -387,8 +459,6 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                   ],
                 ),
               ),
-
-              // O menu de exclusão aparece somente para o dono.
               if (_ehDonoPublicacao)
                 PopupMenuButton<String>(
                   tooltip: 'Opções da publicação',
@@ -449,7 +519,7 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: widget.publicacao.hashtags.map((hashtag) {
+              children: widget.publicacao.hashtags.map<Widget>((hashtag) {
                 if (hashtag is! Map) {
                   return const SizedBox.shrink();
                 }
@@ -490,7 +560,9 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                   child: Row(
                     children: [
                       Icon(
-                        _curtida ? Icons.favorite : Icons.favorite_border,
+                        _curtida
+                            ? Icons.favorite
+                            : Icons.favorite_border,
                         size: 21,
                         color: _curtida
                             ? const Color(0xFFE83272)
@@ -513,7 +585,7 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
               const SizedBox(width: 8),
               InkWell(
                 onTap: () async {
-                  await showModalBottomSheet(
+                  await showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -523,6 +595,7 @@ class _PublicacaoCardState extends State<PublicacaoCard> {
                   );
 
                   if (!mounted) return;
+
                   widget.atualizar?.call();
                 },
                 borderRadius: BorderRadius.circular(30),
@@ -589,7 +662,9 @@ class _VideoPublicacaoState extends State<_VideoPublicacao> {
       if (!mounted) return;
 
       setState(() {});
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Erro ao carregar vídeo: $e');
+
       if (!mounted) return;
 
       setState(() {});
