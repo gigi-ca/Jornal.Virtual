@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../core/constants/api_constants.dart';
@@ -9,6 +8,7 @@ import '../configuracoes/config.dart';
 import '../noticia/noticia_detalhes_screen.dart';
 import '../feed/feed_screen.dart';
 import '../perfil/perfil_screen.dart';
+import '../../services/notificacao_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,10 +25,69 @@ class _HomeScreenState extends State<HomeScreen> {
   String _termoBusca = '';
   late Future<List<Noticia>> _noticiasFuture;
 
+  Future<void> _ativarNotificacoes() async {
+    if (_notificacoesAtivas) {
+      await NotificacaoService.definirNotificacoesAtivas(false);
+
+      if (!mounted) return;
+
+      setState(() {
+        _notificacoesAtivas = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notificações desativadas.')),
+      );
+
+      return;
+    }
+
+    final permitido = await NotificacaoService.solicitarPermissao();
+
+    if (!permitido) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Permita as notificações para receber avisos do Jornal Virtual.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    await NotificacaoService.definirNotificacoesAtivas(true);
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificacoesAtivas = true;
+    });
+
+    await NotificacaoService.mostrar(
+      id: 0,
+      titulo: 'Jornal Virtual',
+      mensagem: 'Notificações ativadas com sucesso!',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _carregarNoticias();
+    _carregarPreferenciaNotificacoes();
+  }
+
+  Future<void> _carregarPreferenciaNotificacoes() async {
+    final ativo = await NotificacaoService.notificacoesEstaoAtivas();
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificacoesAtivas = ativo;
+    });
   }
 
   @override
@@ -38,7 +97,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _carregarNoticias() {
-    _noticiasFuture = _newsService.listarNoticias();
+    _noticiasFuture = _newsService.listarNoticias().then((noticias) async {
+      await NotificacaoService.verificarNovasNoticias(noticias);
+      return noticias;
+    });
   }
 
   Future<void> _atualizarNoticias() async {
@@ -60,8 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final titulo = noticia.titulo.toLowerCase();
       final subtitulo = noticia.subtitulo?.toLowerCase() ?? '';
       final texto = noticia.texto.toLowerCase();
-      final autor =
-          noticia.autor?['nome']?.toString().toLowerCase() ?? '';
+      final autor = noticia.autor?['nome']?.toString().toLowerCase() ?? '';
 
       return titulo.contains(termo) ||
           subtitulo.contains(termo) ||
@@ -115,9 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
 
                           if (noticias.isEmpty) {
-                            return _buildEmpty(
-                              'Nenhuma notícia cadastrada.',
-                            );
+                            return _buildEmpty('Nenhuma notícia cadastrada.');
                           }
 
                           return Column(
@@ -189,16 +248,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const Spacer(),
         GestureDetector(
-          onTap: () {
-            setState(() {
-              _notificacoesAtivas = !_notificacoesAtivas;
-            });
-          },
+          onTap: _ativarNotificacoes,
           child: TweenAnimationBuilder<double>(
-            tween: Tween(
-              begin: 0,
-              end: _notificacoesAtivas ? 1 : 0,
-            ),
+            tween: Tween(begin: 0, end: _notificacoesAtivas ? 1 : 0),
             duration: const Duration(milliseconds: 450),
             curve: Curves.easeOutBack,
             builder: (context, value, child) {
@@ -264,10 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _termoBusca = valor;
                 });
               },
-              style: const TextStyle(
-                color: AppColors.text,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: AppColors.text, fontSize: 14),
               cursorColor: AppColors.primary,
               decoration: const InputDecoration(
                 border: InputBorder.none,
@@ -297,11 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 20,
                     ),
                   )
-                : const SizedBox(
-                    key: ValueKey('vazio'),
-                    width: 20,
-                    height: 20,
-                  ),
+                : const SizedBox(key: ValueKey('vazio'), width: 20, height: 20),
           ),
         ],
       ),
@@ -330,12 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            height: 1,
-            color: AppColors.border,
-          ),
-        ),
+        Expanded(child: Container(height: 1, color: AppColors.border)),
       ],
     );
   }
@@ -348,8 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                NoticiaDetalhesScreen(noticia: noticia),
+            builder: (context) => NoticiaDetalhesScreen(noticia: noticia),
           ),
         );
       },
@@ -378,10 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(
-                      imagem,
-                      fit: BoxFit.cover,
-                    ),
+                    Image.network(imagem, fit: BoxFit.cover),
                     Positioned(
                       left: 15,
                       top: 15,
@@ -485,16 +521,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNewsList(List<Noticia> noticias) {
-    final ultimasNoticias =
-        noticias.length > 1 ? noticias.sublist(1) : <Noticia>[];
+    final ultimasNoticias = noticias.length > 1
+        ? noticias.sublist(1)
+        : <Noticia>[];
 
     if (ultimasNoticias.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 18,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -502,10 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: const Text(
           'Não há outras notícias no momento.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-          ),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
       );
     }
@@ -528,8 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                NoticiaDetalhesScreen(noticia: noticia),
+            builder: (context) => NoticiaDetalhesScreen(noticia: noticia),
           ),
         );
       },
@@ -558,10 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  top: 3,
-                  right: 2,
-                ),
+                padding: const EdgeInsets.only(top: 3, right: 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -613,9 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    NoticiaDetalhesScreen(
-                                  noticia: noticia,
-                                ),
+                                    NoticiaDetalhesScreen(noticia: noticia),
                               ),
                             );
                           },
@@ -649,10 +674,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (noticias.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 26,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(17),
@@ -719,8 +741,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final caminho = path.toString();
 
-    if (caminho.startsWith('http://') ||
-        caminho.startsWith('https://')) {
+    if (caminho.startsWith('http://') || caminho.startsWith('https://')) {
       return caminho;
     }
 
@@ -742,9 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border.all(color: AppColors.border),
           ),
           child: const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.primary,
-            ),
+            child: CircularProgressIndicator(color: AppColors.primary),
           ),
         ),
         const SizedBox(height: 32),
@@ -769,9 +788,7 @@ class _HomeScreenState extends State<HomeScreen> {
               border: Border.all(color: AppColors.border),
             ),
             child: const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
+              child: CircularProgressIndicator(color: AppColors.primary),
             ),
           ),
         );
@@ -806,11 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _carregarNoticias();
-              });
-            },
+            onPressed: _atualizarNoticias,
             child: const Text(
               'Tentar novamente',
               style: TextStyle(
@@ -836,10 +849,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Text(
         mensagem,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 13,
-        ),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
       ),
     );
   }
@@ -878,9 +888,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 76,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.border),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
@@ -899,9 +907,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const FeedScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const FeedScreen()),
                 );
               },
               child: const _NavigationItem(
@@ -918,9 +924,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const PerfilScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const PerfilScreen()),
                 );
               },
               child: const _NavigationItem(
@@ -937,9 +941,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ConfigScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ConfigScreen()),
                 );
               },
               child: const _NavigationItem(
@@ -971,14 +973,9 @@ class _NavigationItem extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
-      margin: const EdgeInsets.symmetric(
-        horizontal: 6,
-        vertical: 7,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
       decoration: BoxDecoration(
-        color: selected
-            ? AppColors.primaryLight
-            : Colors.transparent,
+        color: selected ? AppColors.primaryLight : Colors.transparent,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
@@ -990,9 +987,7 @@ class _NavigationItem extends StatelessWidget {
             child: Icon(
               icon,
               size: 23,
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -1001,12 +996,8 @@ class _NavigationItem extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 10,
-              fontWeight: selected
-                  ? FontWeight.w700
-                  : FontWeight.w500,
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
             ),
           ),
         ],

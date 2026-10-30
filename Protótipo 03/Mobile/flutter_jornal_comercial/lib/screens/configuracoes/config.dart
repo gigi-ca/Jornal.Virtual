@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/historico_noticias_service.dart';
 import '../auth/login_screen.dart';
 import '../noticia/noticia_detalhes_screen.dart';
+import '../../services/notificacao_service.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -16,9 +17,9 @@ class ConfigScreen extends StatefulWidget {
 
 class _ConfigScreenState extends State<ConfigScreen> {
   final AuthService _authService = AuthService();
-  final HistoricoNoticiasService _historicoService =
-      HistoricoNoticiasService();
+  final HistoricoNoticiasService _historicoService = HistoricoNoticiasService();
 
+  bool _notificacoesAtivas = false;
   String? _email;
   List<Noticia> _historico = [];
   bool _carregando = true;
@@ -27,6 +28,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
   void initState() {
     super.initState();
     _carregarDados();
+    _carregarPreferenciaNotificacoes();
+  }
+
+  Future<void> _carregarPreferenciaNotificacoes() async {
+    final ativo = await NotificacaoService.notificacoesEstaoAtivas();
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificacoesAtivas = ativo;
+    });
   }
 
   Future<void> _carregarDados() async {
@@ -49,9 +61,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
     );
   }
@@ -81,8 +91,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
     final caminho = path.toString();
 
-    if (caminho.startsWith('http://') ||
-        caminho.startsWith('https://')) {
+    if (caminho.startsWith('http://') || caminho.startsWith('https://')) {
       return caminho;
     }
 
@@ -113,6 +122,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
                           _buildSectionTitle('Minha conta'),
                           const SizedBox(height: 16),
                           _buildConta(),
+                          const SizedBox(height: 30),
+                          _buildSectionTitle('Preferências'),
+                          const SizedBox(height: 16),
+                          _buildPreferencias(),
                           const SizedBox(height: 34),
                           _buildSectionTitle('Histórico'),
                           const SizedBox(height: 5),
@@ -197,15 +210,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
   Widget _buildConta() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -215,10 +223,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             titulo: 'E-mail',
             valor: _email ?? 'E-mail não encontrado',
           ),
-          Container(
-            height: 1,
-            color: AppColors.borderLight,
-          ),
+          Container(height: 1, color: AppColors.borderLight),
           _buildInformacaoConta(
             icone: Icons.lock_outline_rounded,
             titulo: 'Senha',
@@ -227,6 +232,71 @@ class _ConfigScreenState extends State<ConfigScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildPreferencias() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: SwitchListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        secondary: const Icon(
+          Icons.notifications_none_rounded,
+          color: AppColors.primary,
+          size: 21,
+        ),
+        title: const Text(
+          'Notificações',
+          style: TextStyle(
+            color: AppColors.text,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(
+          _notificacoesAtivas
+              ? 'Receber avisos sobre novas notícias'
+              : 'Notificações desativadas',
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+        ),
+        activeTrackColor: AppColors.primary,
+        value: _notificacoesAtivas,
+        onChanged: _alterarNotificacoes,
+      ),
+    );
+  }
+
+  Future<void> _alterarNotificacoes(bool ativo) async {
+    if (ativo) {
+      final permitido = await NotificacaoService.solicitarPermissao();
+
+      if (!permitido) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Permita as notificações para receber avisos do Jornal Virtual.',
+            ),
+          ),
+        );
+
+        return;
+      }
+    }
+
+    await NotificacaoService.definirNotificacoesAtivas(ativo);
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificacoesAtivas = ativo;
+    });
   }
 
   Widget _buildInformacaoConta({
@@ -238,11 +308,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
       padding: const EdgeInsets.symmetric(vertical: 17),
       child: Row(
         children: [
-          Icon(
-            icone,
-            color: AppColors.primary,
-            size: 21,
-          ),
+          Icon(icone, color: AppColors.primary, size: 21),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -279,32 +345,20 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (_historico.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 30,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          border: Border.all(
-            color: AppColors.border,
-          ),
+          border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Column(
           children: [
-            Icon(
-              Icons.history_rounded,
-              color: AppColors.textLight,
-              size: 30,
-            ),
+            Icon(Icons.history_rounded, color: AppColors.textLight, size: 30),
             SizedBox(height: 10),
             Text(
               'Nenhuma notícia visualizada ainda.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
           ],
         ),
@@ -331,23 +385,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NoticiaDetalhesScreen(
-                noticia: noticia,
-              ),
+              builder: (context) => NoticiaDetalhesScreen(noticia: noticia),
             ),
           );
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: 12,
-            horizontal: 2,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
           decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: AppColors.border,
-              ),
-            ),
+            border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -416,22 +461,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
       height: 48,
       child: OutlinedButton.icon(
         onPressed: _sair,
-        icon: const Icon(
-          Icons.logout_rounded,
-          size: 19,
-        ),
+        icon: const Icon(Icons.logout_rounded, size: 19),
         label: const Text(
           'Sair da conta',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
-          side: const BorderSide(
-            color: AppColors.primary,
-          ),
+          side: const BorderSide(color: AppColors.primary),
           backgroundColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
